@@ -194,7 +194,7 @@ function clearSearch() {
     filterCards('');
 }
 
-// Main initialization
+// Main initialization and playAudio function (unchanged)
 async function initializeGallery() {
     try {
         const grid = document.getElementById('texture-grid');
@@ -286,28 +286,12 @@ async function initializeGallery() {
     }
 }
 
-// Audio playback function
 function playAudio(audioPath) {
     const audio = new Audio(audioPath);
     audio.play().catch(error => {
         console.error('Error playing audio:', error);
-        // Using a simple console log instead of alert to avoid blocking UI
-        console.warn('Failed to play audio file. Please check if the file exists and is accessible.');
+        alert('Failed to play audio file. Please check if the file exists and is accessible.');
     });
 }
 
-// Smooth scroll to top function
-function scrollToTop() {
-    window.scrollTo({
-        top: 0,
-        behavior: 'smooth'
-    });
-}
-
-// Add event listener to the back to top button
-document.addEventListener('DOMContentLoaded', () => {
-    const backToTopButton = document.getElementById('back-to-top-button');
-    if (backToTopButton) {
-        backToTopButton.addEventListener('click', scrollToTop);
-    }
-});
+document.addEventListener('DOMContentLoaded', initializeGallery);
