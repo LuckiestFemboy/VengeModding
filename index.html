@@ -5,9 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Venge - Texture Gallery</title>
     <link rel="stylesheet" href="asset-list-page.css">
+    <!-- Optional: Add Font Awesome for the play icon if you don't have it already -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
+    <!-- NEW: Loading message at the top -->
+    <div id="loading-message" style="text-align: center; padding: 1rem; background-color: rgba(0, 0, 0, 0.1); color: #f0f0f0; font-size: 0.9rem; border-bottom: 1px solid rgba(255, 255, 255, 0.05);">
+        Please be patient, textures may take a moment to load.
+    </div>
+
     <header>
         <h1>Modding Repository</h1>
         <div class="search-container">
@@ -19,8 +25,14 @@
 
     <main class="container" style="visibility: visible; opacity: 1;">
         <div id="texture-grid" style="visibility: visible; opacity: 1;">
-            </div>
+            <!-- Your JavaScript will dynamically populate this div with cards -->
+        </div>
     </main>
+
+    <!-- NEW: Back to Top button container -->
+    <div id="back-to-top-container">
+        <button id="back-to-top-button">Back to Top</button>
+    </div>
 
     <script src="asset-list-page.js"></script>
 </body>

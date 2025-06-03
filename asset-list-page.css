@@ -356,6 +356,34 @@ header h1 {
     transform: translateY(-1px);
 }
 
+/* NEW: Back to Top button styles */
+#back-to-top-container {
+    position: fixed; /* Stays in place when scrolling */
+    bottom: 20px; /* 20px from the bottom */
+    right: 20px; /* 20px from the right */
+    z-index: 1000; /* Ensure it's on top of other content */
+}
+
+#back-to-top-button {
+    background-color: rgba(108, 92, 231, 0.7); /* Semi-transparent purple */
+    color: white;
+    border: none;
+    padding: 0.6rem 1.2rem; /* Slightly larger padding */
+    font-size: 0.9rem; /* Readable font size */
+    border-radius: 8px; /* Rounded corners */
+    cursor: pointer;
+    opacity: 0.8; /* Slightly transparent by default */
+    transition: opacity 0.3s ease, background-color 0.3s ease; /* Smooth transitions */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+}
+
+#back-to-top-button:hover {
+    opacity: 1; /* Fully opaque on hover */
+    background-color: #6c5ce7; /* Solid purple on hover */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); /* More prominent shadow on hover */
+}
+
+
 /* Responsive design */
 @media (max-width: 768px) {
     #texture-grid {
@@ -375,9 +403,6 @@ header h1 {
         padding: 1rem;
     }
 
-    /* .media-container.mp3 and .texture-info.mp3 are removed for MP3s,
-       so their media queries are no longer relevant for MP3s */
-
     .container {
         padding: 1rem;
     }
@@ -388,6 +413,17 @@ header h1 {
 
     header h1 {
         font-size: 2rem;
+    }
+
+    /* Back to Top button adjustments for smaller screens */
+    #back-to-top-container {
+        bottom: 15px;
+        right: 15px;
+    }
+
+    #back-to-top-button {
+        padding: 0.5rem 1rem;
+        font-size: 0.8rem;
     }
 }
 
