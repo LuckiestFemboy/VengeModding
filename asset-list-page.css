@@ -1,0 +1,443 @@
+/* Reset and base styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background: #1a1a1a;
+    color: #ffffff;
+    line-height: 1.6;
+}
+
+/* Header styles */
+header {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 2rem;
+    text-align: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+header h1 {
+    font-size: 2.4rem;
+    margin-bottom: 0.5rem;
+    color: #ffffff;
+    text-shadow: 0 0 15px rgba(108, 92, 231, 0.2);
+}
+
+/* Search bar styles */
+.search-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1rem;
+    padding: 0 1rem;
+}
+
+.search-input {
+    width: 100%;
+    max-width: 400px;
+    padding: 0.8rem 1rem;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.05);
+    color: #ffffff;
+    font-size: 1rem;
+    outline: none;
+}
+
+.search-input::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.search-input:focus {
+    border-color: #6c5ce7;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.search-button {
+    padding: 0.8rem 1.5rem;
+    background: linear-gradient(135deg, #6c5ce7, #fd79a8);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.search-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.search-button.clear-button {
+    background: linear-gradient(135deg, #fd79a8, #6c5ce7);
+}
+
+/* Container styles */
+.container {
+    width: 100%;
+    max-width: 1800px;
+    margin: 0 auto;
+    padding: 2rem;
+    background: #1a1a1a;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Grid layout - Fixed to prevent overlapping */
+#texture-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 2rem;
+    padding: 2rem;
+    min-height: 100vh;
+    background: rgba(255, 255, 255, 0.02);
+    justify-content: center;
+    max-width: 100%;
+}
+
+/* Card styles - Base for all cards */
+.texture-card {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 380px;
+    height: 420px; /* Fixed height for consistent card size for non-MP3s */
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    transition: all 0.3s ease;
+    padding: 0;
+    margin: 0 auto;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    overflow: hidden; /* Keep hidden for non-MP3s */
+}
+
+.texture-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+    border-color: rgba(108, 92, 231, 0.3);
+}
+
+/* MP3-specific card styling (consolidated layout) */
+.texture-card.mp3 {
+    height: auto; /* Let content dictate height */
+    min-height: 220px; /* Minimum height for consolidated MP3 card */
+    max-height: none; /* Allow it to expand vertically */
+    display: flex;
+    flex-direction: column; /* Stack contents vertically */
+    align-items: center; /* Center items horizontally within the card */
+    justify-content: space-between; /* Push elements to top/bottom, space in between */
+    padding: 1rem; /* Overall internal padding for the card */
+    background: rgba(108, 92, 231, 0.15); /* A slightly stronger purple tint for the whole card */
+    border: 1px solid rgba(108, 92, 231, 0.25);
+    overflow: hidden; /* Re-enable overflow hidden for the main card */
+}
+
+/* Media container (for PNG/JPG cards) */
+.media-container {
+    width: 100%;
+    height: 250px;
+    border-radius: 16px 16px 0 0;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.03);
+    position: relative;
+    padding: 0;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.media-image {
+    max-width: 100%;
+    max-height: 100%;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Play icon (now direct child of .texture-card.mp3) */
+.media-icon {
+    font-size: 3rem; /* Make it a bit bigger as it's more central */
+    color: #6c5ce7;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-bottom: 0.75rem; /* Space below icon */
+    flex-shrink: 0; /* Don't shrink icon */
+}
+
+.media-icon:hover {
+    transform: scale(1.1);
+    color: #fd79a8;
+}
+
+/* Style for the MP3 filename displayed prominently on the card */
+.mp3-filename-display {
+    font-size: 1.1rem; /* Larger font */
+    color: #ffffff; /* White color for good contrast */
+    font-weight: 600; /* Bolder font */
+    text-align: center;
+    word-break: break-word; /* Allow long words to break */
+    white-space: normal; /* Ensure text wraps */
+    padding: 0 0.5rem; /* Horizontal padding */
+    flex-grow: 1; /* Allow it to take up available vertical space */
+    display: flex; /* Use flex to center text vertically if it's short */
+    align-items: center;
+    justify-content: center;
+    line-height: 1.4; /* Better line spacing for readability */
+    max-height: 5.6em; /* Max 4 lines (1.4em * 4 lines) before truncation */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    margin-bottom: 0.5rem; /* Space below filename */
+}
+
+/* Folder Number Button (now direct child of .texture-card.mp3) */
+.folder-number-button {
+    background: rgba(253, 121, 168, 0.2);
+    border: 1px solid rgba(253, 121, 168, 0.4);
+    color: #ffffff;
+    padding: 0.5rem 0.8rem; /* More padding */
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem; /* Slightly larger */
+    font-weight: 500;
+    text-align: center;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 80%; /* Don't let it stretch full width */
+    width: auto; /* Shrink to content if max-width permits */
+    margin-bottom: 1rem; /* Space before the buttons wrapper */
+    flex-shrink: 0; /* Don't shrink button */
+}
+
+.folder-number-button:hover {
+    background: rgba(253, 121, 168, 0.3);
+    border-color: rgba(253, 121, 168, 0.6);
+    transform: translateY(-1px);
+}
+
+/* Info section (for PNG/JPG cards) */
+.texture-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    width: 100%;
+    background: transparent;
+    border-radius: 0 0 16px 16px;
+    position: relative;
+    flex: 1;
+    justify-content: space-between;
+    overflow: hidden; /* Keep hidden for text info section */
+}
+
+/* File info section - Left side text content (within texture-info for PNG/JPG) */
+.file-info {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    justify-content: flex-start;
+    min-width: 0;
+    padding-bottom: 0.5rem;
+}
+
+/* Styles for texture-filename (only applies to PNG/JPG cards) */
+.texture-filename {
+    font-size: 0.9rem;
+    color: #ffffff;
+    font-weight: 500;
+    word-break: break-word;
+    line-height: 1.3;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+}
+
+.texture-name { /* This is for the folder name / Artist - Album (only for PNG/JPG) */
+    font-size: 0.8rem;
+    color: #6c5ce7;
+    font-weight: 400;
+    word-break: break-word;
+    line-height: 1.2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+/* Wrapper for MP3 action buttons (now direct child of .texture-card.mp3) */
+.mp3-buttons-wrapper {
+    display: flex;
+    flex-direction: column; /* Stack download and copy buttons vertically */
+    gap: 0.5rem;
+    width: 80%; /* Control button width relative to card */
+    margin-top: auto; /* Push wrapper to the bottom of the card */
+    align-items: center; /* Center buttons within wrapper */
+    flex-shrink: 0; /* Prevent wrapper from shrinking too much */
+}
+
+/* Download and Copy Folder buttons (now inside .mp3-buttons-wrapper) */
+.download-button,
+.copy-folder-button {
+    background: rgba(255, 255, 255, 0.15); /* Consistent with new card background */
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    color: #ffffff;
+    padding: 0.6rem 1rem; /* Slightly more padding */
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem; /* Slightly larger font */
+    width: 100%; /* Make them fill their wrapper */
+    transition: all 0.2s ease;
+    font-weight: 500;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.download-button:hover,
+.copy-folder-button:hover {
+    background: rgba(255, 255, 255, 0.25);
+    border-color: rgba(255, 255, 255, 0.4);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Adjustments for general buttons-container (for non-MP3 cards) */
+.buttons-container {
+    display: flex;
+    flex-direction: row;
+    gap: 0.5rem;
+    justify-content: flex-end;
+    flex-shrink: 0;
+}
+
+.buttons-container .download-button,
+.buttons-container .copy-button { /* Use .copy-button for non-MP3s */
+    background: rgba(108, 92, 231, 0.2);
+    border: 1px solid rgba(108, 92, 231, 0.4);
+    color: #ffffff;
+    padding: 0.5rem 0.6rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.75rem;
+    width: auto;
+    min-width: 70px;
+    transition: all 0.2s ease;
+    font-weight: 500;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.buttons-container .download-button:hover,
+.buttons-container .copy-button:hover {
+    background: rgba(108, 92, 231, 0.3);
+    border-color: rgba(108, 92, 231, 0.6);
+    transform: translateY(-1px);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    #texture-grid {
+        grid-template-columns: 1fr;
+        padding: 1rem;
+        gap: 1.5rem;
+    }
+
+    .texture-card {
+        max-width: 100%;
+        margin: 0;
+        height: auto; /* Allow all cards to adjust height on smaller screens */
+    }
+
+    .texture-card.mp3 {
+        min-height: 200px; /* Adjust min-height for small screens if needed */
+        padding: 1rem;
+    }
+
+    /* .media-container.mp3 and .texture-info.mp3 are removed for MP3s,
+       so their media queries are no longer relevant for MP3s */
+
+    .container {
+        padding: 1rem;
+    }
+
+    header {
+        padding: 1.5rem;
+    }
+
+    header h1 {
+        font-size: 2rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .search-container {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .search-input {
+        max-width: 100%;
+    }
+
+    /* MP3 specific buttons wrapper on smaller screens */
+    .mp3-buttons-wrapper {
+        width: 90%; /* Adjust width for smaller screens */
+    }
+
+    .download-button,
+    .copy-folder-button {
+        font-size: 0.8rem;
+    }
+
+    /* General buttons container for PNG/JPGs */
+    .buttons-container {
+        flex-direction: column; /* Stack buttons vertically for smaller cards */
+        width: 100%;
+        gap: 0.5rem;
+    }
+
+    .buttons-container .download-button,
+    .buttons-container .copy-button {
+        width: 100%; /* Make them fill the container */
+        min-width: unset;
+        font-size: 0.8rem;
+        padding: 0.6rem 0.8rem;
+    }
+
+    .media-icon {
+        font-size: 2.5rem; /* Slightly smaller icon on very small screens */
+    }
+
+    .mp3-filename-display {
+        font-size: 0.9rem; /* Slightly smaller text on very small screens */
+        max-height: 4.2em; /* Adjusted max lines for smaller font (1.4em * 3 lines) */
+        -webkit-line-clamp: 3;
+    }
+
+    .folder-number-button {
+        font-size: 0.8rem;
+        padding: 0.4rem 0.6rem;
+    }
+}
