@@ -1,77 +1,386 @@
 /* mod-builder.css */
 
-/* Inherit basic body styles for consistent look */
-body {
-    font-family: 'Inter', sans-serif;
-    background: #1a1a1a; /* Background from asset-list-page.css */
-    color: #ffffff; /* Text color from asset-list-page.css */
-    line-height: 1.6;
-}
-
-/* Mod Builder Overlay (full-screen pop-up) */
+/* Mod Builder Overlay */
 .mod-builder-overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.8); /* Slightly darker than loading overlay for distinction, but still semi-transparent */
+    background: rgba(0, 0, 0, 0.85); /* Darker, semi-transparent background */
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 1001; /* Higher than loading overlay */
-    backdrop-filter: blur(8px); /* A bit more blur */
-    -webkit-backdrop-filter: blur(8px);
-    visibility: hidden; /* Hidden by default */
-    opacity: 0; /* Start fully transparent */
-    transition: visibility 0.3s linear, opacity 0.3s linear;
+    z-index: 1000; /* Ensure it's on top of other content */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    backdrop-filter: blur(5px); /* Add a subtle blur effect */
 }
 
 .mod-builder-overlay.active {
-    visibility: visible;
     opacity: 1;
+    visibility: visible;
 }
 
-/* Mod Builder Window (content inside the pop-up) */
+/* Mod Builder Window (the modal itself) */
 .mod-builder-window {
-    background: #2a2a2a; /* Darker background, consistent with loading-window */
-    border: 1px solid rgba(255, 255, 255, 0.15); /* Slightly more prominent border */
+    background: #2a2a2a; /* Dark background for the modal */
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 12px;
-    padding: 2rem;
-    width: 95%; /* Wider than loading window */
-    max-width: 900px; /* Max width for larger content */
-    height: 90%; /* Take up most of the height */
-    max-height: 800px; /* Max height for larger content */
-    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
-    display: flex;
+    padding: 2.5rem;
+    width: 90%;
+    max-width: 1000px; /* Max width to prevent it from being too wide */
+    max-height: 90vh; /* Max height to fit within viewport */
+    overflow: hidden; /* Hide overflow for content */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    position: relative;
+    display: flex; /* Use flexbox for internal layout */
     flex-direction: column;
-    gap: 1.5rem;
-    color: #ffffff;
-    position: relative; /* For absolute positioning of close button */
-    overflow-y: auto; /* Enable scrolling if content exceeds height */
 }
 
 .mod-builder-window h2 {
     font-size: 2rem;
-    color: #6c5ce7; /* Accent color */
-    margin-bottom: 1rem;
+    color: #ffffff;
+    margin-bottom: 1.5rem;
     text-align: center;
+    text-shadow: 0 0 10px rgba(108, 92, 231, 0.3);
 }
 
-/* Close button for the mod builder pop-up */
+/* Close Button for Mod Builder */
 .mod-builder-close-button {
     position: absolute;
     top: 15px;
     right: 15px;
     background: none;
     border: none;
-    font-size: 2rem;
-    color: rgba(255, 255, 255, 0.6);
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 1.8rem;
     cursor: pointer;
     transition: color 0.2s ease, transform 0.2s ease;
+    padding: 0.5rem;
 }
 
 .mod-builder-close-button:hover {
     color: #fd79a8; /* Pink accent on hover */
     transform: rotate(90deg);
+}
+
+/* Texture Group List (Grid of Buttons) */
+#texture-group-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    padding: 1rem;
+    background: rgba(0, 0, 0, 0.15); /* Slightly darker background for the list container */
+    border-radius: 8px;
+    margin-top: 1rem;
+    overflow-y: auto; /* Enable scrolling if too many groups */
+    flex-grow: 1; /* Allow it to take available space */
+}
+
+.mod-group-button {
+    background: #4a4a4a; /* Darker button background */
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    padding: 0.8rem 1.2rem;
+    font-size: 1.1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.3s ease, border-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+    text-align: center;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.mod-group-button:hover:not(:disabled) {
+    background: #6c5ce7; /* Purple accent on hover */
+    border-color: #fd79a8; /* Pink accent border on hover */
+    transform: translateY(-3px);
+    box-shadow: 0 6px 15px rgba(108, 92, 231, 0.4);
+}
+
+.mod-group-button:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+.mod-group-button.not-modifiable {
+    background: #3a3a3a; /* Even darker, desaturated background */
+    color: rgba(255, 255, 255, 0.4); /* Faded text color */
+    border-color: rgba(255, 255, 255, 0.1);
+    cursor: not-allowed;
+    box-shadow: none;
+    filter: grayscale(80%); /* Visually grey out */
+}
+
+/* Customization Panel */
+#customization-panel {
+    display: flex; /* Flexbox for panel layout */
+    flex-direction: column;
+    flex-grow: 1; /* Take remaining space */
+    padding: 1rem;
+    background: rgba(0, 0, 0, 0.15);
+    border-radius: 8px;
+    margin-top: 1rem;
+    overflow-y: auto; /* Enable scrolling for panel content */
+    display: none; /* Hidden by default, shown by JS */
+}
+
+#customization-panel h2 {
+    font-size: 1.8rem;
+    margin-bottom: 1rem;
+    color: #ffffff;
+    text-align: center;
+}
+
+/* Styles for the Back Button */
+.mod-back-button {
+    background: #4a4a4a;
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    padding: 0.8rem 1.2rem;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.3s ease, border-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem; /* Space below the back button */
+    align-self: flex-start; /* Align to the start of the flex container */
+}
+
+.mod-back-button:hover {
+    background: #5a5a5a;
+    border-color: #6c5ce7;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.mod-back-button i {
+    font-size: 1.1rem;
+}
+
+/* Container for all customization options */
+.customization-options-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* Responsive grid for options */
+    gap: 1.5rem;
+    flex-grow: 1; /* Allow it to take up available space */
+    overflow-y: auto; /* Enable scrolling for options if needed */
+    padding-right: 10px; /* Space for scrollbar if present */
+}
+
+/* Individual customization option sections */
+.customization-option {
+    background: #3a3a3a; /* Slightly lighter background for each option box */
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem; /* Space between elements within an option */
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.customization-option h3 {
+    font-size: 1.3rem;
+    color: #6c5ce7; /* Accent color for headings */
+    margin-bottom: 0.5rem;
+    text-align: center;
+}
+
+/* Styles for input elements (color picker, range slider) */
+.customization-option input[type="color"] {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    border: none;
+    width: 100%;
+    height: 50px; /* Larger hit area */
+    background: none;
+    cursor: pointer;
+    border-radius: 8px;
+    overflow: hidden; /* Hide default border */
+    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.customization-option input[type="color"]::-webkit-color-swatch-wrapper {
+    padding: 0;
+}
+
+.customization-option input[type="color"]::-webkit-color-swatch {
+    border: none;
+    border-radius: 8px;
+}
+
+.customization-option input[type="color"]::-moz-color-swatch-wrapper {
+    padding: 0;
+}
+
+.customization-option input[type="color"]::-moz-color-swatch {
+    border: none;
+    border-radius: 8px;
+}
+
+.customization-option input[type="range"] {
+    width: 100%;
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent; /* Remove default track background */
+    cursor: grab;
+    margin: 10px 0;
+}
+
+.customization-option input[type="range"]:focus {
+    outline: none;
+}
+
+/* Track styles for range slider */
+.customization-option input[type="range"]::-webkit-slider-runnable-track {
+    width: 100%;
+    height: 8px;
+    background: #555;
+    border-radius: 5px;
+    border: 0.5px solid rgba(255, 255, 255, 0.1);
+    box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.4);
+}
+
+.customization-option input[type="range"]::-moz-range-track {
+    width: 100%;
+    height: 8px;
+    background: #555;
+    border-radius: 5px;
+    border: 0.5px solid rgba(255, 255, 255, 0.1);
+    box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.4);
+}
+
+/* Thumb styles for range slider */
+.customization-option input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    border: 1px solid #ffffff;
+    height: 20px;
+    width: 20px;
+    border-radius: 50%;
+    background: #6c5ce7; /* Accent color */
+    cursor: grab;
+    margin-top: -6.5px; /* Adjust to align with track */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
+    transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.customization-option input[type="range"]::-moz-range-thumb {
+    border: 1px solid #ffffff;
+    height: 20px;
+    width: 20px;
+    border-radius: 50%;
+    background: #6c5ce7;
+    cursor: grab;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
+    transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.customization-option input[type="range"]:active::-webkit-slider-thumb,
+.customization-option input[type="range"]:focus::-webkit-slider-thumb {
+    background: #fd79a8; /* Pink accent on active/focus */
+    box-shadow: 0 0 0 5px rgba(108, 92, 231, 0.3);
+}
+
+.customization-option input[type="range"]:active::-moz-range-thumb,
+.customization-option input[type="range"]:focus::-moz-range-thumb {
+    background: #fd79a8;
+    box-shadow: 0 0 0 5px rgba(108, 92, 231, 0.3);
+}
+
+/* Saturation value display */
+#saturationValue {
+    display: inline-block;
+    min-width: 50px;
+    text-align: center;
+    font-weight: bold;
+    color: #ffffff;
+}
+
+/* Styles for action buttons within options */
+.mod-action-button {
+    background: #6c5ce7; /* Purple accent */
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    padding: 0.7rem 1rem;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+    align-self: flex-start; /* Align button to start within its flex container */
+    margin-top: 0.5rem; /* Space above button */
+}
+
+.mod-action-button:hover {
+    background: #fd79a8; /* Pink accent on hover */
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(108, 92, 231, 0.4);
+}
+
+.mod-action-button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+.mod-action-button.clear-canvas-button {
+    background: #e74c3c; /* Red color for clear button */
+}
+
+.mod-action-button.clear-canvas-button:hover {
+    background: #c0392b;
+    box-shadow: 0 5px 15px rgba(231, 76, 60, 0.4);
+}
+
+
+/* Styles for pattern previews */
+.pattern-previews {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+    gap: 0.8rem;
+    margin-top: 0.5rem;
+}
+
+.pattern-preview-placeholder {
+    width: 80px;
+    height: 80px;
+    background: #555; /* Placeholder background */
+    border: 1px dashed rgba(255, 255, 255, 0.3);
+    border-radius: 5px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.8rem;
+    text-align: center;
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.pattern-preview-placeholder:hover {
+    background: #6c5ce7;
+    border-color: #fd79a8;
+    color: #ffffff;
+}
+
+/* Canvas styling */
+#drawingCanvas {
+    background: #1a1a1a;
+    border: 1px solid #6c5ce7;
+    border-radius: 8px;
+    box-shadow: 0 0 15px rgba(108, 92, 231, 0.3);
+    cursor: crosshair;
+    align-self: center; /* Center the canvas */
+}
+
+/* Final Create Mod Pack button at the bottom of the panel */
+#createModPackFinalButton {
+    margin-top: 2rem;
+    align-self: center; /* Center this button as well */
 }
