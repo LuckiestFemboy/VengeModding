@@ -29,9 +29,11 @@
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 12px;
     padding: 2.5rem;
-    width: 90%;
-    max-width: 1000px; /* Max width to prevent it from being too wide */
-    max-height: 90vh; /* Max height to fit within viewport */
+    /* --- MODIFIED DIMENSIONS BELOW --- */
+    width: 95vw; /* Make it almost full viewport width */
+    max-width: 1600px; /* Allow it to be wider on large screens, but with a cap */
+    height: 95vh; /* Make it almost full viewport height */
+    /* --- END MODIFIED DIMENSIONS --- */
     overflow: hidden; /* Hide overflow for content */
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
     position: relative;
@@ -66,11 +68,50 @@
     transform: rotate(90deg);
 }
 
+/* NEW: Create Mod Pack Button on Groups Page */
+#create-mod-pack-button-groups-page {
+    width: fit-content;
+    padding: 12px 25px;
+    margin: 20px auto 10px auto; /* Center the button */
+    display: block; /* Ensure it's a block element */
+    font-size: 1.1rem;
+    font-weight: bold;
+    background: linear-gradient(90deg, #6c5ce7, #fd79a8);
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    flex-shrink: 0; /* Prevent it from shrinking */
+}
+
+#create-mod-pack-button-groups-page:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4), 0 0 30px rgba(108, 92, 231, 0.6);
+    background: linear-gradient(90deg, #fd79a8, #6c5ce7);
+}
+
+#create-mod-pack-button-groups-page:active {
+    transform: translateY(0);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+}
+
+#create-mod-pack-button-groups-page:disabled {
+    background: #444;
+    cursor: not-allowed;
+    opacity: 0.6;
+    box-shadow: none;
+}
+
+
 /* Texture Group List (Grid of Buttons) */
 #texture-group-list {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); /* Adjusted min-width for smaller buttons */
+    gap: 0.8rem; /* Reduced gap */
     padding: 1rem;
     background: rgba(0, 0, 0, 0.15); /* Slightly darker background for the list container */
     border-radius: 8px;
@@ -84,14 +125,38 @@
     color: #ffffff;
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 8px;
-    padding: 0.8rem 1.2rem;
-    font-size: 1.1rem;
+    padding: 0.6rem 1rem; /* Reduced padding for smaller buttons */
+    font-size: 1rem; /* Slightly reduced font size */
     font-weight: 500;
     cursor: pointer;
     transition: background 0.3s ease, border-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
     text-align: center;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    position: relative; /* For the modification indicator */
+    display: flex; /* Use flexbox for button content */
+    align-items: center;
+    justify-content: center;
 }
+
+.mod-group-button.has-modifications {
+    background: linear-gradient(45deg, #6c5ce7, #fd79a8); /* Gradient for modified groups */
+    color: #fff;
+    font-weight: bold;
+}
+
+.mod-group-button.has-modifications:hover {
+    background: linear-gradient(45deg, #fd79a8, #6c5ce7);
+}
+
+.mod-indicator-icon {
+    position: absolute; /* Position icon absolutely within the button */
+    top: 8px;
+    right: 8px;
+    color: #fff; /* White icon */
+    font-size: 0.9em;
+    filter: drop-shadow(0 0 3px rgba(0,0,0,0.5));
+}
+
 
 .mod-group-button:hover:not(:disabled) {
     background: #6c5ce7; /* Purple accent on hover */
@@ -162,6 +227,46 @@
     font-size: 1.1rem;
 }
 
+/* Image Previews Container (for multiple images within a group) */
+.image-previews-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Responsive grid for previews */
+    gap: 15px;
+    margin-bottom: 20px;
+    max-height: 400px; /* Max height for preview section */
+    overflow-y: auto; /* Scroll if too many images */
+    padding: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.1);
+}
+
+.preview-item {
+    background: #333;
+    border-radius: 8px;
+    padding: 10px;
+    text-align: center;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.preview-item canvas {
+    width: 100%;
+    height: auto;
+    max-width: 200px; /* Max size for individual preview canvas */
+    max-height: 200px;
+    border: 1px solid #555;
+    border-radius: 5px;
+    background: #111; /* Ensure canvas has a background */
+}
+
+.preview-item p {
+    font-size: 0.85rem;
+    color: #bbb;
+    margin-top: 5px;
+    word-break: break-all; /* Break long filenames */
+}
+
+
 /* Container for all customization options */
 .customization-options-container {
     display: grid;
@@ -190,6 +295,40 @@
     margin-bottom: 0.5rem;
     text-align: center;
 }
+
+/* NEW: Resolution Inputs Styling */
+.resolution-inputs {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-bottom: 0.8rem;
+}
+
+.resolution-inputs label {
+    color: #ccc;
+    font-size: 0.95rem;
+}
+
+.resolution-input {
+    width: 70px; /* Fixed width for input boxes */
+    padding: 0.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 5px;
+    background: #444;
+    color: #fff;
+    font-size: 0.95rem;
+    text-align: center;
+    -moz-appearance: textfield; /* Hide Firefox spinner */
+}
+
+/* Hide Webkit spinners for number input */
+.resolution-input::-webkit-outer-spin-button,
+.resolution-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
 
 /* Styles for input elements (color picker, range slider) */
 .customization-option input[type="color"] {
@@ -316,9 +455,10 @@
     transition: background 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
     align-self: flex-start; /* Align button to start within its flex container */
     margin-top: 0.5rem; /* Space above button */
+    width: 100%; /* Make these buttons fill the width of their container */
 }
 
-.mod-action-button:hover {
+.mod-action-button:hover:not(:disabled) {
     background: #fd79a8; /* Pink accent on hover */
     transform: translateY(-2px);
     box-shadow: 0 5px 15px rgba(108, 92, 231, 0.4);
@@ -329,8 +469,23 @@
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
 }
 
+.mod-action-button:disabled {
+    background: #444;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.mod-action-button.clear-mod-button { /* Use this class for "Clear Color", "Clear Saturation" etc. */
+    background: #555; /* Default gray for clear buttons */
+}
+
+.mod-action-button.clear-mod-button:hover {
+    background: #777; /* Lighter gray on hover */
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
 .mod-action-button.clear-canvas-button {
-    background: #e74c3c; /* Red color for clear button */
+    background: #e74c3c; /* Red color for clear drawing button */
 }
 
 .mod-action-button.clear-canvas-button:hover {
@@ -377,10 +532,6 @@
     box-shadow: 0 0 15px rgba(108, 92, 231, 0.3);
     cursor: crosshair;
     align-self: center; /* Center the canvas */
-}
-
-/* Final Create Mod Pack button at the bottom of the panel */
-#createModPackFinalButton {
-    margin-top: 2rem;
-    align-self: center; /* Center this button as well */
+    max-width: 100%;
+    height: auto; /* Maintain aspect ratio */
 }
