@@ -1,115 +1,86 @@
-// DOM Elements for the main gallery
+// DOM Elements
 let searchInput;
 let allCards;
-// Store a global list of all assets fetched to be used for zipping (original files)
+// Store a global list of all assets fetched to be used for zipping and modding
 const allAssets = [];
 
-// DOM elements for loading/progress (used by both zip functions)
+// DOM elements for loading/progress (used by both asset-list and mod-builder)
 let loadingOverlay;
 let progressBar;
 let progressPercentage;
 let consoleLog;
 
-// Configuration for moddable groups (THIS IS THE MISSING PIECE)
-// This array defines which folders are treated as mod groups, their display names,
-// and what customization options they allow.
+// --- Mod Builder Configuration ---
+// Define your modifiable groups here
 const modGroups = [
     {
-        name: "Weapons",
-        folder: "weapons", // Corresponds to the folder name in mod-assets/textures/
-        files: [ // List of specific files within this folder that belong to this group
-            "weapon_01_diffuse.png",
-            "weapon_02_diffuse.png",
-            "weapon_03_diffuse.png",
-            "weapon_04_diffuse.png",
-            "weapon_05_diffuse.png",
-            "weapon_06_diffuse.png",
-            "weapon_07_diffuse.png",
-            "weapon_08_diffuse.png",
-            "weapon_09_diffuse.png",
-            "weapon_10_diffuse.png",
-            "weapon_11_diffuse.png",
-            "weapon_12_diffuse.png"
-        ],
+        name: "Building Textures",
+        folder: "Building", // This must match the folder name in mod-assets
         modifiable: true,
+        files: ["building_wall.png", "roof_texture.jpg"], // Specific files within this folder that are modifiable
         canAdjustColor: true,
         canAdjustSaturation: true,
         canDraw: true
     },
     {
-        name: "Mistle Rock",
-        folder: "mistle_rock",
-        files: [
-            "rock_formation_01_wall_tile.jpg",
-            "rock_formation_01_wall_tile_2.jpg"
-        ],
+        name: "Character Skins",
+        folder: "Characters",
         modifiable: true,
+        files: ["player_skin.png", "enemy_skin.png"],
         canAdjustColor: true,
         canAdjustSaturation: true,
-        canDraw: true
-    },
-    {
-        name: "Grass Textures",
-        folder: "grass",
-        files: [
-            "grass_01_diffuse.png",
-            "grass_02_diffuse.png"
-        ],
-        modifiable: true,
-        canAdjustColor: true,
-        canAdjustSaturation: true,
-        canDraw: true
-    },
-    {
-        name: "Explosions",
-        folder: "explosions",
-        files: [
-            "explosion_sequence_01.png",
-            "explosion_sequence_02.png"
-        ],
-        modifiable: false, // Example of a non-modifiable group
-        canAdjustColor: false,
-        canAdjustSaturation: false,
         canDraw: false
     },
     {
-        name: "Water SFX",
-        folder: "water_sfx",
-        files: [
-            "splash_sound.mp3",
-            "flowing_water.mp3"
-        ],
-        type: "audio", // Example of an audio group
-        modifiable: false,
-        canAdjustColor: false,
+        name: "UI Elements",
+        folder: "UI",
+        modifiable: true,
+        files: ["button_bg.png", "icon_border.png"],
+        canAdjustColor: true,
         canAdjustSaturation: false,
-        canDraw: false
+        canDraw: true
+    },
+    {
+        name: "Weapon Textures",
+        folder: "Weapons",
+        modifiable: true,
+        files: ["sword_texture.png", "gun_texture.jpg"],
+        canAdjustColor: true,
+        canAdjustSaturation: true,
+        canDraw: true
+    },
+    {
+        name: "Sound Effects",
+        folder: "Sounds",
+        modifiable: false, // This group is not modifiable through the builder
+        files: ["explosion.mp3", "laser.mp3"]
     }
     // Add more groups as needed
 ];
 
 
-// Helper to get asset ID (used for unique keys in allAssets and modifiedAssets)
-function getAssetId(asset) {
-    return `${asset.folder}/${asset.filename}`;
-}
-
-// Card Creation for the main gallery view
+// Card Creation
 function createAndAppendCard(folder, filename, type) {
+    // Create main card element
     const card = document.createElement('div');
     card.className = 'texture-card';
     card.style.display = 'block';
     card.style.visibility = 'visible';
     card.style.opacity = '1';
 
-    let mediaPath;
+    let mediaPath; // Declare mediaPath here, as it's used by both branches
+
+    // Add asset to the global list for zipping and modding
+    allAssets.push({ folder, filename, type });
+
 
     if (type.toLowerCase() === 'mp3') {
-        card.className += ' mp3';
+        card.className += ' mp3'; // Add mp3 class for specific styling
         mediaPath = `./mod-assets/${type.toLowerCase()}/${filename}`;
 
+        // Create elements for the consolidated MP3 card layout
         const playIcon = document.createElement('i');
-        playIcon.className = 'fas fa-play media-icon';
+        playIcon.className = 'fas fa-play media-icon'; // Keep original class for icon styling
         playIcon.onclick = () => playAudio(mediaPath);
 
         const mp3FilenameDisplay = document.createElement('div');
@@ -118,221 +89,396 @@ function createAndAppendCard(folder, filename, type) {
 
         const folderNumberButton = document.createElement('button');
         folderNumberButton.className = 'folder-number-button';
-        folderNumberButton.textContent = folder;
-        // This button in the main gallery just shows the folder info
-        folderNumberButton.onclick = (e) => {
-            e.stopPropagation();
-            alert(`Folder: ${folder}`);
+        folderNumberButton.textContent = `Folder: ${folder}`;
+        folderNumberButton.onclick = () => {
+             navigator.clipboard.writeText(folder);
+             folderNumberButton.textContent = 'Copied!';
+             setTimeout(() => {
+                 folderNumberButton.textContent = `Folder: ${folder}`;
+             }, 2000);
         };
 
+        // Create button elements for the bottom of the card
+        const copyFolderButton = document.createElement('button');
+        copyFolderButton.className = 'copy-folder-button';
+        copyFolderButton.textContent = 'Copy Folder';
+        copyFolderButton.onclick = () => {
+            navigator.clipboard.writeText(folder);
+            copyFolderButton.textContent = 'Copied!';
+            setTimeout(() => { copyFolderButton.textContent = 'Copy Folder'; }, 2000);
+        };
+
+        const downloadButton = document.createElement('button');
+        downloadButton.className = 'download-button';
+        downloadButton.textContent = 'Download';
+        downloadButton.onclick = () => {
+            const downloadLink = document.createElement('a');
+            downloadLink.href = mediaPath;
+            downloadLink.download = filename;
+            downloadLink.click();
+        };
+
+        // Create a wrapper for the action buttons to manage their layout
+        const mp3ButtonsWrapper = document.createElement('div');
+        mp3ButtonsWrapper.className = 'mp3-buttons-wrapper'; // New class for this wrapper
+        mp3ButtonsWrapper.appendChild(copyFolderButton);
+        mp3ButtonsWrapper.appendChild(downloadButton);
+
+        // Append all consolidated elements directly to the main card
         card.appendChild(playIcon);
         card.appendChild(mp3FilenameDisplay);
         card.appendChild(folderNumberButton);
+        card.appendChild(mp3ButtonsWrapper);
 
-    } else { // Images
-        mediaPath = `./mod-assets/${type.toLowerCase()}/${folder}/${filename}`;
+    } else { // Logic for PNG/JPG cards (remains largely unchanged from before)
+        mediaPath = `./mod-assets/${type.toLowerCase()}/${filename}`;
 
-        const img = document.createElement('img');
-        img.loading = 'lazy'; // Lazy load images
-        img.src = mediaPath;
-        img.alt = filename;
-        img.onerror = () => {
-            console.error(`Failed to load image: ${mediaPath}`);
-            img.src = 'placeholder.png'; // Fallback image if image fails to load
+        // Create media container
+        const mediaContainer = document.createElement('div');
+        mediaContainer.className = 'media-container';
+
+        // Create appropriate media element/placeholder based on type
+        if (type.toLowerCase() === 'png' || type.toLowerCase() === 'jpg') {
+            const mediaElement = document.createElement('img');
+            mediaElement.className = 'media-image';
+            mediaElement.src = mediaPath;
+
+            // Add error handling for images
+            mediaElement.onerror = () => {
+                console.error(`Failed to load media: ${mediaPath}`);
+                const placeholder = document.createElement('div');
+                placeholder.className = 'media-placeholder';
+                placeholder.innerHTML = `
+                    <div class="media-icon">❓</div>
+                    <div class="media-filename">${filename}</div>
+                `;
+                mediaContainer.appendChild(placeholder);
+            };
+            mediaContainer.appendChild(mediaElement);
+        }
+        card.appendChild(mediaContainer); // Append mediaContainer for non-MP3s
+
+        // Create info container
+        const infoContainer = document.createElement('div');
+        infoContainer.className = 'texture-info';
+
+        // Create file-info container
+        const fileInfoContainer = document.createElement('div');
+        fileInfoContainer.className = 'file-info';
+
+        // Filename Element Creation for PNG/JPGs (only for non-MP3s)
+        const filenameElement = document.createElement('div');
+        filenameElement.className = 'texture-filename';
+        filenameElement.textContent = filename;
+        fileInfoContainer.appendChild(filenameElement);
+
+        // Folder/artist/album element (only for non-MP3s)
+        const folderOrArtistAlbumElement = document.createElement('div');
+        folderOrArtistAlbumElement.className = 'texture-name';
+        folderOrArtistAlbumElement.textContent = folder;
+        fileInfoContainer.appendChild(folderOrArtistAlbumElement);
+
+        infoContainer.appendChild(fileInfoContainer);
+
+        // Create buttons container for non-MP3s
+        const actionButtonsContainer = document.createElement('div');
+        actionButtonsContainer.className = 'buttons-container';
+
+        const copyButton = document.createElement('button');
+        copyButton.className = 'copy-button'; // Specific class for non-MP3 copy button
+        copyButton.textContent = 'Copy Folder';
+        copyButton.onclick = () => {
+            navigator.clipboard.writeText(folder);
+            copyButton.textContent = 'Copied!';
+            setTimeout(() => { copyButton.textContent = 'Copy Folder'; }, 2000);
         };
+        actionButtonsContainer.appendChild(copyButton);
 
-        const title = document.createElement('h3');
-        title.textContent = filename;
-
-        const folderNumberButton = document.createElement('button');
-        folderNumberButton.className = 'folder-number-button';
-        folderNumberButton.textContent = folder;
-        // This button in the main gallery just shows the folder info
-        folderNumberButton.onclick = (e) => {
-            e.stopPropagation();
-            alert(`Folder: ${folder}`);
+        const downloadButton = document.createElement('button');
+        downloadButton.className = 'download-button';
+        downloadButton.textContent = 'Download';
+        downloadButton.onclick = () => {
+            const downloadLink = document.createElement('a');
+            downloadLink.href = mediaPath;
+            downloadLink.download = filename;
+            downloadLink.click();
         };
+        actionButtonsContainer.appendChild(downloadButton);
 
-        card.appendChild(img);
-        card.appendChild(title);
-        card.appendChild(folderNumberButton);
+        infoContainer.appendChild(actionButtonsContainer);
+        card.appendChild(infoContainer); // Append infoContainer for non-MP3s
     }
 
-    document.getElementById('texture-grid').appendChild(card);
-}
-
-// Audio Playback for the main gallery
-function playAudio(path) {
-    const audio = new Audio(path);
-    audio.play().catch(e => console.error("Error playing audio:", e));
-}
-
-// Fetch assets and populate gallery grid
-async function fetchAssets() {
-    try {
-        const response = await fetch('./mod-assets/texture_index.json');
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data = await response.json();
-
-        // Clear existing assets to prevent duplicates on re-fetch
-        allAssets.length = 0; // Clear the global array
-        document.getElementById('texture-grid').innerHTML = ''; // Clear gallery display
-
-        Object.keys(data).forEach(folder => {
-            const assetsInFolder = data[folder];
-            assetsInFolder.forEach(asset => {
-                // Add asset to the global list for zipping and pass to mod builder
-                allAssets.push({ folder, filename: asset.filename, type: asset.type });
-                // Create and append card for main gallery display
-                createAndAppendCard(folder, asset.filename, asset.type);
-            });
-        });
-        allCards = Array.from(document.querySelectorAll('.texture-card'));
-        console.log("Assets loaded successfully for gallery.");
-
-        // Initialize Mod Builder after assets are loaded
-        // Check if initModBuilder exists (from mod-builder.js)
-        if (typeof initModBuilder === 'function') {
-            initModBuilder(allAssets, modGroups);
-            console.log("Mod Builder initialized.");
-        } else {
-            console.error("initModBuilder function not found. Is mod-builder.js loaded correctly?");
-        }
-
-    } catch (error) {
-        console.error('Error fetching assets:', error);
-        alert('Failed to load assets. Please check the console for more details.');
-        // Display an error message directly on the page if cards fail to load
-        document.getElementById('texture-grid').innerHTML = '<p style="color: red; text-align: center; font-size: 1.2rem;">Failed to load assets. Please check your network connection or server setup.</p>';
+    // Finally, append the card to the grid
+    const grid = document.getElementById('texture-grid');
+    if (grid) {
+        grid.appendChild(card);
     }
 }
 
-// Search functionality for the main gallery
-function filterAssets(query) {
-    const searchTerm = query.toLowerCase();
+// Search Functionality (updated to search the new mp3-filename-display class)
+function filterCards(searchTerm) {
+    const lowerSearch = searchTerm.toLowerCase();
+
     allCards.forEach(card => {
-        const filenameElement = card.querySelector('h3') || card.querySelector('.mp3-filename-display');
+        // For non-MP3s, check texture-filename
+        const filenameElement = card.querySelector('.texture-filename');
         const filename = filenameElement ? filenameElement.textContent.toLowerCase() : '';
-        const folderElement = card.querySelector('.folder-number-button');
-        const folder = folderElement ? folderElement.textContent.toLowerCase() : '';
 
-        if (filename.includes(searchTerm) || folder.includes(searchTerm)) {
-            card.style.display = 'block';
-            setTimeout(() => {
-                card.style.visibility = 'visible';
-                card.style.opacity = '1';
-            }, 10);
-        } else {
+        // For MP3s, check mp3-filename-display
+        const mp3FilenameDisplay = card.querySelector('.mp3-filename-display');
+        const mp3Filename = mp3FilenameDisplay ? mp3FilenameDisplay.textContent.toLowerCase() : '';
+
+        // Check the texture-name (folder/artist/album name - only for non-MP3s now)
+        const folderNameElement = card.querySelector('.texture-name');
+        const folderName = folderNameElement ? folderNameElement.textContent.toLowerCase() : '';
+
+        // Check the folder-number-button (only for MP3s)
+        const folderNumberButton = card.querySelector('.folder-number-button');
+        const folderButtonText = folderNumberButton ? folderNumberButton.textContent.toLowerCase() : '';
+
+        if (!filename.includes(lowerSearch) && !mp3Filename.includes(lowerSearch) && !folderName.includes(lowerSearch) && !folderButtonText.includes(lowerSearch)) {
+            card.style.display = 'none';
             card.style.visibility = 'hidden';
             card.style.opacity = '0';
-            setTimeout(() => {
-                card.style.display = 'none';
-            }, 300); // Wait for fade-out
+        } else {
+            card.style.display = 'block';
+            card.style.visibility = 'visible';
+            card.style.opacity = '1';
         }
     });
 }
 
-// Generic function to display ZIP progress (used by generateFullZip)
-function updateProgress(current, total, filename = '') {
-    const percentage = total > 0 ? Math.round((current / total) * 100) : 0;
-    progressBar.style.width = `${percentage}%`;
-    progressPercentage.textContent = `${percentage}%`;
-    consoleLog.textContent += `Adding: ${filename}...\n`;
-    consoleLog.scrollTop = consoleLog.scrollHeight; // Auto-scroll
+
+function clearSearch() {
+    searchInput.value = '';
+    filterCards('');
 }
 
-
-// Generate ZIP for all assets (used by "Download All as ZIP" button on main page)
-async function generateFullZip(assetsToZip) {
-    const zip = new JSZip();
-    let filesProcessed = 0;
-
-    loadingOverlay.classList.add('active');
-    progressBar.style.width = '0%';
-    progressPercentage.textContent = '0%';
-    consoleLog.textContent = 'Starting ZIP generation...\n';
-
+// Main initialization and playAudio function
+async function initializeGallery() {
     try {
-        for (const asset of assetsToZip) {
-            filesProcessed++;
-            updateProgress(filesProcessed, assetsToZip.length, asset.filename);
-
-            const filePathInZip = `${asset.folder}/${asset.filename}`;
-            // Use asset.type to determine correct subfolder (textures or mp3)
-            const assetUrl = `./mod-assets/${asset.type.toLowerCase()}/${asset.folder ? asset.folder + '/' : ''}${asset.filename}`;
-
-            const response = await fetch(assetUrl);
-            if (!response.ok) {
-                throw new Error(`Failed to fetch ${asset.filename}: ${response.statusText}`);
-            }
-            const blob = await response.blob();
-            zip.file(filePathInZip, blob);
+        const grid = document.getElementById('texture-grid');
+        if (!grid) {
+            console.error('Texture grid not found!');
+            return;
         }
 
-        const content = await zip.generateAsync({ type: "blob" }, function update(metadata) {
-            // This is for internal JSZip progress, not directly tied to our UI progress bar
-            // console.log("progression: " + metadata.percent.toFixed(2) + "%");
-        });
+        searchInput = document.getElementById('texture-search');
+        const searchButton = document.getElementById('search-button');
+        const clearButton = document.getElementById('clear-search-button');
 
-        saveAs(content, "all_original_assets.zip");
-        consoleLog.textContent += `\n[SUCCESS] "all_original_assets.zip" downloaded!\n`;
-        consoleLog.scrollTop = consoleLog.scrollHeight;
+        if (searchInput && searchButton && clearButton) {
+            searchInput.addEventListener('input', (e) => {
+                filterCards(e.target.value.trim());
+            });
+            searchButton.addEventListener('click', () => {
+                filterCards(searchInput.value.trim());
+            });
+            clearButton.addEventListener('click', clearSearch);
+        } else {
+            console.error('Search elements not found!');
+        }
+
+        // Load PNG files
+        try {
+            const pngResponse = await fetch('pnglist.txt');
+            if (!pngResponse.ok) {
+                console.error('Failed to fetch pnglist.txt');
+            } else {
+                const pngText = await pngResponse.text();
+                const pngLines = pngText.trim().split('\n');
+
+                for (const line of pngLines) {
+                    const [folder, filename] = line.split(' ');
+                    if (folder && filename) {
+                        createAndAppendCard(folder, filename, 'png');
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Error loading PNG files:', error);
+        }
+
+        // Load JPG files
+        try {
+            const jpgResponse = await fetch('jpgurl.txt');
+            if (!jpgResponse.ok) {
+                console.error('Failed to fetch jpgurl.txt');
+            } else {
+                const jpgText = await jpgResponse.text();
+                const jpgLines = jpgText.trim().split('\n');
+
+                for (const line of jpgLines) {
+                    const [folder, filename] = line.split(' ');
+                    if (folder && filename) {
+                        createAndAppendCard(folder, filename, 'jpg');
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Error loading JPG files:', error);
+        }
+
+        // Load MP3 files
+        try {
+            const mp3Response = await fetch('mp3list.txt');
+            if (!mp3Response.ok) {
+                console.error('Failed to fetch mp3list.txt');
+            } else {
+                const mp3Text = await mp3Response.text();
+                const mp3Lines = mp3Text.trim().split('\n');
+
+                for (const line of mp3Lines) {
+                    const [folder, filename] = line.split(' ');
+                    if (folder && filename) {
+                        createAndAppendCard(folder, filename, 'mp3');
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Error loading MP3 files:', error);
+        }
+
+        allCards = document.querySelectorAll('.texture-card');
 
     } catch (error) {
-        console.error("Error generating or saving zip:", error);
-        consoleLog.textContent += `\n[FATAL ERROR] Failed to generate or save ZIP: ${error.message}\n`;
-        consoleLog.scrollTop = consoleLog.scrollHeight;
-        alert('Failed to generate or save the ZIP file. Please check console for errors.');
-    } finally {
-        setTimeout(() => {
-            loadingOverlay.classList.remove('active');
-            // Reset button text etc. if necessary
-            document.getElementById('download-all-zip-button').textContent = 'Download All as ZIP';
-            document.getElementById('download-all-zip-button').disabled = false;
-        }, 3000); // Hide after 3 seconds
+        console.error('Error initializing gallery:', error);
     }
 }
 
+function playAudio(audioPath) {
+    const audio = new Audio(audioPath);
+    audio.play().catch(error => {
+        console.error('Error playing audio:', error);
+        alert('Failed to play audio file. Please check if the file exists and is accessible.');
+    });
+}
 
-// DOMContentLoaded event listener for main gallery and initial fetch
-document.addEventListener('DOMContentLoaded', () => {
-    searchInput = document.getElementById('texture-search');
-    const searchButton = document.getElementById('search-button');
-    const clearSearchButton = document.getElementById('clear-search-button');
-    const downloadAllZipButton = document.getElementById('download-all-zip-button');
+// --- New ZIP Download Functionality with Progress ---
 
-    // Initialize DOM elements for loading/progress (shared by both ZIP functions)
+document.addEventListener('DOMContentLoaded', async () => {
+    // Await initializeGallery to ensure allAssets is populated before calling mod builder
+    await initializeGallery();
+
+    // Get references to the new loading UI elements (these need to be global for mod-builder.js to access)
     loadingOverlay = document.getElementById('loading-overlay');
     progressBar = document.getElementById('progress-bar');
     progressPercentage = document.getElementById('progress-percentage');
     consoleLog = document.getElementById('console-log');
 
+    // AFTER gallery is initialized and allAssets is populated, initialize Mod Builder
+    // Check if initModBuilder is available (from mod-builder.js)
+    if (typeof window.initModBuilder === 'function') {
+        window.initModBuilder(allAssets, modGroups);
+    } else {
+        console.error("initModBuilder function not found. Make sure mod-builder.js is loaded correctly.");
+    }
 
-    if (searchInput && searchButton && clearSearchButton) {
-        searchButton.addEventListener('click', () => filterAssets(searchInput.value));
-        clearSearchButton.addEventListener('click', () => {
-            searchInput.value = '';
-            filterAssets('');
-        });
-        searchInput.addEventListener('keyup', (event) => {
-            if (event.key === 'Enter') {
-                filterAssets(searchInput.value);
+    const downloadAllZipButton = document.getElementById('download-all-zip-button');
+
+    if (downloadAllZipButton && loadingOverlay && progressBar && progressPercentage && consoleLog) {
+        downloadAllZipButton.addEventListener('click', async () => {
+            // Show loading overlay
+            loadingOverlay.classList.add('active');
+            progressBar.style.width = '0%';
+            progressPercentage.textContent = '0%';
+            consoleLog.textContent = ''; // Clear previous log
+
+            const zip = new JSZip();
+            const assetsFolder = zip.folder("assets"); // Create the top-level 'assets' folder
+
+            downloadAllZipButton.textContent = 'Preparing ZIP...';
+            downloadAllZipButton.disabled = true;
+
+            let filesProcessed = 0;
+            const totalFiles = allAssets.length;
+
+            const fetchPromises = allAssets.map(async (asset) => {
+                const { folder, filename, type } = asset;
+                const mediaPath = `./mod-assets/${type.toLowerCase()}/${filename}`;
+                const zipPath = `assets/${folder}/1/${filename}`; // Desired structure
+
+                try {
+                    const response = await fetch(mediaPath);
+                    if (!response.ok) {
+                        console.error(`Failed to fetch ${mediaPath}: ${response.statusText}`);
+                        // Log error to console output as well
+                        consoleLog.textContent += `[ERROR] Failed to add: ${filename}\n`;
+                        consoleLog.scrollTop = consoleLog.scrollHeight; // Scroll to bottom
+                        return null; // Return null for failed fetches
+                    }
+                    const blob = await response.blob();
+                    assetsFolder.file(zipPath, blob);
+
+                    filesProcessed++;
+                    const progress = Math.round((filesProcessed / totalFiles) * 100);
+                    progressBar.style.width = `${progress}%`;
+                    progressPercentage.textContent = `${progress}%`;
+                    consoleLog.textContent += `Added: ${filename}\n`;
+                    consoleLog.scrollTop = consoleLog.scrollHeight; // Scroll to bottom
+
+                    return true; // Indicate success
+                } catch (error) {
+                    console.error(`Error adding ${mediaPath} to zip:`, error);
+                    consoleLog.textContent += `[ERROR] Error adding: ${filename} - ${error.message}\n`;
+                    consoleLog.scrollTop = consoleLog.scrollHeight; // Scroll to bottom
+                    return null; // Return null for errors
+                }
+            });
+
+            await Promise.all(fetchPromises); // Wait for all files to be processed
+
+            // Ensure progress is 100% after all files are attempted
+            progressBar.style.width = '100%';
+            progressPercentage.textContent = '100%';
+            consoleLog.textContent += `\nAll files processed. Generating ZIP...\n`;
+            consoleLog.scrollTop = consoleLog.scrollHeight;
+
+            try {
+                const content = await zip.generateAsync({
+                    type: "blob",
+                    compression: "DEFLATE", // Use compression
+                    compressionOptions: {
+                        level: 9 // Max compression
+                    }
+                }, function updateCallback(metadata) {
+                    // Update progress during ZIP generation (optional, but good for large zips)
+                    const generationProgress = Math.round(metadata.percent);
+                    progressBar.style.width = `${generationProgress}%`;
+                    progressPercentage.textContent = `${generationProgress}%`;
+                    if (metadata.currentFile) {
+                        consoleLog.textContent += `Compressing: ${metadata.currentFile}\n`;
+                        consoleLog.scrollTop = consoleLog.scrollHeight;
+                    }
+                });
+
+                saveAs(content, "mod-assets.zip");
+                downloadAllZipButton.textContent = 'Download Complete!';
+                consoleLog.textContent += `\nZIP file "mod-assets.zip" downloaded!\n`;
+                consoleLog.scrollTop = consoleLog.scrollHeight;
+            } catch (error) {
+                console.error("Error generating or saving zip:", error);
+                downloadAllZipButton.textContent = 'Download Failed!';
+                consoleLog.textContent += `\n[FATAL ERROR] Failed to generate or save ZIP: ${error.message}\n`;
+                consoleLog.scrollTop = consoleLog.scrollHeight;
+                alert('Failed to generate or save the ZIP file. Please check console for errors.');
+            } finally {
+                // Keep overlay visible for a bit to show final message, then hide
+                setTimeout(() => {
+                    loadingOverlay.classList.remove('active');
+                    downloadAllZipButton.textContent = 'Download All as ZIP';
+                    downloadAllZipButton.disabled = false;
+                }, 3000); // Hide after 3 seconds
             }
         });
-    }
-
-    if (downloadAllZipButton) {
-        downloadAllZipButton.addEventListener('click', () => {
-            downloadAllZipButton.disabled = true; // Disable button during download
-            downloadAllZipButton.textContent = 'Downloading...';
-            generateFullZip(allAssets); // Use the global allAssets
-        });
     } else {
-        console.error('Download All ZIP button not found!');
+        console.error('One or more required DOM elements for ZIP functionality not found!');
+        // Log to console if any elements are missing
+        if (!downloadAllZipButton) console.error('download-all-zip-button not found!');
+        if (!loadingOverlay) console.error('loading-overlay not found!');
+        if (!progressBar) console.error('progress-bar not found!');
+        if (!progressPercentage) console.error('progress-percentage not found!');
+        if (!consoleLog) console.error('console-log not found!');
     }
-
-    // Initial fetch of assets for the main gallery
-    fetchAssets();
 });
