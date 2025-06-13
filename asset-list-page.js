@@ -1,6 +1,14 @@
 // DOM Elements
 let searchInput;
 let allCards;
+// Store a global list of all assets fetched to be used for zipping
+const allAssets = [];
+
+// DOM elements for loading/progress
+let loadingOverlay;
+let progressBar;
+let progressPercentage;
+let consoleLog;
 
 // Card Creation
 function createAndAppendCard(folder, filename, type) {
@@ -12,6 +20,10 @@ function createAndAppendCard(folder, filename, type) {
     card.style.opacity = '1';
 
     let mediaPath; // Declare mediaPath here, as it's used by both branches
+
+    // Add asset to the global list for zipping
+    allAssets.push({ folder, filename, type });
+
 
     if (type.toLowerCase() === 'mp3') {
         card.className += ' mp3'; // Add mp3 class for specific styling
@@ -194,7 +206,7 @@ function clearSearch() {
     filterCards('');
 }
 
-// Main initialization and playAudio function (unchanged)
+// Main initialization and playAudio function
 async function initializeGallery() {
     try {
         const grid = document.getElementById('texture-grid');
@@ -294,4 +306,122 @@ function playAudio(audioPath) {
     });
 }
 
-document.addEventListener('DOMContentLoaded', initializeGallery);
+// --- New ZIP Download Functionality with Progress ---
+
+document.addEventListener('DOMContentLoaded', () => {
+    initializeGallery(); // Initialize the gallery and populate allAssets array
+
+    const downloadAllZipButton = document.getElementById('download-all-zip-button');
+
+    // Get references to the new loading UI elements
+    loadingOverlay = document.getElementById('loading-overlay');
+    progressBar = document.getElementById('progress-bar');
+    progressPercentage = document.getElementById('progress-percentage');
+    consoleLog = document.getElementById('console-log');
+
+
+    if (downloadAllZipButton && loadingOverlay && progressBar && progressPercentage && consoleLog) {
+        downloadAllZipButton.addEventListener('click', async () => {
+            // Show loading overlay
+            loadingOverlay.classList.add('active');
+            progressBar.style.width = '0%';
+            progressPercentage.textContent = '0%';
+            consoleLog.textContent = ''; // Clear previous log
+
+            const zip = new JSZip();
+            const assetsFolder = zip.folder("assets"); // Create the top-level 'assets' folder
+
+            downloadAllZipButton.textContent = 'Preparing ZIP...';
+            downloadAllZipButton.disabled = true;
+
+            let filesProcessed = 0;
+            const totalFiles = allAssets.length;
+
+            const fetchPromises = allAssets.map(async (asset) => {
+                const { folder, filename, type } = asset;
+                const mediaPath = `./mod-assets/${type.toLowerCase()}/${filename}`;
+                const zipPath = `assets/${folder}/1/${filename}`; // Desired structure
+
+                try {
+                    const response = await fetch(mediaPath);
+                    if (!response.ok) {
+                        console.error(`Failed to fetch ${mediaPath}: ${response.statusText}`);
+                        // Log error to console output as well
+                        consoleLog.textContent += `[ERROR] Failed to add: ${filename}\n`;
+                        consoleLog.scrollTop = consoleLog.scrollHeight; // Scroll to bottom
+                        return null; // Return null for failed fetches
+                    }
+                    const blob = await response.blob();
+                    assetsFolder.file(zipPath, blob);
+
+                    filesProcessed++;
+                    const progress = Math.round((filesProcessed / totalFiles) * 100);
+                    progressBar.style.width = `${progress}%`;
+                    progressPercentage.textContent = `${progress}%`;
+                    consoleLog.textContent += `Added: ${filename}\n`;
+                    consoleLog.scrollTop = consoleLog.scrollHeight; // Scroll to bottom
+
+                    return true; // Indicate success
+                } catch (error) {
+                    console.error(`Error adding ${mediaPath} to zip:`, error);
+                    consoleLog.textContent += `[ERROR] Error adding: ${filename} - ${error.message}\n`;
+                    consoleLog.scrollTop = consoleLog.scrollHeight; // Scroll to bottom
+                    return null; // Return null for errors
+                }
+            });
+
+            await Promise.all(fetchPromises); // Wait for all files to be processed
+
+            // Ensure progress is 100% after all files are attempted
+            progressBar.style.width = '100%';
+            progressPercentage.textContent = '100%';
+            consoleLog.textContent += `\nAll files processed. Generating ZIP...\n`;
+            consoleLog.scrollTop = consoleLog.scrollHeight;
+
+            try {
+                const content = await zip.generateAsync({
+                    type: "blob",
+                    compression: "DEFLATE", // Use compression
+                    compressionOptions: {
+                        level: 9 // Max compression
+                    }
+                }, function updateCallback(metadata) {
+                    // Update progress during ZIP generation (optional, but good for large zips)
+                    const generationProgress = Math.round(metadata.percent);
+                    progressBar.style.width = `${generationProgress}%`;
+                    progressPercentage.textContent = `${generationProgress}%`;
+                    if (metadata.currentFile) {
+                        consoleLog.textContent += `Compressing: ${metadata.currentFile}\n`;
+                        consoleLog.scrollTop = consoleLog.scrollHeight;
+                    }
+                });
+
+                saveAs(content, "mod-assets.zip");
+                downloadAllZipButton.textContent = 'Download Complete!';
+                consoleLog.textContent += `\nZIP file "mod-assets.zip" downloaded!\n`;
+                consoleLog.scrollTop = consoleLog.scrollHeight;
+            } catch (error) {
+                console.error("Error generating or saving zip:", error);
+                downloadAllZipButton.textContent = 'Download Failed!';
+                consoleLog.textContent += `\n[FATAL ERROR] Failed to generate or save ZIP: ${error.message}\n`;
+                consoleLog.scrollTop = consoleLog.scrollHeight;
+                alert('Failed to generate or save the ZIP file. Please check console for errors.');
+            } finally {
+                // Keep overlay visible for a bit to show final message, then hide
+                setTimeout(() => {
+                    loadingOverlay.classList.remove('active');
+                    downloadAllZipButton.textContent = 'Download All as ZIP';
+                    downloadAllZipButton.disabled = false;
+                }, 3000); // Hide after 3 seconds
+            }
+        });
+    } else {
+        console.error('One or more required DOM elements for ZIP functionality not found!');
+        // Log to console if any elements are missing
+        if (!downloadAllZipButton) console.error('download-all-zip-button not found!');
+        if (!loadingOverlay) console.error('loading-overlay not found!');
+        if (!progressBar) console.error('progress-bar not found!');
+        if (!progressPercentage) console.error('progress-percentage not found!');
+        if (!consoleLog) console.error('console-log not found!');
+    }
+});
