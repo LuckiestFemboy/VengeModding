@@ -1,0 +1,77 @@
+/* mod-builder.css */
+
+/* Inherit basic body styles for consistent look */
+body {
+    font-family: 'Inter', sans-serif;
+    background: #1a1a1a; /* Background from asset-list-page.css */
+    color: #ffffff; /* Text color from asset-list-page.css */
+    line-height: 1.6;
+}
+
+/* Mod Builder Overlay (full-screen pop-up) */
+.mod-builder-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8); /* Slightly darker than loading overlay for distinction, but still semi-transparent */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1001; /* Higher than loading overlay */
+    backdrop-filter: blur(8px); /* A bit more blur */
+    -webkit-backdrop-filter: blur(8px);
+    visibility: hidden; /* Hidden by default */
+    opacity: 0; /* Start fully transparent */
+    transition: visibility 0.3s linear, opacity 0.3s linear;
+}
+
+.mod-builder-overlay.active {
+    visibility: visible;
+    opacity: 1;
+}
+
+/* Mod Builder Window (content inside the pop-up) */
+.mod-builder-window {
+    background: #2a2a2a; /* Darker background, consistent with loading-window */
+    border: 1px solid rgba(255, 255, 255, 0.15); /* Slightly more prominent border */
+    border-radius: 12px;
+    padding: 2rem;
+    width: 95%; /* Wider than loading window */
+    max-width: 900px; /* Max width for larger content */
+    height: 90%; /* Take up most of the height */
+    max-height: 800px; /* Max height for larger content */
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    color: #ffffff;
+    position: relative; /* For absolute positioning of close button */
+    overflow-y: auto; /* Enable scrolling if content exceeds height */
+}
+
+.mod-builder-window h2 {
+    font-size: 2rem;
+    color: #6c5ce7; /* Accent color */
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+/* Close button for the mod builder pop-up */
+.mod-builder-close-button {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: none;
+    border: none;
+    font-size: 2rem;
+    color: rgba(255, 255, 255, 0.6);
+    cursor: pointer;
+    transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.mod-builder-close-button:hover {
+    color: #fd79a8; /* Pink accent on hover */
+    transform: rotate(90deg);
+}
