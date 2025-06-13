@@ -1,63 +1,14 @@
 // DOM Elements
 let searchInput;
 let allCards;
-// Store a global list of all assets fetched to be used for zipping and modding
+// Store a global list of all assets fetched to be used for zipping
 const allAssets = [];
 
-// DOM elements for loading/progress (used by both asset-list and mod-builder)
+// DOM elements for loading/progress
 let loadingOverlay;
 let progressBar;
 let progressPercentage;
 let consoleLog;
-
-// --- Mod Builder Configuration ---
-// Define your modifiable groups here
-const modGroups = [
-    {
-        name: "Building Textures",
-        folder: "Building", // This must match the folder name in mod-assets
-        modifiable: true,
-        files: ["building_wall.png", "roof_texture.jpg"], // Specific files within this folder that are modifiable
-        canAdjustColor: true,
-        canAdjustSaturation: true,
-        canDraw: true
-    },
-    {
-        name: "Character Skins",
-        folder: "Characters",
-        modifiable: true,
-        files: ["player_skin.png", "enemy_skin.png"],
-        canAdjustColor: true,
-        canAdjustSaturation: true,
-        canDraw: false
-    },
-    {
-        name: "UI Elements",
-        folder: "UI",
-        modifiable: true,
-        files: ["button_bg.png", "icon_border.png"],
-        canAdjustColor: true,
-        canAdjustSaturation: false,
-        canDraw: true
-    },
-    {
-        name: "Weapon Textures",
-        folder: "Weapons",
-        modifiable: true,
-        files: ["sword_texture.png", "gun_texture.jpg"],
-        canAdjustColor: true,
-        canAdjustSaturation: true,
-        canDraw: true
-    },
-    {
-        name: "Sound Effects",
-        folder: "Sounds",
-        modifiable: false, // This group is not modifiable through the builder
-        files: ["explosion.mp3", "laser.mp3"]
-    }
-    // Add more groups as needed
-];
-
 
 // Card Creation
 function createAndAppendCard(folder, filename, type) {
@@ -70,7 +21,7 @@ function createAndAppendCard(folder, filename, type) {
 
     let mediaPath; // Declare mediaPath here, as it's used by both branches
 
-    // Add asset to the global list for zipping and modding
+    // Add asset to the global list for zipping
     allAssets.push({ folder, filename, type });
 
 
@@ -358,7 +309,7 @@ function playAudio(audioPath) {
 // --- New ZIP Download Functionality with Progress ---
 
 document.addEventListener('DOMContentLoaded', async () => {
-    // Await initializeGallery to ensure allAssets is populated before calling mod builder
+    // Initialize gallery first
     await initializeGallery();
 
     // Get references to the new loading UI elements (these need to be global for mod-builder.js to access)
@@ -366,14 +317,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     progressBar = document.getElementById('progress-bar');
     progressPercentage = document.getElementById('progress-percentage');
     consoleLog = document.getElementById('console-log');
-
-    // AFTER gallery is initialized and allAssets is populated, initialize Mod Builder
-    // Check if initModBuilder is available (from mod-builder.js)
-    if (typeof window.initModBuilder === 'function') {
-        window.initModBuilder(allAssets, modGroups);
-    } else {
-        console.error("initModBuilder function not found. Make sure mod-builder.js is loaded correctly.");
-    }
 
     const downloadAllZipButton = document.getElementById('download-all-zip-button');
 

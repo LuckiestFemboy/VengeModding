@@ -1,6 +1,6 @@
 // Global variables for Mod Builder
-let allAssetsFromMain = []; // Will store assets passed from asset-list-page.js
-let modGroupsConfig = []; // Will store mod group configuration passed from asset-list-page.js
+let allAssetsForModding = []; // This will be populated by mod-builder itself
+let modGroupsConfig = []; // This will be defined internally
 
 // Mod Builder DOM Elements
 let modBuilderOverlay;
@@ -39,92 +39,305 @@ function getAssetId(asset) {
     return `${asset.folder}/${asset.filename}`;
 }
 
-// === Initialization Function for Mod Builder ===
-// This function is called by asset-list-page.js once all assets are loaded.
-function initModBuilder(assets, groupsConfig) {
-    allAssetsFromMain = assets;
-    modGroupsConfig = groupsConfig;
-    console.log("Mod Builder received assets and group config.");
+// --- Mod Builder Configuration (MOVED HERE from asset-list-page.js) ---
+const modGroups = [
+    {
+        name: "Building Textures",
+        folder: "Building", // Keep existing, assuming 'Building' is the actual folder name
+        modifiable: true,
+        files: ["building_wall.png", "roof_texture.jpg"],
+        canAdjustColor: true,
+        canAdjustSaturation: true,
+        canDraw: true
+    },
+    {
+        name: "Character Skins",
+        folder: "Characters", // Keep existing
+        modifiable: true,
+        files: ["player_skin.png", "enemy_skin.png"],
+        canAdjustColor: true,
+        canAdjustSaturation: true,
+        canDraw: false
+    },
+    {
+        name: "UI Elements",
+        folder: "UI", // Keep existing
+        modifiable: true,
+        files: ["button_bg.png", "icon_border.png"],
+        canAdjustColor: true,
+        canAdjustSaturation: false,
+        canDraw: true
+    },
+    {
+        name: "Weapon Textures",
+        folder: "Weapons", // Keep existing
+        modifiable: true,
+        files: ["sword_texture.png", "gun_texture.jpg"],
+        canAdjustColor: true,
+        canAdjustSaturation: true,
+        canDraw: true
+    },
+    {
+        name: "Sound Effects",
+        folder: "Sounds", // Keep existing
+        modifiable: false,
+        files: ["explosion.mp3", "laser.mp3"]
+    },
+    // --- New Asset Categories ---
+    {
+        name: "Walls Sierra",
+        folder: "WallsSierra",
+        modifiable: true,
+        files: ["Wall-Texture-dirty.jpg", "Wall-Texture-v1.jpg", "Wall-Texture-Snow.jpg", "Wall-Texture.jpg"],
+        canAdjustColor: true,
+        canAdjustSaturation: true,
+        canDraw: true
+    },
+    {
+        name: "Walls Tundra",
+        folder: "WallsTundra",
+        modifiable: true,
+        files: ["Wall-Texture-4M-Dungeon.jpg"],
+        canAdjustColor: true,
+        canAdjustSaturation: true,
+        canDraw: true
+    },
+    {
+        name: "Walls Mistle",
+        folder: "WallsMistle",
+        modifiable: true,
+        files: ["Green-Wall.jpg"],
+        canAdjustColor: true,
+        canAdjustSaturation: true,
+        canDraw: true
+    },
+    {
+        name: "Sierra Top Floor",
+        folder: "SierraTopFloor",
+        modifiable: true,
+        files: ["Floor-Low.jpg"],
+        canAdjustColor: true,
+        canAdjustSaturation: true,
+        canDraw: true
+    },
+    {
+        name: "Sierra Ground",
+        folder: "SierraGround",
+        modifiable: true,
+        files: ["Ground-Sand.png", "Sand-Corner.jpg", "Sierra-Grass.jpg", "Sierra-Road.jpg"],
+        canAdjustColor: true,
+        canAdjustSaturation: true,
+        canDraw: true
+    },
+    {
+        name: "Sierra Temple Roof",
+        folder: "SierraTempleRoof",
+        modifiable: true,
+        files: ["Hallway-Texture.jpg"],
+        canAdjustColor: true,
+        canAdjustSaturation: true,
+        canDraw: true
+    },
+    {
+        name: "Sierra Pillar",
+        folder: "SierraPillar",
+        modifiable: true,
+        files: ["Pillar-Texture.jpg"],
+        canAdjustColor: true,
+        canAdjustSaturation: true,
+        canDraw: true
+    },
+    {
+        name: "Mistle Pillar",
+        folder: "MistlePillar",
+        modifiable: true,
+        files: ["Snake-Pillar.jpg"],
+        canAdjustColor: true,
+        canAdjustSaturation: true,
+        canDraw: true
+    },
+    {
+        name: "Mistle Rock",
+        folder: "MistleRock",
+        modifiable: true,
+        files: ["rock_formation_01_wall_tile.jpg"],
+        canAdjustColor: true,
+        canAdjustSaturation: true,
+        canDraw: true
+    },
+    {
+        name: "Xibalba Roof",
+        folder: "XibalbaRoof",
+        modifiable: true,
+        files: ["floor_tile_01_metal.jpg"],
+        canAdjustColor: true,
+        canAdjustSaturation: true,
+        canDraw: true
+    },
+    {
+        name: "Xibalba Cube",
+        folder: "XibalbaCube",
+        modifiable: true,
+        files: ["Xibalba_Cube_BaseColor.jpg"],
+        canAdjustColor: true,
+        canAdjustSaturation: true,
+        canDraw: true
+    },
+    {
+        name: "Tundra Cube",
+        folder: "TundraCube",
+        modifiable: true,
+        files: ["Tundra_Cube_BaseColor.jpg"],
+        canAdjustColor: true,
+        canAdjustSaturation: true,
+        canDraw: true
+    },
+    {
+        name: "Xibalba Walls & Buildings",
+        folder: "XibalbaWallsBuildings",
+        modifiable: true,
+        files: ["dungeon_set_02_atlas_01.jpg"],
+        canAdjustColor: true,
+        canAdjustSaturation: true,
+        canDraw: true
+    },
+    {
+        name: "Xibalba Floor Carve/Ornament",
+        folder: "XibalbaFloorCarveOrnament",
+        modifiable: true,
+        files: ["Floor-Ornament.jpg"],
+        canAdjustColor: true,
+        canAdjustSaturation: true,
+        canDraw: true
+    },
+    {
+        name: "Tundra Building Floor",
+        folder: "TundraBuildingFloor",
+        modifiable: true,
+        files: ["snake_temple_floor_01_tex.jpg"],
+        canAdjustColor: true,
+        canAdjustSaturation: true,
+        canDraw: true
+    },
+    {
+        name: "Mistle Tunnel",
+        folder: "MistleTunnel",
+        modifiable: true,
+        files: ["Snake-Tunnel.jpg"],
+        canAdjustColor: true,
+        canAdjustSaturation: true,
+        canDraw: true
+    },
+    {
+        name: "Tundra Ground",
+        folder: "TundraGround",
+        modifiable: true,
+        files: ["snowy_rock.jpg", "ice.jpg", "snow.jpg"],
+        canAdjustColor: true,
+        canAdjustSaturation: true,
+        canDraw: true
+    },
+    {
+        name: "Xibalba Gravestone",
+        folder: "XibalbaGravestone",
+        modifiable: true,
+        files: ["T_PROP_gravestone_01_BC.jpg"],
+        canAdjustColor: true,
+        canAdjustSaturation: true,
+        canDraw: true
+    },
+    {
+        name: "Sierra Roof Pillars",
+        folder: "SierraRoofPillars",
+        modifiable: true,
+        files: ["wall-trials1.jpg"],
+        canAdjustColor: true,
+        canAdjustSaturation: true,
+        canDraw: true
+    },
+    {
+        name: "All Maps Sky",
+        folder: "AllMapsSky",
+        modifiable: true,
+        files: [
+            "wall-trials1.jpg", "FattySky00_Night_01.png", "FattySky00_Night_04.png", "FattySky00_Night_05.png",
+            "FattySky00_Night_03.png", "FattySky00_Night_02.png", "FattySky00_Sunset_02.png", "FattySky00_Sunset_06.png",
+            "FattySky00_Sunset_03.png", "FattySky00_Sunset_01.png", "FattySky00_Sunset_04.png", "FattySky00_Sunset_05.png",
+            "FattySky00_Cloudy_06.png", "FattySky00_Cloudy_01.png", "FattySky00_Cloudy_03.png", "FattySky00_Cloudy_05.png",
+            "FattySky00_Cloudy_02.png", "FattySky00_Cloudy_04.png", "FattySkybox03_Cloudy_01.png", "FattySkybox03_Cloudy_02.png",
+            "FattySkybox03_Cloudy_04.png", "FattySkybox03_Cloudy_03.png", "FattySkybox03_Cloudy_06.png", "FattySkybox03_Cloudy_05.png",
+            "FattySkybox03_Night_06.png", "FattySkybox03_Night_02.png", "FattySkybox03_Night_03.png", "FattySkybox03_Night_04.png",
+            "FattySkybox03_Night_05.png", "FattySkybox03_Night_01.png", "FattySkybox03_Sunset_04.png", "FattySkybox03_Sunset_01.png",
+            "FattySkybox03_Sunset_02.png", "FattySkybox03_Sunset_03.png", "FattySkybox03_Sunset_06.png", "FattySkybox03_Sunset_05.png",
+            "FattySky00_Sunny_06.png", "FattySky00_Sunny_02.png", "FattySkybox03_Sunny_05.png", "FattySkybox03_Sunny_02.png",
+            "FattySky00_Sunny_04.png", "FattySky00_Sunny_05.png", "FattySkybox03_Sunny_06.png", "FattySky00_Sunny_01.png",
+            "FattySky00_Sunny_03.png", "FattySkybox03_Sunny_03.png", "FattySkybox03_Sunny_01.png", "FattySkybox03_Sunny_04.png",
+            "FattySky00_Sunny_01.png" // Duplicate removed here if it was accidental.
+        ],
+        canAdjustColor: true,
+        canAdjustSaturation: true,
+        canDraw: true
+    },
+    {
+        name: "Bounce Pad",
+        folder: "BouncePad",
+        modifiable: true,
+        files: ["BouncePad-Texture.jpg"],
+        canAdjustColor: true,
+        canAdjustSaturation: true,
+        canDraw: true
+    }
+];
 
-    // Initialize DOM elements for Mod Builder
-    modBuilderOverlay = document.getElementById('mod-builder-overlay');
-    modBuilderCloseButton = document.getElementById('mod-builder-close-button');
-    textureGroupList = document.getElementById('texture-group-list');
-    createModPackButtonGroupsPage = document.getElementById('create-mod-pack-button-groups-page');
-    customizationPanel = document.getElementById('customization-panel');
-    modBackButton = document.getElementById('mod-back-button');
-    customizationPanelTitle = document.getElementById('customization-panel-title');
-    colorPicker = document.getElementById('color-picker');
-    applyColorButton = document.getElementById('apply-color-button');
-    clearColorButton = document.getElementById('clear-color-button');
-    saturationSlider = document.getElementById('saturation-slider');
-    saturationValueDisplay = document.getElementById('saturation-value');
-    applySaturationButton = document.getElementById('apply-saturation-button');
-    clearSaturationButton = document.getElementById('clear-saturation-button');
-    drawingCanvas = document.getElementById('drawingCanvas');
-    drawingColorPicker = document.getElementById('drawing-color-picker');
-    backgroundColorPicker = document.getElementById('background-color-picker');
-    applyDrawingButton = document.getElementById('apply-drawing-button');
-    clearDrawingButton = document.getElementById('clear-drawing-button');
-    drawingResXInput = document.getElementById('drawing-res-x');
-    drawingResYInput = document.getElementById('drawing-res-y');
 
-    // Basic Mod Builder UI Setup
-    if (modBuilderOverlay && modBuilderCloseButton && textureGroupList && customizationPanel && modBackButton) {
-        // Event Listeners
-        modBuilderCloseButton.addEventListener('click', hideModBuilder);
-        modBackButton.addEventListener('click', showTextureGroupList);
-        applyColorButton.addEventListener('click', applyColorModification);
-        clearColorButton.addEventListener('click', clearColorModification);
-        saturationSlider.addEventListener('input', updateSaturationValueDisplay);
-        applySaturationButton.addEventListener('click', applySaturationModification);
-        clearSaturationButton.addEventListener('click', clearSaturationModification);
-        applyDrawingButton.addEventListener('click', applyDrawingModification);
-        clearDrawingButton.addEventListener('click', clearDrawingModification);
 
-        // Resolution input event listeners with validation
-        drawingResXInput.addEventListener('input', (e) => validateResolutionInput(e.target));
-        drawingResYInput.addEventListener('input', (e) => validateResolutionInput(e.target));
 
-        // Event listener for the "Create Mod Pack" button on the groups page
-        createModPackButtonGroupsPage.addEventListener('click', () => {
-            const modifiedAssetPaths = Array.from(modifiedAssets.keys()); // Get unique modified asset IDs
-            if (modifiedAssetPaths.length === 0) {
-                alert('No modifications to create a mod pack for. Please make some changes first!');
-                return;
-            }
-            generateModPackZip(modifiedAssetPaths);
-        });
+// Function to fetch assets specifically for Mod Builder (since asset-list-page.js won't pass them)
+async function fetchAssetsForModBuilder() {
+    try {
+        // Clear previous assets if any
+        allAssetsForModding.length = 0;
 
-        // Drawing functionality setup
-        currentDrawingContext = drawingCanvas.getContext('2d');
-        setupDrawing(); // Initialize drawing canvas event listeners
-
-        // Initial population of groups
-        populateTextureGroups();
-
-        // Enable the "Create Mod Pack" button only if there are existing mods
-        createModPackButtonGroupsPage.disabled = modifiedAssets.size === 0;
-
-        // Add a button to open the mod builder to the main page (if it doesn't already exist)
-        // This is a simple way to expose the mod builder from the main UI
-        let modBuilderOpenButton = document.getElementById('open-mod-builder-button');
-        if (!modBuilderOpenButton) {
-            modBuilderOpenButton = document.createElement('button');
-            modBuilderOpenButton.id = 'open-mod-builder-button';
-            modBuilderOpenButton.className = 'search-button'; // Re-use styling
-            modBuilderOpenButton.innerHTML = '<i class="fas fa-hammer"></i> Mod Builder';
-            const searchContainer = document.querySelector('.search-container');
-            if (searchContainer) {
-                searchContainer.appendChild(modBuilderOpenButton);
-                modBuilderOpenButton.addEventListener('click', showModBuilder);
+        // Fetch PNG files
+        const pngResponse = await fetch('pnglist.txt');
+        const pngText = pngResponse.ok ? await pngResponse.text() : '';
+        const pngLines = pngText.trim().split('\n');
+        for (const line of pngLines) {
+            const [folder, filename] = line.split(' ');
+            if (folder && filename) {
+                allAssetsForModding.push({ folder, filename, type: 'png' });
             }
         }
 
-    } else {
-        console.error('One or more required Mod Builder DOM elements not found during initialization!');
+        // Fetch JPG files
+        const jpgResponse = await fetch('jpgurl.txt');
+        const jpgText = jpgResponse.ok ? await jpgResponse.text() : '';
+        const jpgLines = jpgText.trim().split('\n');
+        for (const line of jpgLines) {
+            const [folder, filename] = line.split(' ');
+            if (folder && filename) {
+                allAssetsForModding.push({ folder, filename, type: 'jpg' });
+            }
+        }
+
+        // Fetch MP3 files
+        const mp3Response = await fetch('mp3list.txt');
+        const mp3Text = mp3Response.ok ? await mp3Response.text() : '';
+        const mp3Lines = mp3Text.trim().split('\n');
+        for (const line of mp3Lines) {
+            const [folder, filename] = line.split(' ');
+            if (folder && filename) {
+                allAssetsForModding.push({ folder, filename, type: 'mp3' });
+            }
+        }
+
+        console.log("Mod Builder fetched assets successfully for internal use.");
+        modGroupsConfig = modGroups; // Assign the internally defined modGroups to config
+    } catch (error) {
+        console.error('Error fetching assets for Mod Builder:', error);
     }
 }
+
 
 // === MOD BUILDER UI FUNCTIONS ===
 
@@ -148,7 +361,9 @@ function markGroupAsModified(folderName) {
         groupButton.appendChild(icon);
     }
     // Enable the "Create Mod Pack" button on the groups page if any modifications exist
-    createModPackButtonGroupsPage.disabled = modifiedAssets.size === 0;
+    if (createModPackButtonGroupsPage) {
+        createModPackButtonGroupsPage.disabled = modifiedAssets.size === 0;
+    }
 }
 
 // Function to unmark a group button
@@ -162,20 +377,22 @@ function unmarkGroupAsModified(folderName) {
         }
     }
     // Disable the "Create Mod Pack" button on the groups page if no modifications exist
-    createModPackButtonGroupsPage.disabled = modifiedAssets.size === 0;
+    if (createModPackButtonGroupsPage) {
+        createModPackButtonGroupsPage.disabled = modifiedAssets.size === 0;
+    }
 }
 
 // Show Texture Group List / Hide Customization Panel
 function showTextureGroupList() {
-    customizationPanel.style.display = 'none';
-    textureGroupList.style.display = 'grid'; // Ensure grid for groups
+    if (customizationPanel) customizationPanel.style.display = 'none';
+    if (textureGroupList) textureGroupList.style.display = 'grid'; // Ensure grid for groups
     // The main Create Mod Pack button is always visible on this page
-    createModPackButtonGroupsPage.style.display = 'block';
+    if (createModPackButtonGroupsPage) createModPackButtonGroupsPage.style.display = 'block';
 }
 
 // Populate groups based on modGroupsConfig
 function populateTextureGroups() {
-    textureGroupList.innerHTML = ''; // Clear previous buttons
+    if (textureGroupList) textureGroupList.innerHTML = ''; // Clear previous buttons
     modGroupsConfig.forEach(group => {
         const button = document.createElement('button');
         button.className = 'mod-group-button';
@@ -183,7 +400,7 @@ function populateTextureGroups() {
         button.dataset.groupFolder = group.folder; // Store folder name for reference
 
         // Check if any asset in this group has modifications and mark button
-        const assetsInGroup = allAssetsFromMain.filter(asset => asset.folder === group.folder);
+        const assetsInGroup = allAssetsForModding.filter(asset => asset.folder === group.folder);
         const isGroupModified = assetsInGroup.some(asset => modifiedAssets.has(getAssetId(asset)));
         if (isGroupModified) {
             markGroupAsModified(group.folder);
@@ -198,50 +415,52 @@ function populateTextureGroups() {
             button.title = 'This group is not modifiable';
             button.onclick = () => alert('This group is not currently set as modifiable.');
         }
-        textureGroupList.appendChild(button);
+        if (textureGroupList) textureGroupList.appendChild(button);
     });
 }
 
 // Show Customization Panel for a selected group
 async function showCustomizationPanel(group) {
-    customizationPanelTitle.textContent = `Customize Group: ${group.name}`;
-    createModPackButtonGroupsPage.style.display = 'none'; // Hide main mod pack button
-    textureGroupList.style.display = 'none';
-    customizationPanel.style.display = 'flex'; // Use flex for panel layout
+    if (customizationPanelTitle) customizationPanelTitle.textContent = `Customize Group: ${group.name}`;
+    if (createModPackButtonGroupsPage) createModPackButtonGroupsPage.style.display = 'none'; // Hide main mod pack button
+    if (textureGroupList) textureGroupList.style.display = 'none';
+    if (customizationPanel) customizationPanel.style.display = 'flex'; // Use flex for panel layout
 
     // Filter currentGroupAssets based on the selected group's folder and file list
-    currentGroupAssets = allAssetsFromMain.filter(asset =>
+    currentGroupAssets = allAssetsForModding.filter(asset =>
         asset.folder === group.folder &&
         group.files.includes(asset.filename) &&
         asset.type !== 'mp3' // Only show image assets for customization for now
     );
 
     // Toggle visibility of customization options based on group config
-    document.getElementById('color-customization-option').style.display = group.canAdjustColor ? 'block' : 'none';
-    document.getElementById('saturation-customization-option').style.display = group.canAdjustSaturation ? 'block' : 'none';
-    document.getElementById('drawing-customization-option').style.display = group.canDraw ? 'block' : 'none';
+    if (document.getElementById('color-customization-option')) document.getElementById('color-customization-option').style.display = group.canAdjustColor ? 'block' : 'none';
+    if (document.getElementById('saturation-customization-option')) document.getElementById('saturation-customization-option').style.display = group.canAdjustSaturation ? 'block' : 'none';
+    if (document.getElementById('drawing-customization-option')) document.getElementById('drawing-customization-option').style.display = group.canDraw ? 'block' : 'none';
 
 
     // Dynamically populate image previews in the customization panel
     const customizationOption = document.getElementById('drawing-customization-option');
-    let imagePreviewsContainer = customizationOption.querySelector('.image-previews-container');
-    if (!imagePreviewsContainer) {
+    let imagePreviewsContainer = customizationOption ? customizationOption.querySelector('.image-previews-container') : null;
+    if (!imagePreviewsContainer && customizationOption) {
         imagePreviewsContainer = document.createElement('div');
         imagePreviewsContainer.className = 'image-previews-container';
         // Insert before drawing canvas for better layout
         customizationOption.insertBefore(imagePreviewsContainer, drawingCanvas);
     }
-    imagePreviewsContainer.innerHTML = ''; // Clear existing previews
+    if (imagePreviewsContainer) imagePreviewsContainer.innerHTML = ''; // Clear existing previews
 
     if (currentGroupAssets.length === 0) {
-        imagePreviewsContainer.innerHTML = '<p style="color: #bbb; text-align: center;">No modifiable image assets in this group.</p>';
+        if (imagePreviewsContainer) imagePreviewsContainer.innerHTML = '<p style="color: #bbb; text-align: center;">No modifiable image assets in this group.</p>';
         // Reset drawing panel if no images
         currentSelectedAsset = null;
-        drawingCanvas.width = 256;
-        drawingCanvas.height = 256;
-        currentDrawingContext.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
-        drawingResXInput.value = 256;
-        drawingResYInput.value = 256;
+        if (drawingCanvas) {
+            drawingCanvas.width = 256;
+            drawingCanvas.height = 256;
+            if (currentDrawingContext) currentDrawingContext.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+        }
+        if (drawingResXInput) drawingResXInput.value = 256;
+        if (drawingResYInput) drawingResYInput.value = 256;
         return;
     }
 
@@ -287,7 +506,7 @@ async function showCustomizationPanel(group) {
 
         previewItem.addEventListener('click', async () => {
             // Remove active class from previous preview item
-            const currentActive = imagePreviewsContainer.querySelector('.preview-item.active');
+            const currentActive = imagePreviewsContainer ? imagePreviewsContainer.querySelector('.preview-item.active') : null;
             if (currentActive) {
                 currentActive.classList.remove('active');
             }
@@ -298,10 +517,10 @@ async function showCustomizationPanel(group) {
             applyExistingModificationsToCanvas(currentSelectedAsset); // Apply any existing mods
         });
 
-        imagePreviewsContainer.appendChild(previewItem);
+        if (imagePreviewsContainer) imagePreviewsContainer.appendChild(previewItem);
     }
     // Set first preview as active by default
-    if (imagePreviewsContainer.firstChild) {
+    if (imagePreviewsContainer && imagePreviewsContainer.firstChild) {
         imagePreviewsContainer.firstChild.classList.add('active');
     }
 }
@@ -311,6 +530,11 @@ async function showCustomizationPanel(group) {
 
 // Loads an image onto the drawing canvas
 async function loadImageForDrawing(asset) {
+    if (!currentDrawingContext || !drawingCanvas || !drawingResXInput || !drawingResYInput || !backgroundColorPicker) {
+        console.error("Drawing elements not fully initialized for loadImageForDrawing.");
+        return;
+    }
+
     if (!asset || asset.type === 'mp3') { // Handle cases where no image asset is selected or it's an MP3
         drawingCanvas.width = 256;
         drawingCanvas.height = 256;
@@ -375,7 +599,7 @@ async function loadImageForDrawing(asset) {
 
 // Applies existing color, saturation, or drawing modifications to the UI/canvas
 async function applyExistingModificationsToCanvas(asset) {
-    if (!asset) return;
+    if (!asset || !colorPicker || !saturationSlider || !backgroundColorPicker || !drawingResXInput || !drawingResYInput) return;
 
     const assetId = getAssetId(asset);
     const mod = modifiedAssets.get(assetId);
@@ -405,13 +629,15 @@ async function applyExistingModificationsToCanvas(asset) {
             img.onload = () => {
                 const resX = parseInt(drawingResXInput.value);
                 const resY = parseInt(drawingResYInput.value);
-                drawingCanvas.width = resX;
-                drawingCanvas.height = resY;
-                // Redraw background first based on current picker value
-                currentDrawingContext.fillStyle = backgroundColorPicker.value;
-                currentDrawingContext.fillRect(0, 0, drawingCanvas.width, drawingCanvas.height);
-                // Then draw the saved drawing on top
-                currentDrawingContext.drawImage(img, 0, 0, drawingCanvas.width, drawingCanvas.height);
+                if (drawingCanvas && currentDrawingContext) {
+                    drawingCanvas.width = resX;
+                    drawingCanvas.height = resY;
+                    // Redraw background first based on current picker value
+                    currentDrawingContext.fillStyle = backgroundColorPicker.value;
+                    currentDrawingContext.fillRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+                    // Then draw the saved drawing on top
+                    currentDrawingContext.drawImage(img, 0, 0, drawingCanvas.width, drawingCanvas.height);
+                }
             };
             if (mod.resolution) {
                 drawingResXInput.value = mod.resolution.x;
@@ -421,7 +647,7 @@ async function applyExistingModificationsToCanvas(asset) {
         if (mod.backgroundColor) {
             backgroundColorPicker.value = mod.backgroundColor;
             // If a drawing is present, need to re-apply background then drawing
-            if (mod.drawing) {
+            if (mod.drawing && drawingCanvas && currentDrawingContext) {
                  const img = new Image();
                  img.src = mod.drawing;
                  img.onload = () => {
@@ -429,7 +655,7 @@ async function applyExistingModificationsToCanvas(asset) {
                      currentDrawingContext.fillRect(0, 0, drawingCanvas.width, drawingCanvas.height);
                      currentDrawingContext.drawImage(img, 0, 0, drawingCanvas.width, drawingCanvas.height);
                  };
-            } else {
+            } else if (drawingCanvas && currentDrawingContext) {
                 // If no drawing, just update background without redrawing anything on top
                 currentDrawingContext.fillStyle = backgroundColorPicker.value;
                 currentDrawingContext.fillRect(0, 0, drawingCanvas.width, drawingCanvas.height);
@@ -445,6 +671,8 @@ function applyColorModification() {
         alert('Please select an image asset to modify.');
         return;
     }
+    if (!colorPicker) return;
+
     const assetId = getAssetId(currentSelectedAsset);
     let mod = modifiedAssets.get(assetId) || {};
     mod.color = colorPicker.value;
@@ -455,13 +683,15 @@ function applyColorModification() {
 
 function clearColorModification() {
     if (!currentSelectedAsset) return;
+    if (!colorPicker) return;
+
     const assetId = getAssetId(currentSelectedAsset);
     let mod = modifiedAssets.get(assetId);
     if (mod && mod.color) {
         delete mod.color;
         if (Object.keys(mod).length === 0) {
             modifiedAssets.delete(assetId);
-            const assetsInGroup = allAssetsFromMain.filter(asset => asset.folder === currentSelectedAsset.folder);
+            const assetsInGroup = allAssetsForModding.filter(asset => asset.folder === currentSelectedAsset.folder);
             const isGroupModified = assetsInGroup.some(asset => modifiedAssets.has(getAssetId(asset)));
             if (!isGroupModified) {
                 unmarkGroupAsModified(currentSelectedAsset.folder);
@@ -476,7 +706,9 @@ function clearColorModification() {
 
 // Saturation Modification
 function updateSaturationValueDisplay() {
-    saturationValueDisplay.textContent = `${saturationSlider.value}%`;
+    if (saturationSlider && saturationValueDisplay) {
+        saturationValueDisplay.textContent = `${saturationSlider.value}%`;
+    }
 }
 
 function applySaturationModification() {
@@ -484,6 +716,8 @@ function applySaturationModification() {
         alert('Please select an image asset to modify.');
         return;
     }
+    if (!saturationSlider) return;
+
     const assetId = getAssetId(currentSelectedAsset);
     let mod = modifiedAssets.get(assetId) || {};
     mod.saturation = parseInt(saturationSlider.value);
@@ -494,13 +728,15 @@ function applySaturationModification() {
 
 function clearSaturationModification() {
     if (!currentSelectedAsset) return;
+    if (!saturationSlider) return;
+
     const assetId = getAssetId(currentSelectedAsset);
     let mod = modifiedAssets.get(assetId);
     if (mod && mod.saturation) {
         delete mod.saturation;
         if (Object.keys(mod).length === 0) {
             modifiedAssets.delete(assetId);
-            const assetsInGroup = allAssetsFromMain.filter(asset => asset.folder === currentSelectedAsset.folder);
+            const assetsInGroup = allAssetsForModding.filter(asset => asset.folder === currentSelectedAsset.folder);
             const isGroupModified = assetsInGroup.some(asset => modifiedAssets.has(getAssetId(asset)));
             if (!isGroupModified) {
                 unmarkGroupAsModified(currentSelectedAsset.folder);
@@ -521,8 +757,8 @@ let lastX = 0;
 let lastY = 0;
 
 function setupDrawing() {
-    if (!drawingCanvas) {
-        console.error("drawingCanvas not found for setupDrawing!");
+    if (!drawingCanvas || !currentDrawingContext || !backgroundColorPicker || !drawingResXInput || !drawingResYInput) {
+        console.error("drawingCanvas or its context/inputs not found for setupDrawing!");
         return;
     }
 
@@ -554,7 +790,7 @@ function setupDrawing() {
 }
 
 function draw(e) {
-    if (!isDrawing) return;
+    if (!isDrawing || !currentDrawingContext || !drawingColorPicker) return;
 
     currentDrawingContext.strokeStyle = drawingColorPicker.value;
     currentDrawingContext.lineWidth = 2; // Fixed brush size for now
@@ -569,9 +805,11 @@ function draw(e) {
 }
 
 function clearDrawingCanvas() {
-    currentDrawingContext.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
-    currentDrawingContext.fillStyle = backgroundColorPicker.value; // Fill with current background color
-    currentDrawingContext.fillRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+    if (currentDrawingContext && drawingCanvas && backgroundColorPicker) {
+        currentDrawingContext.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+        currentDrawingContext.fillStyle = backgroundColorPicker.value; // Fill with current background color
+        currentDrawingContext.fillRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+    }
 }
 
 function validateResolutionInput(inputElement) {
@@ -589,6 +827,11 @@ function validateResolutionInput(inputElement) {
 }
 
 function updateCanvasResolution() {
+    if (!drawingResXInput || !drawingResYInput || !drawingCanvas || !currentDrawingContext || !backgroundColorPicker) {
+        console.error("Missing elements for updateCanvasResolution.");
+        return;
+    }
+
     const newWidth = parseInt(drawingResXInput.value);
     const newHeight = parseInt(drawingResYInput.value);
 
@@ -625,6 +868,7 @@ async function applyDrawingModification() {
         alert('Please select an image asset to apply drawing to.');
         return;
     }
+    if (!drawingResXInput || !drawingResYInput || !drawingCanvas || !backgroundColorPicker) return;
 
     const assetId = getAssetId(currentSelectedAsset);
     const newWidth = parseInt(drawingResXInput.value);
@@ -665,6 +909,7 @@ async function applyDrawingModification() {
 
 function clearDrawingModification() {
     if (!currentSelectedAsset) return;
+
     const assetId = getAssetId(currentSelectedAsset);
     let mod = modifiedAssets.get(assetId);
     if (mod && mod.drawing) {
@@ -673,7 +918,7 @@ function clearDrawingModification() {
         delete mod.backgroundColor;
         if (Object.keys(mod).length === 0) {
             modifiedAssets.delete(assetId);
-            const assetsInGroup = allAssetsFromMain.filter(asset => asset.folder === currentSelectedAsset.folder);
+            const assetsInGroup = allAssetsForModding.filter(asset => asset.folder === currentSelectedAsset.folder);
             const isGroupModified = assetsInGroup.some(asset => modifiedAssets.has(getAssetId(asset)));
             if (!isGroupModified) {
                 unmarkGroupAsModified(currentSelectedAsset.folder);
@@ -695,13 +940,19 @@ function clearDrawingModification() {
 // Assumes loadingOverlay, progressBar, progressPercentage, consoleLog are globally accessible
 // (they are initialized in asset-list-page.js and are global in the browser window)
 function updateProgress(current, total, filename = '') {
-    const percentage = total > 0 ? Math.round((current / total) * 100) : 0;
     // Check if elements exist before trying to update (they might not if asset-list.js failed or loaded after)
-    if (progressBar && progressPercentage && consoleLog) {
-        progressBar.style.width = `${percentage}%`;
-        progressPercentage.textContent = `${percentage}%`;
-        consoleLog.textContent += `Adding: ${filename}...\n`;
-        consoleLog.scrollTop = consoleLog.scrollHeight; // Auto-scroll
+    // Access global variables from the window object
+    const glLoadingOverlay = window.loadingOverlay;
+    const glProgressBar = window.progressBar;
+    const glProgressPercentage = window.progressPercentage;
+    const glConsoleLog = window.consoleLog;
+
+    if (glProgressBar && glProgressPercentage && glConsoleLog) {
+        const percentage = total > 0 ? Math.round((current / total) * 100) : 0;
+        glProgressBar.style.width = `${percentage}%`;
+        glProgressPercentage.textContent = `${percentage}%`;
+        glConsoleLog.textContent += `Adding: ${filename}...\n`;
+        glConsoleLog.scrollTop = glConsoleLog.scrollHeight; // Auto-scroll
     }
 }
 
@@ -757,11 +1008,17 @@ async function generateModPackZip(modifiedAssetIds) {
     const zip = new JSZip();
     let filesProcessed = 0;
 
-    // Ensure loading overlay is active (it's initialized in asset-list-page.js)
-    if (loadingOverlay) loadingOverlay.classList.add('active');
-    if (progressBar) progressBar.style.width = '0%';
-    if (progressPercentage) progressPercentage.textContent = '0%';
-    if (consoleLog) consoleLog.textContent = 'Starting Mod Pack generation...\n';
+    // Access global variables from the window object
+    const glLoadingOverlay = window.loadingOverlay;
+    const glProgressBar = window.progressBar;
+    const glProgressPercentage = window.progressPercentage;
+    const glConsoleLog = window.consoleLog;
+
+    // Ensure loading overlay is active
+    if (glLoadingOverlay) glLoadingOverlay.classList.add('active');
+    if (glProgressBar) glProgressBar.style.width = '0%';
+    if (glProgressPercentage) glProgressPercentage.textContent = '0%';
+    if (glConsoleLog) glConsoleLog.textContent = 'Starting Mod Pack generation...\n';
 
     try {
         for (const assetId of modifiedAssetIds) {
@@ -769,10 +1026,10 @@ async function generateModPackZip(modifiedAssetIds) {
             updateProgress(filesProcessed, modifiedAssetIds.length, assetId.split('/').pop()); // Show just filename
 
             const mod = modifiedAssets.get(assetId);
-            const originalAsset = allAssetsFromMain.find(asset => getAssetId(asset) === assetId);
+            const originalAsset = allAssetsForModding.find(asset => getAssetId(asset) === assetId);
 
             if (!originalAsset) {
-                console.warn(`Original asset for ${assetId} not found in main list. Skipping.`);
+                console.warn(`Original asset for ${assetId} not found in modding list. Skipping.`);
                 continue;
             }
 
@@ -805,21 +1062,111 @@ async function generateModPackZip(modifiedAssetIds) {
         });
 
         saveAs(content, "custom_mod_pack.zip");
-        if (consoleLog) consoleLog.textContent += `\n[SUCCESS] "custom_mod_pack.zip" downloaded!\n`;
-        if (consoleLog) consoleLog.scrollTop = consoleLog.scrollHeight;
+        if (glConsoleLog) glConsoleLog.textContent += `\n[SUCCESS] "custom_mod_pack.zip" downloaded!\n`;
+        if (glConsoleLog) glConsoleLog.scrollTop = glConsoleLog.scrollHeight;
 
     } catch (error) {
         console.error("Error generating or saving mod pack zip:", error);
-        if (consoleLog) consoleLog.textContent += `\n[FATAL ERROR] Failed to generate or save mod pack ZIP: ${error.message}\n`;
-        if (consoleLog) consoleLog.scrollTop = consoleLog.scrollHeight;
+        if (glConsoleLog) glConsoleLog.textContent += `\n[FATAL ERROR] Failed to generate or save mod pack ZIP: ${error.message}\n`;
+        if (glConsoleLog) glConsoleLog.scrollTop = glConsoleLog.scrollHeight;
         alert('Failed to generate or save the mod pack ZIP file. Please check console for errors.');
     } finally {
         setTimeout(() => {
-            if (loadingOverlay) loadingOverlay.classList.remove('active');
+            if (glLoadingOverlay) glLoadingOverlay.classList.remove('active');
         }, 3000); // Hide after 3 seconds
     }
 }
 
 
-// Expose initModBuilder to the global scope so asset-list-page.js can call it
-window.initModBuilder = initModBuilder;
+// === Initialization Function for Mod Builder ===
+// This will now be called on mod-builder.js's own DOMContentLoaded
+document.addEventListener('DOMContentLoaded', async () => {
+    // Initialize DOM elements for Mod Builder
+    modBuilderOverlay = document.getElementById('mod-builder-overlay');
+    modBuilderCloseButton = document.getElementById('mod-builder-close-button');
+    textureGroupList = document.getElementById('texture-group-list');
+    createModPackButtonGroupsPage = document.getElementById('create-mod-pack-button-groups-page');
+    customizationPanel = document.getElementById('customization-panel');
+    modBackButton = document.getElementById('mod-back-button');
+    customizationPanelTitle = document.getElementById('customization-panel-title');
+    colorPicker = document.getElementById('color-picker');
+    applyColorButton = document.getElementById('apply-color-button');
+    clearColorButton = document.getElementById('clear-color-button');
+    saturationSlider = document.getElementById('saturation-slider');
+    saturationValueDisplay = document.getElementById('saturation-value');
+    applySaturationButton = document.getElementById('apply-saturation-button');
+    clearSaturationButton = document.getElementById('clear-saturation-button');
+    drawingCanvas = document.getElementById('drawingCanvas');
+    drawingColorPicker = document.getElementById('drawing-color-picker');
+    backgroundColorPicker = document.getElementById('background-color-picker');
+    applyDrawingButton = document.getElementById('apply-drawing-button');
+    clearDrawingButton = document.getElementById('clear-drawing-button');
+    drawingResXInput = document.getElementById('drawing-res-x');
+    drawingResYInput = document.getElementById('drawing-res-y');
+
+
+    // Fetch assets for mod builder
+    await fetchAssetsForModBuilder(); // This populates allAssetsForModding and modGroupsConfig
+
+    // Basic Mod Builder UI Setup
+    if (modBuilderOverlay && modBuilderCloseButton && textureGroupList && customizationPanel && modBackButton) {
+        // Event Listeners
+        modBuilderCloseButton.addEventListener('click', hideModBuilder);
+        modBackButton.addEventListener('click', showTextureGroupList);
+        if (applyColorButton) applyColorButton.addEventListener('click', applyColorModification);
+        if (clearColorButton) clearColorButton.addEventListener('click', clearColorModification);
+        if (saturationSlider) saturationSlider.addEventListener('input', updateSaturationValueDisplay);
+        if (applySaturationButton) applySaturationButton.addEventListener('click', applySaturationModification);
+        if (clearSaturationButton) clearSaturationButton.addEventListener('click', clearSaturationModification);
+        if (applyDrawingButton) applyDrawingButton.addEventListener('click', applyDrawingModification);
+        if (clearDrawingButton) clearDrawingButton.addEventListener('click', clearDrawingModification);
+
+        // Resolution input event listeners with validation
+        if (drawingResXInput) drawingResXInput.addEventListener('input', (e) => validateResolutionInput(e.target));
+        if (drawingResYInput) drawingResYInput.addEventListener('input', (e) => validateResolutionInput(e.target));
+
+        // Event listener for the "Create Mod Pack" button on the groups page
+        if (createModPackButtonGroupsPage) {
+            createModPackButtonGroupsPage.addEventListener('click', () => {
+                const modifiedAssetPaths = Array.from(modifiedAssets.keys()); // Get unique modified asset IDs
+                if (modifiedAssetPaths.length === 0) {
+                    alert('No modifications to create a mod pack for. Please make some changes first!');
+                    return;
+                }
+                generateModPackZip(modifiedAssetPaths);
+            });
+        }
+
+        // Drawing functionality setup
+        if (drawingCanvas) {
+            currentDrawingContext = drawingCanvas.getContext('2d');
+            setupDrawing(); // Initialize drawing canvas event listeners
+        }
+
+
+        // Initial population of groups
+        populateTextureGroups();
+
+        // Enable the "Create Mod Pack" button only if there are existing mods
+        if (createModPackButtonGroupsPage) {
+            createModPackButtonGroupsPage.disabled = modifiedAssets.size === 0;
+        }
+
+        // Add a button to open the mod builder to the main page (if it doesn't already exist)
+        let modBuilderOpenButton = document.getElementById('open-mod-builder-button');
+        if (!modBuilderOpenButton) {
+            modBuilderOpenButton = document.createElement('button');
+            modBuilderOpenButton.id = 'open-mod-builder-button';
+            modBuilderOpenButton.className = 'search-button'; // Re-use styling
+            modBuilderOpenButton.innerHTML = '<i class="fas fa-hammer"></i> Mod Builder';
+            const searchContainer = document.querySelector('.search-container');
+            if (searchContainer) {
+                searchContainer.appendChild(modBuilderOpenButton);
+                modBuilderOpenButton.addEventListener('click', showModBuilder);
+            }
+        }
+
+    } else {
+        console.error('One or more required Mod Builder DOM elements not found during initialization!');
+    }
+});
