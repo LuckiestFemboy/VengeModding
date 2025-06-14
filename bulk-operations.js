@@ -9,8 +9,8 @@ const selectedAssets = new Set(); // Stores references to asset objects (from al
 let toggleMultiSelectButton;
 let multiSelectActionsContainer;
 let selectedAssetsCountDisplay;
-let openBulkModifyButton;
-let openBulkCreateButton;
+// Removed: openBulkModifyButton, openBulkCreateButton
+let openBulkEditButton; // NEW: Single button for bulk editing
 
 let bulkOperationsModal;
 let closeBulkModalButton;
@@ -27,8 +27,14 @@ document.addEventListener('DOMContentLoaded', () => {
     toggleMultiSelectButton = document.getElementById('toggle-multi-select-button');
     multiSelectActionsContainer = document.getElementById('multi-select-actions');
     selectedAssetsCountDisplay = document.getElementById('selected-assets-count');
-    openBulkModifyButton = document.getElementById('open-bulk-modify-button');
-    openBulkCreateButton = document.getElementById('open-bulk-create-button');
+    openBulkEditButton = document.getElementById('open-bulk-edit-button'); // NEW: Get reference to the single button
+
+    // Add robust error logging for DOM element retrieval
+    if (!toggleMultiSelectButton) console.error('ERROR: toggle-multi-select-button not found!');
+    if (!multiSelectActionsContainer) console.error('ERROR: multi-select-actions container not found!');
+    if (!selectedAssetsCountDisplay) console.error('ERROR: selected-assets-count display not found!');
+    if (!openBulkEditButton) console.error('ERROR: open-bulk-edit-button not found!'); // NEW check
+
 
     // Get bulk operations modal DOM elements
     bulkOperationsModal = document.getElementById('bulk-operations-modal');
@@ -41,16 +47,19 @@ document.addEventListener('DOMContentLoaded', () => {
     bulkNewTextureColorInput = document.getElementById('bulk-new-texture-color');
     saveBulkNewTextureButton = document.getElementById('save-bulk-new-texture');
 
+    // Add robust error logging for bulk modal DOM elements
+    if (!bulkOperationsModal) console.error('ERROR: bulk-operations-modal not found!');
+    if (!closeBulkModalButton) console.error('ERROR: close-bulk-modal button not found!');
+    // ... add more checks for other bulk modal elements if needed
+
     // Add Event Listeners
     if (toggleMultiSelectButton) {
         toggleMultiSelectButton.addEventListener('click', toggleMultiSelectMode);
     }
 
-    if (openBulkModifyButton) {
-        openBulkModifyButton.addEventListener('click', openBulkOperationsModal);
-    }
-    if (openBulkCreateButton) {
-        openBulkCreateButton.addEventListener('click', () => openBulkOperationsModal('create'));
+    // NEW: Listen for click on the single bulk edit button
+    if (openBulkEditButton) {
+        openBulkEditButton.addEventListener('click', openBulkOperationsModal);
     }
 
     if (closeBulkModalButton) {
@@ -72,10 +81,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Export functions to global scope so asset-list-page.js can access them
-    // when creating cards and handling clicks.
     window.toggleAssetSelection = toggleAssetSelection;
     window.isMultiSelectModeActive = () => isMultiSelectMode;
-    window.updateBulkActionButtonsState = updateBulkActionButtonsState; // Function to be called from asset-list-page.js
+    window.updateBulkActionButtonsState = updateBulkActionButtonsState;
 });
 
 /**
@@ -84,23 +92,28 @@ document.addEventListener('DOMContentLoaded', () => {
 function toggleMultiSelectMode() {
     isMultiSelectMode = !isMultiSelectMode;
     document.body.classList.toggle('multi-select-active', isMultiSelectMode);
+    console.log(`toggleMultiSelectMode: isMultiSelectMode is now ${isMultiSelectMode}`);
 
     if (isMultiSelectMode) {
         toggleMultiSelectButton.textContent = 'Exit Selection';
-        multiSelectActionsContainer.style.display = 'flex'; // Show bulk action buttons container
-        console.log('Multi-select mode ON');
+        // Show bulk action buttons container
+        if (multiSelectActionsContainer) {
+            multiSelectActionsContainer.style.display = 'flex';
+            console.log('Multi-select mode ON: multi-select-actions container display set to flex.');
+        }
     } else {
         toggleMultiSelectButton.textContent = 'Select Assets';
-        multiSelectActionsContainer.style.display = 'none'; // Hide bulk action buttons container
+        // Hide bulk action buttons container
+        if (multiSelectActionsContainer) {
+            multiSelectActionsContainer.style.display = 'none';
+            console.log('Multi-select mode OFF: multi-select-actions container display set to none.');
+        }
         clearSelectedAssets(); // Clear all selections when exiting mode
-        console.log('Multi-select mode OFF');
     }
 
-    // Update visibility of individual card edit buttons
+    // Update visibility/interactivity of individual card elements
     const editButtons = document.querySelectorAll('.edit-asset-button');
     editButtons.forEach(button => {
-        // Disable edit button if multi-select is active, re-enable otherwise
-        // Only re-enable if the card itself is not an MP3 (as MP3s never have edit buttons)
         const card = button.closest('.texture-card');
         if (card && !card.classList.contains('mp3')) {
             button.disabled = isMultiSelectMode;
@@ -109,13 +122,15 @@ function toggleMultiSelectMode() {
         }
     });
 
-    // Hide/show individual copy/download buttons for non-MP3s
     const imageCardButtons = document.querySelectorAll('.buttons-container .download-button, .buttons-container .copy-button');
     imageCardButtons.forEach(button => {
         button.disabled = isMultiSelectMode;
         button.style.pointerEvents = isMultiSelectMode ? 'none' : 'auto';
         button.style.opacity = isMultiSelectMode ? '0.5' : '1';
     });
+
+    // Ensure initial button state is updated based on selected count
+    updateBulkActionButtonsState();
 }
 
 /**
@@ -127,20 +142,22 @@ function toggleMultiSelectMode() {
 function toggleAssetSelection(asset, cardElement) {
     // Only allow selection of PNG/JPG assets (exclude MP3s)
     if (asset.type.toLowerCase() === 'mp3') {
-        console.log('MP3 files cannot be selected for bulk image operations.');
-        // Optionally provide a visual cue or message to the user here
+        console.log('Attempted to select MP3 file for bulk image operations. Skipping.');
+        // Optionally provide a visible message to the user here instead of just console.log
         return;
     }
 
     if (selectedAssets.has(asset)) {
         selectedAssets.delete(asset);
         cardElement.classList.remove('selected-for-bulk');
+        console.log(`Asset deselected: ${asset.filename}. Total selected: ${selectedAssets.size}`);
     } else {
         selectedAssets.add(asset);
         cardElement.classList.add('selected-for-bulk');
+        console.log(`Asset selected: ${asset.filename}. Total selected: ${selectedAssets.size}`);
     }
     updateSelectedCountDisplay();
-    updateBulkActionButtonsState();
+    updateBulkActionButtonsState(); // Crucial call to update button disabled state
 }
 
 /**
@@ -155,51 +172,51 @@ function clearSelectedAssets() {
     selectedAssets.clear();
     updateSelectedCountDisplay();
     updateBulkActionButtonsState();
+    console.log('All selected assets cleared.');
 }
 
 /**
  * Updates the display of how many assets are selected.
  */
 function updateSelectedCountDisplay() {
-    selectedAssetsCountDisplay.textContent = `${selectedAssets.size} Asset${selectedAssets.size === 1 ? '' : 's'} Selected`;
+    if (selectedAssetsCountDisplay) {
+        selectedAssetsCountDisplay.textContent = `${selectedAssets.size} Asset${selectedAssets.size === 1 ? '' : 's'} Selected`;
+        console.log(`Updated selected count display: ${selectedAssets.size}`);
+    }
 }
 
 /**
- * Enables or disables the bulk action buttons based on the number of selected assets.
+ * Enables or disables the single bulk edit button based on the number of selected assets.
  */
 function updateBulkActionButtonsState() {
-    const enableButtons = selectedAssets.size >= 1; // Changed to 1 as per later conversation, allowing single selection for bulk modal
-    if (openBulkModifyButton) {
-        openBulkModifyButton.disabled = !enableButtons;
-        openBulkModifyButton.style.opacity = enableButtons ? '1' : '0.5';
-    }
-    if (openBulkCreateButton) {
-        openBulkCreateButton.disabled = !enableButtons;
-        openBulkCreateButton.style.opacity = enableButtons ? '1' : '0.5';
+    const enableButton = selectedAssets.size >= 1; // Enable if at least one asset is selected
+    console.log(`updateBulkActionButtonsState: Selected assets = ${selectedAssets.size}, enableButton = ${enableButton}`);
+
+    if (openBulkEditButton) { // Check the new single button
+        openBulkEditButton.disabled = !enableButton;
+        openBulkEditButton.style.opacity = enableButton ? '1' : '0.5';
+        openBulkEditButton.style.pointerEvents = enableButton ? 'auto' : 'none'; // Ensure clicks are enabled/disabled
     }
 }
 
 /**
  * Opens the bulk operations modal.
- * @param {string} [initialTab='modify'] The tab to open initially ('modify' or 'create').
+ * The initialTab parameter is no longer needed as there are no tabs to pre-select.
  */
-function openBulkOperationsModal(initialTab = 'modify') {
+function openBulkOperationsModal() {
     if (!bulkOperationsModal) {
         console.error('Bulk operations modal not found!');
         return;
     }
     bulkOperationsModal.classList.add('active');
+    console.log(`Bulk operations modal opened.`);
 
-    // Reset slider and inputs to default values
-    bulkSaturationSlider.value = 100;
-    bulkSaturationValueDisplay.textContent = '100%';
-    bulkNewTextureWidthInput.value = 512;
-    bulkNewTextureHeightInput.value = 512;
-    bulkNewTextureColorInput.value = '#6c5ce7';
-
-    // Show/hide relevant sections based on initial tab (though for bulk, both are always visible,
-    // this could be for initial focus or future tab implementation within the bulk modal)
-    // For now, it's just about setting initial values for the controls.
+    // Reset slider and inputs to default values each time modal is opened
+    if (bulkSaturationSlider) bulkSaturationSlider.value = 100;
+    if (bulkSaturationValueDisplay) bulkSaturationValueDisplay.textContent = '100%';
+    if (bulkNewTextureWidthInput) bulkNewTextureWidthInput.value = 512;
+    if (bulkNewTextureHeightInput) bulkNewTextureHeightInput.value = 512;
+    if (bulkNewTextureColorInput) bulkNewTextureColorInput.value = '#6c5ce7';
 }
 
 /**
@@ -208,9 +225,9 @@ function openBulkOperationsModal(initialTab = 'modify') {
 function closeBulkOperationsModal() {
     if (bulkOperationsModal) {
         bulkOperationsModal.classList.remove('active');
+        console.log('Bulk operations modal closed.');
     }
-    // No need to clear selected assets here, that happens when exiting multi-select mode.
-    // However, we do want to exit multi-select mode after a bulk operation is complete.
+    // Note: Selected assets are cleared when exiting multi-select mode, not just closing the modal.
 }
 
 /**
@@ -218,7 +235,8 @@ function closeBulkOperationsModal() {
  */
 async function applyBulkSaturation() {
     if (selectedAssets.size === 0) {
-        console.warn('No assets selected for bulk saturation.');
+        console.warn('No assets selected for bulk saturation. Operation aborted.');
+        // Consider a user-facing message here.
         return;
     }
 
@@ -228,6 +246,7 @@ async function applyBulkSaturation() {
     let processedCount = 0;
 
     const saturationFactor = bulkSaturationSlider.value / 100;
+    console.log(`Starting bulk saturation for ${totalAssets} assets with factor: ${saturationFactor}`);
 
     for (const asset of selectedAssets) {
         if (asset.type.toLowerCase() === 'mp3') {
@@ -241,14 +260,17 @@ async function applyBulkSaturation() {
             // Prioritize previously modified or original image blob
             if (asset.modifiedImageBlob) {
                 imageBlob = asset.modifiedImageBlob;
+                window.updateConsoleLog(`Using cached modified blob for ${asset.filename}`);
             } else if (asset.originalImageBlob) {
                 imageBlob = asset.originalImageBlob;
+                window.updateConsoleLog(`Using cached original blob for ${asset.filename}`);
             } else {
                 // If no blob is present, fetch the original image
+                window.updateConsoleLog(`Fetching original image for ${asset.filename}`);
                 const response = await fetch(asset.mediaPath);
                 if (!response.ok) throw new Error(`Failed to fetch image: ${response.statusText}`);
                 imageBlob = await response.blob();
-                asset.originalImageBlob = imageBlob; // Store original blob
+                asset.originalImageBlob = imageBlob; // Store original blob for future use
             }
 
             const img = new Image();
@@ -296,7 +318,7 @@ async function applyBulkSaturation() {
             URL.revokeObjectURL(img.src); // Clean up blob URL
 
             processedCount++;
-            window.updateLoadingProgress(processedCount, totalAssets, `Applying Saturation to ${asset.filename}`);
+            window.updateLoadingProgress(processedCount, totalAssets, `Applied saturation to ${asset.filename}`);
 
         } catch (error) {
             console.error(`Error applying saturation to ${asset.filename}:`, error);
@@ -308,6 +330,7 @@ async function applyBulkSaturation() {
     window.hideLoadingOverlayWithDelay(3000, 'Bulk Saturation Complete!'); // Show message for 3 seconds
     closeBulkOperationsModal();
     toggleMultiSelectMode(); // Exit multi-select mode after operation
+    console.log('Bulk saturation operation finished.');
 }
 
 /**
@@ -315,7 +338,8 @@ async function applyBulkSaturation() {
  */
 async function saveBulkNewTexture() {
     if (selectedAssets.size === 0) {
-        console.warn('No assets selected for bulk new texture creation.');
+        console.warn('No assets selected for bulk new texture creation. Operation aborted.');
+        // Consider a user-facing message here.
         return;
     }
 
@@ -329,11 +353,13 @@ async function saveBulkNewTexture() {
     const color = bulkNewTextureColorInput.value;
 
     if (isNaN(width) || isNaN(height) || width <= 0 || height <= 0) {
-        console.error('Invalid width or height for bulk new texture.');
-        window.updateConsoleLog('[ERROR] Invalid width or height for new texture. Operation aborted.');
+        console.error('Invalid width or height for bulk new texture. Operation aborted.');
+        window.updateConsoleLog('[FATAL ERROR] Invalid width or height for new texture. Operation aborted.');
         window.hideLoadingOverlayWithDelay(3000, 'Error: Invalid Dimensions');
         return;
     }
+    console.log(`Starting bulk new texture creation for ${totalAssets} assets with dimensions ${width}x${height} and color ${color}`);
+
 
     for (const asset of selectedAssets) {
         if (asset.type.toLowerCase() === 'mp3') {
@@ -358,7 +384,7 @@ async function saveBulkNewTexture() {
             window.updateCardVisualState(asset); // Update individual card visual state
 
             processedCount++;
-            window.updateLoadingProgress(processedCount, totalAssets, `Creating new texture for ${asset.filename}`);
+            window.updateLoadingProgress(processedCount, totalAssets, `Created new texture for ${asset.filename}`);
 
         } catch (error) {
             console.error(`Error creating new texture for ${asset.filename}:`, error);
@@ -370,12 +396,5 @@ async function saveBulkNewTexture() {
     window.hideLoadingOverlayWithDelay(3000, 'Bulk Creation Complete!'); // Show message for 3 seconds
     closeBulkOperationsModal();
     toggleMultiSelectMode(); // Exit multi-select mode after operation
+    console.log('Bulk new texture creation operation finished.');
 }
-
-// Global helper functions for loading overlay (exposed from asset-list-page.js)
-// These functions will be defined in asset-list-page.js and exposed via window object.
-// We'll call these functions from here.
-// window.showLoadingOverlay(message);
-// window.updateLoadingProgress(processed, total, currentFileMessage);
-// window.updateConsoleLog(message);
-// window.hideLoadingOverlayWithDelay(delay, finalMessage);

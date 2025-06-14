@@ -22,11 +22,11 @@
             <!-- New: Button to toggle multi-select mode -->
             <button id="toggle-multi-select-button" class="search-button">Select Assets</button>
         </div>
-        <!-- New: Display for selected asset count and bulk action buttons -->
+        <!-- Updated: Display for selected asset count and a single bulk action button -->
         <div class="multi-select-actions" style="display: none;">
             <span id="selected-assets-count" class="selected-count">0 Assets Selected</span>
-            <button id="open-bulk-modify-button" class="search-button bulk-action-trigger" disabled>Apply Saturation to Selected</button>
-            <button id="open-bulk-create-button" class="search-button bulk-action-trigger" disabled>Create New Textures for Selected</button>
+            <!-- NEW: Single button to open the bulk editing modal -->
+            <button id="open-bulk-edit-button" class="search-button bulk-action-trigger" disabled>Edit Selected Assets</button>
         </div>
     </header>
 
