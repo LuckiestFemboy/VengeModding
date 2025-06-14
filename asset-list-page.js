@@ -4,14 +4,14 @@
 // DOM Elements
 let searchInput;
 let allCards; // This will hold all the HTML card elements
-let editGroupButton; // New button for group editing
-let unselectAllButton; // New button for unselecting all
+let editGroupButton; // Button for group editing
+let unselectAllButton; // Button for unselecting all
 
 // Store a global list of all assets fetched to be used for zipping and editing.
 // Each asset object will now also store its Blob data and modification status.
 const allAssets = [];
 
-// New: Array to store currently selected asset objects
+// Array to store currently selected asset objects
 const selectedAssets = [];
 
 // DOM elements for loading/progress
@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.error('Download All button not found!');
     }
 
-    // New: Event Listeners for group actions
+    // Event Listeners for group actions
     if (editGroupButton) {
         editGroupButton.addEventListener('click', handleEditGroup);
         // Initially disable the button
@@ -64,8 +64,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.error('Unselect All button not found!');
     }
 
-    // New: Global function to update a card's visual state from asset-editor-modal.js
-    // This is crucial for the modal to inform the list page of changes
+    // Global function to update a card's visual state from asset-editor-modal.js
     window.updateCardVisualState = updateCardVisualState;
 });
 
@@ -100,10 +99,22 @@ async function fetchAssets() {
         });
 
         // Combine all assets
-        const combinedAssets = [...jpgAssets, ...pngAssets, ...mp3Assets];
+        let combinedAssets = [...jpgAssets, ...pngAssets, ...mp3Assets];
 
-        // Shuffle assets to make display more dynamic
-        combinedAssets.sort(() => Math.random() - 0.5);
+        // --- FIX: Implement stable sorting by type and then filename ---
+        combinedAssets.sort((a, b) => {
+            const typeOrder = { 'JPG': 1, 'PNG': 2, 'MP3': 3 };
+            const orderA = typeOrder[a.type];
+            const orderB = typeOrder[b.type];
+
+            if (orderA !== orderB) {
+                return orderA - orderB; // Sort by type priority
+            }
+            // If types are the same, sort by filename for consistent order
+            return a.filename.localeCompare(b.filename);
+        });
+        // --- END FIX ---
+
 
         const textureGrid = document.getElementById('texture-grid');
         if (!textureGrid) {
@@ -179,7 +190,7 @@ function createAndAppendCard(folder, filename, type) {
     };
     allAssets.push(asset);
 
-    // New: Add checkbox for selection
+    // Add checkbox for selection
     const checkboxContainer = document.createElement('div');
     checkboxContainer.className = 'card-checkbox-container';
     const checkbox = document.createElement('input');
@@ -325,7 +336,8 @@ function unselectAllCards() {
         if (checkbox) {
             checkbox.checked = false; // Uncheck the visual checkbox
         }
-        toggleCardSelection(asset, false); // Update internal state and visual
+        // Call toggleCardSelection with false to ensure internal state and visual are updated
+        toggleCardSelection(asset, false);
     });
     // selectedAssets array will be empty after the loop due to toggleCardSelection calls
     updateGroupActionButtons(); // Ensure buttons are disabled
@@ -354,43 +366,54 @@ function updateCardVisualState(asset) {
 
     if (asset.type === 'JPG' || asset.type === 'PNG') {
         // Update image source if it has been modified or newly created
+        let newSrc = null; // To hold the URL for the image source
+        let isBlobUrl = false;
+
         if (asset.newImageBlob) {
-            if (mediaImage) {
-                mediaImage.src = URL.createObjectURL(asset.newImageBlob);
-            } else if (mediaPlaceholder) {
-                // If there was a placeholder, replace it with the new image
-                const newImg = document.createElement('img');
-                newImg.className = 'media-image';
-                newImg.src = URL.createObjectURL(asset.newImageBlob);
-                newImg.alt = asset.filename;
-                newImg.loading = 'lazy';
-                mediaPlaceholder.replaceWith(newImg);
-            }
+            newSrc = URL.createObjectURL(asset.newImageBlob);
+            isBlobUrl = true;
             card.classList.add('is-new'); // Add class for new textures
             card.classList.remove('is-modified'); // Ensure it's not marked as modified
-            // For new textures, the displayed filename might implicitly be new, but we don't change the card's filename text.
         } else if (asset.modifiedImageBlob) {
-            if (mediaImage) {
-                mediaImage.src = URL.createObjectURL(asset.modifiedImageBlob);
-            } else if (mediaPlaceholder) {
-                // If there was a placeholder, replace it with the modified image
-                const newImg = document.createElement('img');
-                newImg.className = 'media-image';
-                newImg.src = URL.createObjectURL(asset.modifiedImageBlob);
-                newImg.alt = asset.filename;
-                newImg.loading = 'lazy';
-                mediaPlaceholder.replaceWith(newImg);
-            }
+            newSrc = URL.createObjectURL(asset.modifiedImageBlob);
+            isBlobUrl = true;
             card.classList.add('is-modified'); // Add class for modified textures
             card.classList.remove('is-new'); // Ensure it's not marked as new
         } else {
             // If neither new nor modified, ensure it shows original and remove classes
-            if (mediaImage) {
-                // If originalImageBlob exists, use it. Otherwise, revert to mediaPath.
-                mediaImage.src = asset.originalImageBlob ? URL.createObjectURL(asset.originalImageBlob) : asset.mediaPath;
-            }
+            newSrc = asset.originalImageBlob ? URL.createObjectURL(asset.originalImageBlob) : asset.mediaPath;
+            isBlobUrl = !!asset.originalImageBlob; // true if originalImageBlob exists
             card.classList.remove('is-modified', 'is-new');
         }
+
+        if (mediaImage) {
+            // Revoke previous blob URL if it was one, to prevent memory leaks
+            if (mediaImage.src.startsWith('blob:') && mediaImage.src !== newSrc) {
+                URL.revokeObjectURL(mediaImage.src);
+            }
+            mediaImage.src = newSrc;
+        } else if (mediaPlaceholder && newSrc) {
+            // If there was a placeholder, replace it with the new/modified/original image
+            const newImg = document.createElement('img');
+            newImg.className = 'media-image';
+            newImg.src = newSrc;
+            newImg.alt = asset.filename;
+            newImg.loading = 'lazy';
+            mediaPlaceholder.replaceWith(newImg);
+            // After replacing, ensure to add error handling for the new image element
+            newImg.onerror = () => {
+                const updatedPlaceholder = document.createElement('div');
+                updatedPlaceholder.className = 'media-placeholder';
+                updatedPlaceholder.innerHTML = `
+                    <i class="fas fa-exclamation-triangle media-icon"></i>
+                    <span class="media-filename">${asset.filename}</span>
+                    <span>(Image Not Found)</span>
+                `;
+                newImg.replaceWith(updatedPlaceholder);
+                if (isBlobUrl) URL.revokeObjectURL(newSrc); // Revoke if it was a blob URL
+            };
+        }
+        // If a new blob URL was created, it will be revoked when a new src is set or when the card is removed.
     }
 
     // Update filename display if needed (e.g., if we later implement renaming)
@@ -497,14 +520,17 @@ function downloadAsset(asset) {
         saveAs(blobToDownload, filenameToUse);
         showTemporaryMessage(`Downloading ${filenameToUse}...`);
     } else {
-        // Fallback: If no blob is present, try to fetch it directly
+        // Fallback: If no blob is present (e.g., MP3s, or image fetch failed), try to fetch it directly
         fetch(asset.mediaPath)
             .then(response => {
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 return response.blob();
             })
             .then(blob => {
-                asset.originalImageBlob = blob; // Store for future use
+                // If it's an image and originalImageBlob was missing, store it now
+                if ((asset.type === 'JPG' || asset.type === 'PNG') && !asset.originalImageBlob) {
+                    asset.originalImageBlob = blob;
+                }
                 saveAs(blob, filenameToUse);
                 showTemporaryMessage(`Downloading ${filenameToUse}...`);
             })
@@ -562,32 +588,29 @@ async function downloadAllAssetsAsZip() {
             let fileBlob = null;
             let finalFilename = asset.filename; // Use original filename for ZIP
 
-            // Prioritize modified/new blobs first
+            // Prioritize new blobs, then modified, then original pre-fetched blobs
             if (asset.newImageBlob) {
                 fileBlob = asset.newImageBlob;
-                // Optionally rename files that are 'new' if desired (e.g., 'new_mytexture.png')
-                // finalFilename = `new_${asset.filename}`;
             } else if (asset.modifiedImageBlob) {
                 fileBlob = asset.modifiedImageBlob;
-                // Optionally rename files that are 'modified' if desired (e.g., 'mod_mytexture.jpg')
-                // finalFilename = `mod_${asset.filename}`;
-            } else if (asset.originalImageBlob) {
-                fileBlob = asset.originalImageBlob; // Use the pre-fetched original blob
+            } else if (asset.originalImageBlob) { // This will be null for MP3s unless they are fetched below
+                fileBlob = asset.originalImageBlob;
             }
 
             if (fileBlob) {
                 zip.file(`${asset.type.toLowerCase()}-assets/${asset.folder}/${finalFilename}`, fileBlob);
                 consoleLog.textContent += `Added (blob) ${asset.folder}/${finalFilename}\n`;
             } else {
-                // If no blob is available (e.g., MP3s not pre-fetched, or image fetch failed), fetch it now
+                // Fallback: If no blob is available (e.g., MP3s not pre-fetched, or initial image fetch failed), fetch it now
                 try {
                     const response = await fetch(asset.mediaPath);
                     if (!response.ok) {
                         throw new Error(`HTTP status ${response.status}`);
                     }
                     const blob = await response.blob();
-                    if (asset.type !== 'MP3') { // Store original image blobs if not already
-                         asset.originalImageBlob = blob;
+                    // If it's an image and originalImageBlob was missing, store it now
+                    if ((asset.type === 'JPG' || asset.type === 'PNG') && !asset.originalImageBlob) {
+                        asset.originalImageBlob = blob;
                     }
                     zip.file(`${asset.type.toLowerCase()}-assets/${asset.folder}/${finalFilename}`, blob);
                     consoleLog.textContent += `Added (fetched) ${asset.folder}/${finalFilename}\n`;

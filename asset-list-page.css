@@ -99,7 +99,8 @@ header h1 {
 
 #texture-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    /* Adjusted minmax from 200px to 250px for larger cards */
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
     gap: 1.5rem;
     max-width: 1200px; /* Limit max width for better readability */
     width: 100%; /* Take full width up to max-width */
@@ -480,7 +481,8 @@ header h1 {
 /* Responsive adjustments for texture grid */
 @media (max-width: 600px) {
     #texture-grid {
-        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); /* Smaller cards */
+        /* Adjusted minmax from 150px to 200px for larger cards on small screens */
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* Smaller cards */
         gap: 1rem;
     }
 
