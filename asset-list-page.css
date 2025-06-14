@@ -1,3 +1,5 @@
+/* asset-list-page.css - Updated for flexible card sizing and all visual features */
+
 /* Reset and base styles */
 * {
     margin: 0;
@@ -117,7 +119,7 @@ header h1 {
 /* Texture Grid */
 #texture-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* Responsive grid */
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* Responsive grid, 200px minimum width */
     gap: 1.5rem;
     margin-top: 2rem;
     visibility: visible;
@@ -140,10 +142,9 @@ header h1 {
     transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
     position: relative; /* Needed for checkbox positioning */
 
-    /* Fixed Card Size */
-    width: 220px; /* Fixed width for the card */
-    height: 280px; /* Fixed height for the card */
-    justify-content: space-between; /* Distribute space for content */
+    /* Flexible sizing based on grid. Aspect ratio for overall card height */
+    /* Let content define height for most parts, but ensure image area has space */
+    min-height: 250px; /* Minimum height for cards */
 }
 
 .texture-card:hover {
@@ -177,7 +178,7 @@ header h1 {
     border-color: #00cec9;
 }
 
-/* Optional: Custom checkmark for better styling (if needed) */
+/* Optional: Custom checkmark for better styling */
 .card-select-checkbox::before {
     content: '\2713'; /* Checkmark character */
     display: block;
@@ -197,24 +198,29 @@ header h1 {
 /* Media Container for Images */
 .media-container {
     width: 100%;
-    height: 150px; /* Fixed height for the image display area */
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    /* Maintain a reasonable aspect ratio for images */
+    padding-bottom: 75%; /* 4:3 aspect ratio (height is 75% of width) */
+    position: relative; /* For absolute positioning of image */
     margin-bottom: 0.75rem;
-    overflow: hidden; /* Ensure image doesn't spill */
-    border-radius: 8px; /* Match card border-radius */
+    overflow: hidden;
+    border-radius: 8px;
     background-color: rgba(0, 0, 0, 0.2); /* Placeholder background */
 }
 
 .media-image {
-    max-width: 100%; /* Image won't exceed container width */
-    max-height: 100%; /* Image won't exceed container height */
+    position: absolute; /* Position image within the padded container */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     object-fit: contain; /* Ensure entire image is visible, no cropping */
-    border-radius: 8px; /* Match container for rounded corners */
+    border-radius: 8px;
 }
 
 .media-placeholder {
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
     display: flex;
@@ -326,7 +332,7 @@ header h1 {
 
 /* MP3 specific styling */
 .texture-card.mp3 {
-    height: 200px; /* Shorter height for MP3 cards */
+    min-height: 180px; /* Shorter min-height for MP3 cards */
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -479,6 +485,25 @@ header h1 {
     word-break: break-word; /* Break words for long lines */
 }
 
+/* NEW: Styles for selected, modified, and new cards */
+.texture-card.selected-card {
+    border: 2px solid #00cec9; /* Cyan highlight for selected */
+    box-shadow: 0 0 20px rgba(0, 206, 201, 0.6); /* Glowing effect */
+}
+
+.texture-card.is-modified {
+    border: 2px solid #ffffff; /* White border for modified */
+    background-color: rgba(255, 255, 255, 0.1); /* Slightly lighter background */
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.3); /* Subtle white glow */
+}
+
+.texture-card.is-new {
+    border: 2px solid #f0f0f0; /* Off-white border for new */
+    background-color: rgba(240, 240, 240, 0.15); /* Slightly brighter background */
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.4); /* Stronger white glow for new */
+}
+
+
 /* Media Queries for Responsiveness */
 @media (max-width: 768px) {
     header {
@@ -513,13 +538,12 @@ header h1 {
     }
 
     .texture-card {
-        width: 180px; /* Adjusted fixed width */
-        height: 250px; /* Adjusted fixed height */
         padding: 0.8rem;
+        min-height: 220px; /* Adjusted min-height for smaller screens */
     }
 
     .media-container {
-        height: 120px; /* Adjusted image display area height */
+        padding-bottom: 70%; /* Adjust aspect ratio for smaller screens if needed */
     }
 
     .texture-filename, .mp3-filename-display {
