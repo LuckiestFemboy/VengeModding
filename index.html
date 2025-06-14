@@ -6,6 +6,7 @@
     <title>Venge - Texture Gallery</title>
     <link rel="stylesheet" href="asset-list-page.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- New: Link to the modal's specific CSS file -->
     <link rel="stylesheet" href="asset-editor-modal.css">
 </head>
 <body>
@@ -16,8 +17,6 @@
             <button id="search-button" class="search-button">Search</button>
             <button id="clear-search-button" class="search-button clear-button">Clear Search</button>
             <button id="download-all-zip-button" class="search-button">Download All as ZIP</button>
-            <button id="edit-group-button" class="search-button">Edit Group</button>
-            <button id="unselect-all-button" class="search-button clear-button">Unselect All</button>
         </div>
     </header>
 
@@ -26,6 +25,7 @@
             </div>
     </main>
 
+    <!-- Loading Overlay for ZIP Generation -->
     <div id="loading-overlay" class="loading-overlay">
         <div class="loading-window">
             <h2>Generating ZIP...</h2>
@@ -40,6 +40,7 @@
         </div>
     </div>
 
+    <!-- New: Asset Editor Modal -->
     <div id="asset-editor-modal" class="asset-editor-modal-overlay">
         <div class="asset-editor-modal-content">
             <span class="close-button" id="close-editor-modal">&times;</span>
@@ -78,7 +79,8 @@
                         <label for="new-texture-color">Background Color:</label>
                         <input type="color" id="new-texture-color" value="#6c5ce7">
                     </div>
-                    </div>
+                    <!-- Removed: new-texture-filename input as per user request -->
+                </div>
                 <button id="save-new-texture" class="modal-action-button">Save New Texture</button>
             </div>
         </div>
@@ -87,6 +89,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <script src="asset-list-page.js"></script>
+    <!-- New: Link to the modal's specific JavaScript file -->
     <script src="asset-editor-modal.js"></script>
 </body>
 </html>
