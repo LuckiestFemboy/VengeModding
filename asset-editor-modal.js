@@ -304,6 +304,12 @@ async function saveModifiedTexture() {
         currentEditedAsset.isNew = false; // Ensure it's not marked as a new creation
 
         console.log(`Modified texture saved in memory for: ${currentEditedAsset.filename}`);
+        // IMPORTANT: Update the visual state of the card
+        if (typeof window.updateCardVisualState === 'function') {
+            window.updateCardVisualState(currentEditedAsset);
+        } else {
+            console.error('updateCardVisualState function not found in global scope.');
+        }
         closeAssetEditorModal();
     } catch (error) {
         console.error('Error saving modified texture to blob:', error);
@@ -344,6 +350,12 @@ async function saveNewTexture() {
         currentEditedAsset.isModified = false; // Ensure it's not marked as a modification
 
         console.log(`New texture created and saved in memory for: ${currentEditedAsset.filename}`);
+        // IMPORTANT: Update the visual state of the card
+        if (typeof window.updateCardVisualState === 'function') {
+            window.updateCardVisualState(currentEditedAsset);
+        } else {
+            console.error('updateCardVisualState function not found in global scope.');
+        }
         closeAssetEditorModal();
     } catch (error) {
         console.error('Error creating new texture blob:', error);
