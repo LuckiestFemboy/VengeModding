@@ -1,7 +1,7 @@
 // Global variables for Mod Builder
 let allAssetsForModding = []; // This will be populated by mod-builder itself
 let modGroupsConfig = []; // This will be defined internally
-let mirrorDrawing = false; // NEW: Global variable to control drawing mirroring
+let mirrorDrawing = false; // Global variable to control drawing mirroring
 
 // Mod Builder DOM Elements
 let modBuilderOverlay;
@@ -25,7 +25,7 @@ let applyDrawingButton;
 let clearDrawingButton;
 let drawingResXInput;
 let drawingResYInput;
-let mirrorDrawingCheckbox; // NEW: Checkbox for mirroring
+let mirrorDrawingCheckbox; // Checkbox for mirroring
 
 // Mod Builder State
 let currentGroupAssets = []; // Assets belonging to the currently selected group
@@ -38,20 +38,22 @@ const modifiedAssets = new Map();
 
 // Helper to get asset ID
 function getAssetId(asset) {
+    // Note: asset.folder here is the logical group folder, not the physical file system subfolder
     return `${asset.folder}/${asset.filename}`;
 }
 
-// NEW: Base URL for assets
-const BASE_URL = '/'; // IMPORTANT: Set this to the root path where your mod-assets folder and list.txt files are located.
-                      // E.g., if your website is example.com and mod-assets is at example.com/mod-assets, use '/'.
-                      // If your app is at example.com/my-app/ and mod-assets is at example.com/my-app/mod-assets, use '/my-app/'.
+// Base URL for assets. This should be the root path where your pnglist.txt, jpgurl.txt,
+// mp3list.txt, and the 'mod-assets' folder are located relative to your domain.
+// E.g., if your website is example.com and mod-assets is at example.com/mod-assets, use '/'.
+// If your app is at example.com/my-app/ and mod-assets is at example.com/my-app/mod-assets, use '/my-app/'.
+const BASE_URL = '/';
 
 
-// --- Mod Builder Configuration (MOVED HERE from asset-list-page.js) ---
+// --- Mod Builder Configuration (MOVED HERE to be self-contained) ---
 const modGroups = [
     {
         name: "Walls Sierra",
-        folder: "WallsSierra",
+        folder: "WallsSierra", // Logical group folder, for categorization
         modifiable: true,
         files: ["Wall-Texture-dirty.jpg", "Wall-Texture-v1.jpg", "Wall-Texture-Snow.jpg", "Wall-Texture.jpg"],
         canAdjustColor: true,
@@ -254,25 +256,41 @@ const modGroups = [
     }
 ];
 
-// Function to fetch assets specifically for Mod Builder (since asset-list-page.js won't pass them)
+// Helper function to get the correct asset path based on file extension
+function getAssetPath(filename) {
+    const fileExtension = filename.split('.').pop().toLowerCase();
+    if (fileExtension === 'jpg') {
+        return `${BASE_URL}mod-assets/jpg/${filename}`;
+    } else if (fileExtension === 'png') {
+        return `${BASE_URL}mod-assets/png/${filename}`;
+    } else if (fileExtension === 'mp3') {
+        return `${BASE_URL}mod-assets/mp3/${filename}`;
+    } else {
+        console.warn(`[getAssetPath] Unknown file type for path construction: ${filename}`);
+        return null; // Return null for unsupported types
+    }
+}
+
+
+// Function to fetch assets specifically for Mod Builder
 async function fetchAssetsForModBuilder() {
     try {
-        // Clear previous assets if any
-        allAssetsForModding.length = 0;
+        allAssetsForModding.length = 0; // Clear previous assets if any
 
         // Fetch PNG files
-        const pngResponse = await fetch(`${BASE_URL}pnglist.txt`); // PATH FIX
+        const pngResponse = await fetch(`${BASE_URL}pnglist.txt`);
         const pngText = pngResponse.ok ? await pngResponse.text() : '';
         const pngLines = pngText.trim().split('\n');
         for (const line of pngLines) {
             const [folder, filename] = line.split(' ');
             if (folder && filename) {
+                // 'folder' here is the logical group name, 'type' is from extension
                 allAssetsForModding.push({ folder, filename, type: 'png' });
             }
         }
 
         // Fetch JPG files
-        const jpgResponse = await fetch(`${BASE_URL}jpgurl.txt`); // PATH FIX
+        const jpgResponse = await fetch(`${BASE_URL}jpgurl.txt`);
         const jpgText = jpgResponse.ok ? await jpgResponse.text() : '';
         const jpgLines = jpgText.trim().split('\n');
         for (const line of jpgLines) {
@@ -283,7 +301,7 @@ async function fetchAssetsForModBuilder() {
         }
 
         // Fetch MP3 files
-        const mp3Response = await fetch(`${BASE_URL}mp3list.txt`); // PATH FIX
+        const mp3Response = await fetch(`${BASE_URL}mp3list.txt`);
         const mp3Text = mp3Response.ok ? await mp3Response.text() : '';
         const mp3Lines = mp3Text.trim().split('\n');
         for (const line of mp3Lines) {
@@ -388,11 +406,10 @@ async function showCustomizationPanel(group) {
     if (textureGroupList) textureGroupList.style.display = 'none';
     if (customizationPanel) customizationPanel.style.display = 'flex'; // Use flex for panel layout
 
-    // Filter currentGroupAssets based on the selected group's folder and file list
+    // Filter currentGroupAssets based on the selected group's files
     currentGroupAssets = allAssetsForModding.filter(asset =>
-        asset.folder === group.folder &&
-        group.files.includes(asset.filename) &&
-        asset.type !== 'mp3' // Only show image assets for customization for now
+        group.files.includes(asset.filename) && // Check if filename is in the group's files list
+        asset.type !== 'mp3' // Only show image assets for customization
     );
 
     // Toggle visibility of customization options based on group config
@@ -440,7 +457,7 @@ async function showCustomizationPanel(group) {
         previewItem.dataset.assetId = getAssetId(asset); // For easy selection tracking
 
         if (asset.type !== 'mp3') { // Assuming only image assets are modifiable here
-            const imgPath = `${BASE_URL}mod-assets/${asset.type.toLowerCase()}/${asset.folder}/${asset.filename}`; // PATH FIX
+            const imgPath = getAssetPath(asset.filename); // Use getAssetPath for correct loading!
             const img = new Image();
             img.src = imgPath;
             img.onload = () => {
@@ -497,7 +514,8 @@ async function loadImageForDrawing(asset) {
         return;
     }
 
-    if (!asset || asset.type === 'mp3') { // Handle cases where no image asset is selected or it's an MP3
+    // Handle cases where no image asset is selected or it's an MP3 (drawing canvas will be blank)
+    if (!asset || asset.type === 'mp3') {
         drawingCanvas.width = 256;
         drawingCanvas.height = 256;
         currentDrawingContext.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
@@ -513,7 +531,7 @@ async function loadImageForDrawing(asset) {
 
     return new Promise((resolve) => {
         const img = new Image();
-        img.src = `${BASE_URL}mod-assets/${asset.type.toLowerCase()}/${asset.folder}/${asset.filename}`; // PATH FIX
+        img.src = getAssetPath(asset.filename); // Use getAssetPath for correct loading!
         img.onload = () => {
             // Prioritize stored resolution if a drawing modification exists, otherwise use image native or default
             let targetWidth = img.width;
@@ -768,7 +786,7 @@ function draw(e) {
     currentDrawingContext.lineTo(currentX, currentY);
     currentDrawingContext.stroke();
 
-    // NEW: Draw mirrored stroke if mirrorDrawing is enabled
+    // Draw mirrored stroke if mirrorDrawing is enabled
     if (mirrorDrawing) {
         const mirroredLastX = drawingCanvas.width - lastX;
         const mirroredCurrentX = drawingCanvas.width - currentX;
@@ -940,7 +958,7 @@ async function getModifiedImageData(asset, color, saturation) {
     return new Promise(async (resolve, reject) => {
         const img = new Image();
         img.crossOrigin = "Anonymous"; // Required for tainted canvas with some images
-        img.src = `${BASE_URL}mod-assets/${asset.type.toLowerCase()}/${asset.folder}/${asset.filename}`; // PATH FIX
+        img.src = getAssetPath(asset.filename); // Use getAssetPath for correct loading!
 
         img.onload = () => {
             const canvas = document.createElement('canvas');
@@ -1012,23 +1030,22 @@ async function generateModPackZip(modifiedAssetIds) {
                 continue;
             }
 
+            // The filePathInZip should follow your desired output structure, which usually involves the logical group folder
             const filePathInZip = `${originalAsset.folder}/${originalAsset.filename}`;
 
             let fileBlob;
 
             if (mod && mod.drawing) {
-                // If drawing exists, use the drawing as the new image
-                // Convert Data URL to Blob
-                const response = await fetch(mod.drawing);
+                // If drawing exists, use the drawing as the new image (which already has the background and drawing)
+                const response = await fetch(mod.drawing); // mod.drawing is a Data URL
                 fileBlob = await response.blob();
             } else if (mod && (mod.color || (mod.saturation !== undefined && mod.saturation !== 100))) {
-                // If only color/saturation, apply to original image
+                // If only color/saturation, apply to original image and get the modified blob
                 fileBlob = await getModifiedImageData(originalAsset, mod.color, mod.saturation);
             } else {
-                // Should not happen if filtered by modifiedAssets.keys(), but as a fallback
-                // If for some reason a mod exists but no concrete change, use original
-                console.warn(`No specific drawing/color/saturation mod found for ${assetId}. Using original.`);
-                const response = await fetch(`${BASE_URL}mod-assets/${originalAsset.type.toLowerCase()}/${originalAsset.folder}/${originalAsset.filename}`); // PATH FIX
+                // Fallback: If no modification, fetch the original file. This branch should ideally not be hit if filtered by modifiedAssets.keys().
+                console.warn(`No specific drawing/color/saturation mod found for ${assetId}. Using original for ZIP.`);
+                const response = await fetch(getAssetPath(originalAsset.filename)); // Use getAssetPath for original
                 fileBlob = await response.blob();
             }
 
@@ -1082,7 +1099,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     clearDrawingButton = document.getElementById('clear-drawing-button');
     drawingResXInput = document.getElementById('drawing-res-x');
     drawingResYInput = document.getElementById('drawing-res-y');
-    mirrorDrawingCheckbox = document.getElementById('mirror-drawing-checkbox'); // NEW: Get checkbox element
+    mirrorDrawingCheckbox = document.getElementById('mirror-drawing-checkbox');
 
 
     // Fetch assets for mod builder
@@ -1105,7 +1122,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (drawingResXInput) drawingResXInput.addEventListener('input', (e) => validateResolutionInput(e.target));
         if (drawingResYInput) drawingResYInput.addEventListener('input', (e) => validateResolutionInput(e.target));
 
-        // NEW: Event listener for mirroring checkbox
+        // Event listener for mirroring checkbox
         if (mirrorDrawingCheckbox) {
             mirrorDrawingCheckbox.addEventListener('change', (e) => {
                 mirrorDrawing = e.target.checked;

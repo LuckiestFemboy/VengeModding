@@ -3,9 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Venge - Texture Gallery</title>
+    <title>Modding Repository</title>
+    <!-- CSS Files -->
     <link rel="stylesheet" href="asset-list-page.css">
-    <link rel="stylesheet" href="mod-builder.css"> <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="mod-builder.css">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Inter Font (Google Fonts) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <header>
@@ -20,9 +25,11 @@
 
     <main class="container" style="visibility: visible; opacity: 1;">
         <div id="texture-grid" style="visibility: visible; opacity: 1;">
-            </div>
+            <!-- Texture cards will be loaded here by asset-list-page.js -->
+        </div>
     </main>
 
+    <!-- Loading Overlay for ZIP Generation -->
     <div id="loading-overlay" class="loading-overlay">
         <div class="loading-window">
             <h2>Generating ZIP...</h2>
@@ -37,6 +44,7 @@
         </div>
     </div>
 
+    <!-- Mod Builder Overlay -->
     <div id="mod-builder-overlay" class="mod-builder-overlay">
         <div class="mod-builder-window">
             <button class="mod-builder-close-button" id="mod-builder-close-button"><i class="fas fa-times"></i></button>
@@ -45,7 +53,8 @@
             <button id="create-mod-pack-button-groups-page" class="mod-action-button">Create Mod Pack</button>
 
             <div id="texture-group-list">
-                </div>
+                <!-- Group buttons will be populated here by mod-builder.js -->
+            </div>
 
             <div id="customization-panel">
                 <button class="mod-back-button" id="mod-back-button"><i class="fas fa-arrow-left"></i> Back to Groups</button>
@@ -76,9 +85,17 @@
                             <input type="number" id="drawing-res-y" class="resolution-input" value="256" min="2" max="2048">
                         </div>
                         <input type="color" id="drawing-color-picker" value="#ffffff">
-                        <input type="color" id="background-color-picker" value="#000000"> <canvas id="drawingCanvas"></canvas>
+                        <input type="color" id="background-color-picker" value="#000000">
+
+                        <!-- NEW: Mirror Drawing Checkbox -->
+                        <label for="mirror-drawing-checkbox">
+                            <input type="checkbox" id="mirror-drawing-checkbox"> Mirror Drawing
+                        </label>
+
+                        <canvas id="drawingCanvas"></canvas>
                         <div class="pattern-previews">
-                            </div>
+                            <!-- Pattern preview canvases will be populated here by JS -->
+                        </div>
                         <button class="mod-action-button" id="apply-drawing-button">Apply Drawing</button>
                         <button class="mod-action-button clear-canvas-button" id="clear-drawing-button">Clear Drawing</button>
                     </div>
@@ -87,8 +104,8 @@
         </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <!-- JavaScript Files (Important: Load JSZip and FileSaver.js BEFORE your scripts) -->
     <script src="asset-list-page.js"></script>
-    <script src="mod-builder.js"></script> </body>
+    <script src="mod-builder.js"></script>
+</body>
 </html>

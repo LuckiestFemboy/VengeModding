@@ -1,537 +1,464 @@
-/* mod-builder.css */
-
-/* Mod Builder Overlay */
+/* Mod Builder Overlay Styles */
 .mod-builder-overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.85); /* Darker, semi-transparent background */
+    background: rgba(0, 0, 0, 0.85); /* Slightly darker overlay */
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 1000; /* Ensure it's on top of other content */
-    opacity: 0;
+    z-index: 1001; /* Above loading overlay */
     visibility: hidden;
-    transition: opacity 0.3s ease, visibility 0.3s ease;
-    backdrop-filter: blur(5px); /* Add a subtle blur effect */
+    opacity: 0;
+    transition: visibility 0.3s, opacity 0.3s;
 }
 
 .mod-builder-overlay.active {
-    opacity: 1;
     visibility: visible;
+    opacity: 1;
 }
 
-/* Mod Builder Window (the modal itself) */
 .mod-builder-window {
-    background: #2a2a2a; /* Dark background for the modal */
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background-color: #33373e;
+    padding: 30px;
     border-radius: 12px;
-    padding: 2.5rem;
-    /* --- MODIFIED DIMENSIONS BELOW --- */
-    width: 95vw; /* Make it almost full viewport width */
-    max-width: 1600px; /* Allow it to be wider on large screens, but with a cap */
-    height: 95vh; /* Make it almost full viewport height */
-    /* --- END MODIFIED DIMENSIONS --- */
-    overflow: hidden; /* Hide overflow for content */
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-    position: relative;
-    display: flex; /* Use flexbox for internal layout */
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+    width: 95%;
+    max-width: 1000px; /* Wider for customization */
+    height: 90%;
+    max-height: 700px;
+    display: flex;
     flex-direction: column;
+    position: relative;
+    overflow: hidden; /* For internal scrolling */
 }
 
-.mod-builder-window h2 {
-    font-size: 2rem;
-    color: #ffffff;
-    margin-bottom: 1.5rem;
-    text-align: center;
-    text-shadow: 0 0 10px rgba(108, 92, 231, 0.3);
-}
-
-/* Close Button for Mod Builder */
 .mod-builder-close-button {
     position: absolute;
     top: 15px;
     right: 15px;
     background: none;
     border: none;
-    color: rgba(255, 255, 255, 0.7);
-    font-size: 1.8rem;
+    font-size: 1.8em;
+    color: #e0e0e0;
     cursor: pointer;
-    transition: color 0.2s ease, transform 0.2s ease;
-    padding: 0.5rem;
+    transition: color 0.2s ease;
 }
 
 .mod-builder-close-button:hover {
-    color: #fd79a8; /* Pink accent on hover */
-    transform: rotate(90deg);
+    color: #ff6b6b;
 }
 
-/* NEW: Create Mod Pack Button on Groups Page */
+.mod-builder-window h2 {
+    color: #61dafb;
+    margin-top: 0;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
 #create-mod-pack-button-groups-page {
-    width: fit-content;
+    align-self: center; /* Center button */
+    margin-bottom: 20px;
+    background-color: #28a745; /* Green for main mod pack button */
+    color: white;
     padding: 12px 25px;
-    margin: 20px auto 10px auto; /* Center the button */
-    display: block; /* Ensure it's a block element */
-    font-size: 1.1rem;
-    font-weight: bold;
-    background: linear-gradient(90deg, #6c5ce7, #fd79a8);
-    color: #ffffff;
     border: none;
     border-radius: 8px;
     cursor: pointer;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-    transition: all 0.3s ease;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    flex-shrink: 0; /* Prevent it from shrinking */
+    transition: background-color 0.2s ease;
+}
+#create-mod-pack-button-groups-page:hover {
+    background-color: #218838;
 }
 
-#create-mod-pack-button-groups-page:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4), 0 0 30px rgba(108, 92, 231, 0.6);
-    background: linear-gradient(90deg, #fd79a8, #6c5ce7);
-}
-
-#create-mod-pack-button-groups-page:active {
-    transform: translateY(0);
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
-}
-
-#create-mod-pack-button-groups-page:disabled {
-    background: #444;
-    cursor: not-allowed;
-    opacity: 0.6;
-    box-shadow: none;
-}
-
-
-/* Texture Group List (Grid of Buttons) */
 #texture-group-list {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); /* Adjusted min-width for smaller buttons */
-    gap: 0.8rem; /* Reduced gap */
-    padding: 1rem;
-    background: rgba(0, 0, 0, 0.15); /* Slightly darker background for the list container */
-    border-radius: 8px;
-    margin-top: 1rem;
-    overflow-y: auto; /* Enable scrolling if too many groups */
-    flex-grow: 1; /* Allow it to take available space */
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 15px;
+    padding: 10px;
+    overflow-y: auto; /* Scrollable list of groups */
+    flex-grow: 1;
+    margin-bottom: 10px;
 }
 
 .mod-group-button {
-    background: #4a4a4a; /* Darker button background */
-    color: #ffffff;
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    background-color: #444a52;
+    color: #e0e0e0;
+    padding: 15px;
     border-radius: 8px;
-    padding: 0.6rem 1rem; /* Reduced padding for smaller buttons */
-    font-size: 1rem; /* Slightly reduced font size */
-    font-weight: 500;
+    border: none;
     cursor: pointer;
-    transition: background 0.3s ease, border-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
-    text-align: center;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-    position: relative; /* For the modification indicator */
-    display: flex; /* Use flexbox for button content */
+    font-size: 1.1em;
+    font-weight: 500;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    display: flex;
     align-items: center;
     justify-content: center;
+    gap: 8px;
+    position: relative; /* For the star indicator */
+}
+
+.mod-group-button:hover {
+    background-color: #555c68;
+    transform: translateY(-2px);
+}
+
+.mod-group-button.non-modifiable {
+    background-color: #5a5a5a;
+    cursor: not-allowed;
+    opacity: 0.7;
 }
 
 .mod-group-button.has-modifications {
-    background: linear-gradient(45deg, #6c5ce7, #fd79a8); /* Gradient for modified groups */
-    color: #fff;
-    font-weight: bold;
-}
-
-.mod-group-button.has-modifications:hover {
-    background: linear-gradient(45deg, #fd79a8, #6c5ce7);
+    background-color: #7a61f9; /* Indicate active modifications */
+    box-shadow: 0 0 10px rgba(122, 97, 249, 0.5);
 }
 
 .mod-indicator-icon {
-    position: absolute; /* Position icon absolutely within the button */
-    top: 8px;
-    right: 8px;
-    color: #fff; /* White icon */
+    color: gold;
+    margin-left: 5px;
     font-size: 0.9em;
-    filter: drop-shadow(0 0 3px rgba(0,0,0,0.5));
 }
 
 
-.mod-group-button:hover:not(:disabled) {
-    background: #6c5ce7; /* Purple accent on hover */
-    border-color: #fd79a8; /* Pink accent border on hover */
-    transform: translateY(-3px);
-    box-shadow: 0 6px 15px rgba(108, 92, 231, 0.4);
-}
-
-.mod-group-button:active:not(:disabled) {
-    transform: translateY(0);
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
-}
-
-.mod-group-button.not-modifiable {
-    background: #3a3a3a; /* Even darker, desaturated background */
-    color: rgba(255, 255, 255, 0.4); /* Faded text color */
-    border-color: rgba(255, 255, 255, 0.1);
-    cursor: not-allowed;
-    box-shadow: none;
-    filter: grayscale(80%); /* Visually grey out */
-}
-
-/* Customization Panel */
+/* Customization Panel Styles */
 #customization-panel {
-    display: flex; /* Flexbox for panel layout */
+    display: none; /* Hidden by default */
     flex-direction: column;
-    flex-grow: 1; /* Take remaining space */
-    padding: 1rem;
-    background: rgba(0, 0, 0, 0.15);
-    border-radius: 8px;
-    margin-top: 1rem;
-    overflow-y: auto; /* Enable scrolling for panel content */
-    display: none; /* Hidden by default, shown by JS */
+    flex-grow: 1;
+    padding: 10px;
+    overflow-y: auto; /* Scrollable panel content */
 }
 
-#customization-panel h2 {
-    font-size: 1.8rem;
-    margin-bottom: 1rem;
-    color: #ffffff;
+#customization-panel-title {
     text-align: center;
+    margin-bottom: 20px;
 }
 
-/* Styles for the Back Button */
 .mod-back-button {
-    background: #4a4a4a;
-    color: #ffffff;
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    background-color: #555;
+    color: white;
+    padding: 10px 15px;
     border-radius: 8px;
-    padding: 0.8rem 1.2rem;
-    font-size: 1rem;
+    border: none;
     cursor: pointer;
-    transition: background 0.3s ease, border-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+    transition: background-color 0.2s ease;
+    align-self: flex-start; /* Align to left */
+    margin-bottom: 15px;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    margin-bottom: 1.5rem; /* Space below the back button */
-    align-self: flex-start; /* Align to the start of the flex container */
+    gap: 5px;
 }
-
 .mod-back-button:hover {
-    background: #5a5a5a;
-    border-color: #6c5ce7;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    background-color: #777;
 }
 
-.mod-back-button i {
-    font-size: 1.1rem;
-}
-
-/* Image Previews Container (for multiple images within a group) */
-.image-previews-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Responsive grid for previews */
-    gap: 15px;
-    margin-bottom: 20px;
-    max-height: 400px; /* Max height for preview section */
-    overflow-y: auto; /* Scroll if too many images */
-    padding: 10px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 8px;
-    background: rgba(0, 0, 0, 0.1);
-}
-
-.preview-item {
-    background: #333;
-    border-radius: 8px;
-    padding: 10px;
-    text-align: center;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-}
-
-.preview-item canvas {
-    width: 100%;
-    height: auto;
-    max-width: 200px; /* Max size for individual preview canvas */
-    max-height: 200px;
-    border: 1px solid #555;
-    border-radius: 5px;
-    background: #111; /* Ensure canvas has a background */
-}
-
-.preview-item p {
-    font-size: 0.85rem;
-    color: #bbb;
-    margin-top: 5px;
-    word-break: break-all; /* Break long filenames */
-}
-
-
-/* Container for all customization options */
 .customization-options-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* Responsive grid for options */
-    gap: 1.5rem;
-    flex-grow: 1; /* Allow it to take up available space */
-    overflow-y: auto; /* Enable scrolling for options if needed */
-    padding-right: 10px; /* Space for scrollbar if present */
+    display: flex;
+    flex-wrap: wrap; /* Allow options to wrap */
+    gap: 20px;
+    justify-content: space-around; /* Distribute space */
 }
 
-/* Individual customization option sections */
 .customization-option {
-    background: #3a3a3a; /* Slightly lighter background for each option box */
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background-color: #444a52;
+    padding: 20px;
     border-radius: 10px;
-    padding: 1.5rem;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    flex: 1; /* Allow flexing to take available space */
+    min-width: 280px; /* Minimum width for each option */
     display: flex;
     flex-direction: column;
-    gap: 1rem; /* Space between elements within an option */
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    gap: 10px;
 }
 
 .customization-option h3 {
-    font-size: 1.3rem;
-    color: #6c5ce7; /* Accent color for headings */
-    margin-bottom: 0.5rem;
+    color: #61dafb;
+    margin-top: 0;
+    margin-bottom: 15px;
     text-align: center;
 }
 
-/* NEW: Resolution Inputs Styling */
+/* Color and Saturation Inputs */
+input[type="color"] {
+    width: 100%;
+    height: 40px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    background: transparent; /* Makes the default color picker UI visible */
+    padding: 0;
+    -webkit-appearance: none; /* Remove default browser styling */
+}
+
+input[type="color"]::-webkit-color-swatch-wrapper {
+    padding: 0;
+}
+input[type="color"]::-webkit-color-swatch {
+    border: 1px solid #666;
+    border-radius: 8px;
+}
+input[type="color"]::-moz-color-swatch-wrapper {
+    padding: 0;
+}
+input[type="color"]::-moz-color-swatch {
+    border: 1px solid #666;
+    border-radius: 8px;
+}
+
+
+input[type="range"] {
+    width: 100%;
+    margin: 10px 0;
+    -webkit-appearance: none; /* Remove default browser styling */
+    height: 8px;
+    background: #555;
+    border-radius: 5px;
+    outline: none;
+    transition: opacity .2s;
+    opacity: 0.7;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    background: #61dafb;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+}
+
+input[type="range"]::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    background: #61dafb;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+}
+
+#saturation-value {
+    display: block;
+    text-align: center;
+    font-weight: bold;
+    margin-top: -5px; /* Adjust spacing */
+    color: #e0e0e0;
+}
+
+.mod-action-button {
+    padding: 10px 15px;
+    background-color: #61dafb;
+    color: #282c34;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    font-size: 1em;
+    font-weight: 600;
+}
+
+.mod-action-button:hover {
+    background-color: #4fa3d1;
+}
+
+.clear-mod-button, .clear-canvas-button {
+    background-color: #dc3545; /* Red for clear buttons */
+    color: white;
+}
+
+.clear-mod-button:hover, .clear-canvas-button:hover {
+    background-color: #c82333;
+}
+
+
+/* Drawing Tools specific styling */
 .resolution-inputs {
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    margin-bottom: 0.8rem;
+    gap: 5px;
+    margin-bottom: 10px;
+    color: #e0e0e0;
 }
 
 .resolution-inputs label {
-    color: #ccc;
-    font-size: 0.95rem;
+    white-space: nowrap;
 }
 
 .resolution-input {
-    width: 70px; /* Fixed width for input boxes */
-    padding: 0.5rem;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 5px;
-    background: #444;
-    color: #fff;
-    font-size: 0.95rem;
+    width: 70px;
+    padding: 8px;
+    border: 1px solid #555;
+    border-radius: 8px;
+    background-color: #3c4046;
+    color: #e0e0e0;
     text-align: center;
-    -moz-appearance: textfield; /* Hide Firefox spinner */
 }
 
-/* Hide Webkit spinners for number input */
-.resolution-input::-webkit-outer-spin-button,
-.resolution-input::-webkit-inner-spin-button {
-    -webkit-appearance: none;
+#drawingCanvas {
+    background-color: #1a1a1a; /* Darker background for canvas */
+    border: 2px solid #555;
+    border-radius: 8px;
+    cursor: crosshair;
+    touch-action: none; /* Prevent scrolling/zooming on touch devices */
+    width: 100%; /* Make canvas responsive within its container */
+    max-width: 500px; /* Max width for larger screens */
+    height: auto; /* Maintain aspect ratio */
+    aspect-ratio: 1 / 1; /* Default aspect ratio, can be overridden by JS */
+    margin: 10px auto; /* Center canvas horizontally */
+    display: block; /* Ensure it takes full width */
+}
+
+.image-previews-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 15px;
+    max-height: 150px; /* Limit height and make scrollable */
+    overflow-y: auto;
+    padding-bottom: 10px; /* Space for scrollbar */
+    border-bottom: 1px solid #555;
+    margin-bottom: 15px;
+}
+
+.preview-item {
+    cursor: pointer;
+    border: 2px solid transparent;
+    border-radius: 8px;
+    padding: 5px;
+    background-color: #3c4046;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+    text-align: center;
+}
+
+.preview-item:hover {
+    border-color: #61dafb;
+}
+
+.preview-item.active {
+    border-color: #61dafb;
+    background-color: #555c68;
+    box-shadow: 0 0 8px rgba(97, 218, 251, 0.5);
+}
+
+.preview-item canvas {
+    display: block;
+    border-radius: 4px;
+    margin-bottom: 5px;
+    width: 80px; /* Fixed size for preview thumbnail */
+    height: 80px;
+    object-fit: contain;
+    background-color: #2c2f35; /* Background for transparent images */
+}
+
+.preview-item p {
+    font-size: 0.8em;
+    color: #bbb;
+    word-break: break-all; /* Break long filenames */
     margin: 0;
+    padding: 0;
 }
 
+.pattern-previews {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 10px;
+    justify-content: center;
+}
 
-/* Styles for input elements (color picker, range slider) */
-.customization-option input[type="color"] {
+.pattern-preview-item {
+    width: 60px;
+    height: 60px;
+    border: 1px solid #555;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: border-color 0.2s ease;
+    background-size: cover;
+    background-position: center;
+}
+
+.pattern-preview-item:hover {
+    border-color: #61dafb;
+}
+
+label[for="mirror-drawing-checkbox"] {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    color: #e0e0e0;
+    cursor: pointer;
+}
+
+#mirror-drawing-checkbox {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    /* Basic styling for checkbox */
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
-    border: none;
-    width: 100%;
-    height: 50px; /* Larger hit area */
-    background: none;
-    cursor: pointer;
-    border-radius: 8px;
-    overflow: hidden; /* Hide default border */
-    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 2px solid #61dafb;
+    border-radius: 4px;
+    background-color: #3c4046;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+    position: relative;
+    top: 0; /* Remove top/left for better centering */
+    left: 0;
 }
 
-.customization-option input[type="color"]::-webkit-color-swatch-wrapper {
-    padding: 0;
+#mirror-drawing-checkbox:checked {
+    background-color: #61dafb;
+    border-color: #61dafb;
 }
 
-.customization-option input[type="color"]::-webkit-color-swatch {
-    border: none;
-    border-radius: 8px;
+#mirror-drawing-checkbox:checked::after {
+    content: '\2713'; /* Checkmark character */
+    font-size: 14px;
+    color: #282c34;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
 }
 
-.customization-option input[type="color"]::-moz-color-swatch-wrapper {
-    padding: 0;
-}
 
-.customization-option input[type="color"]::-moz-color-swatch {
-    border: none;
-    border-radius: 8px;
-}
-
-.customization-option input[type="range"] {
-    width: 100%;
-    -webkit-appearance: none;
-    appearance: none;
-    background: transparent; /* Remove default track background */
-    cursor: grab;
-    margin: 10px 0;
-}
-
-.customization-option input[type="range"]:focus {
-    outline: none;
-}
-
-/* Track styles for range slider */
-.customization-option input[type="range"]::-webkit-slider-runnable-track {
-    width: 100%;
-    height: 8px;
-    background: #555;
-    border-radius: 5px;
-    border: 0.5px solid rgba(255, 255, 255, 0.1);
-    box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.4);
-}
-
-.customization-option input[type="range"]::-moz-range-track {
-    width: 100%;
-    height: 8px;
-    background: #555;
-    border-radius: 5px;
-    border: 0.5px solid rgba(255, 255, 255, 0.1);
-    box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.4);
-}
-
-/* Thumb styles for range slider */
-.customization-option input[type="range"]::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    border: 1px solid #ffffff;
-    height: 20px;
-    width: 20px;
-    border-radius: 50%;
-    background: #6c5ce7; /* Accent color */
-    cursor: grab;
-    margin-top: -6.5px; /* Adjust to align with track */
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
-    transition: background 0.2s ease, box-shadow 0.2s ease;
-}
-
-.customization-option input[type="range"]::-moz-range-thumb {
-    border: 1px solid #ffffff;
-    height: 20px;
-    width: 20px;
-    border-radius: 50%;
-    background: #6c5ce7;
-    cursor: grab;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
-    transition: background 0.2s ease, box-shadow 0.2s ease;
-}
-
-.customization-option input[type="range"]:active::-webkit-slider-thumb,
-.customization-option input[type="range"]:focus::-webkit-slider-thumb {
-    background: #fd79a8; /* Pink accent on active/focus */
-    box-shadow: 0 0 0 5px rgba(108, 92, 231, 0.3);
-}
-
-.customization-option input[type="range"]:active::-moz-range-thumb,
-.customization-option input[type="range"]:focus::-moz-range-thumb {
-    background: #fd79a8;
-    box-shadow: 0 0 0 5px rgba(108, 92, 231, 0.3);
-}
-
-/* Saturation value display */
-#saturationValue {
-    display: inline-block;
-    min-width: 50px;
-    text-align: center;
-    font-weight: bold;
-    color: #ffffff;
-}
-
-/* Styles for action buttons within options */
+/* General Button Styling (can be moved to asset-list-page.css if not used broadly) */
 .mod-action-button {
-    background: #6c5ce7; /* Purple accent */
-    color: #ffffff;
+    padding: 10px 15px;
+    background-color: #61dafb;
+    color: #282c34;
     border: none;
     border-radius: 8px;
-    padding: 0.7rem 1rem;
-    font-size: 1rem;
-    font-weight: 500;
     cursor: pointer;
-    transition: background 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
-    align-self: flex-start; /* Align button to start within its flex container */
-    margin-top: 0.5rem; /* Space above button */
-    width: 100%; /* Make these buttons fill the width of their container */
+    transition: background-color 0.2s ease;
+    font-size: 1em;
+    font-weight: 600;
 }
 
-.mod-action-button:hover:not(:disabled) {
-    background: #fd79a8; /* Pink accent on hover */
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(108, 92, 231, 0.4);
+.mod-action-button:hover {
+    background-color: #4fa3d1;
 }
 
-.mod-action-button:active {
-    transform: translateY(0);
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
-}
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .mod-builder-window {
+        padding: 15px;
+        height: 95%;
+    }
 
-.mod-action-button:disabled {
-    background: #444;
-    cursor: not-allowed;
-    opacity: 0.6;
-}
+    .customization-options-container {
+        flex-direction: column;
+        align-items: stretch;
+    }
 
-.mod-action-button.clear-mod-button { /* Use this class for "Clear Color", "Clear Saturation" etc. */
-    background: #555; /* Default gray for clear buttons */
-}
-
-.mod-action-button.clear-mod-button:hover {
-    background: #777; /* Lighter gray on hover */
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-}
-
-.mod-action-button.clear-canvas-button {
-    background: #e74c3c; /* Red color for clear drawing button */
-}
-
-.mod-action-button.clear-canvas-button:hover {
-    background: #c0392b;
-    box-shadow: 0 5px 15px rgba(231, 76, 60, 0.4);
-}
-
-
-/* Styles for pattern previews */
-.pattern-previews {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
-    gap: 0.8rem;
-    margin-top: 0.5rem;
-}
-
-.pattern-preview-placeholder {
-    width: 80px;
-    height: 80px;
-    background: #555; /* Placeholder background */
-    border: 1px dashed rgba(255, 255, 255, 0.3);
-    border-radius: 5px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    color: rgba(255, 255, 255, 0.6);
-    font-size: 0.8rem;
-    text-align: center;
-    cursor: pointer;
-    transition: background 0.2s ease, border-color 0.2s ease;
-}
-
-.pattern-preview-placeholder:hover {
-    background: #6c5ce7;
-    border-color: #fd79a8;
-    color: #ffffff;
-}
-
-/* Canvas styling */
-#drawingCanvas {
-    background: #1a1a1a;
-    border: 1px solid #6c5ce7;
-    border-radius: 8px;
-    box-shadow: 0 0 15px rgba(108, 92, 231, 0.3);
-    cursor: crosshair;
-    align-self: center; /* Center the canvas */
-    max-width: 100%;
-    height: auto; /* Maintain aspect ratio */
+    .resolution-inputs {
+        flex-direction: column;
+        align-items: flex-start;
+    }
 }
