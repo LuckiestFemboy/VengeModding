@@ -30,9 +30,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     progressBar = document.getElementById('progress-bar');
     progressPercentage = document.getElementById('progress-percentage');
     consoleLog = document.getElementById('console-log');
+    // CONFIRM THESE TWO LINES ARE EXACTLY AS SHOWN AND ARE IN THIS BLOCK
     editGroupButton = document.getElementById('edit-group-button'); // Get the new button
     unselectAllButton = document.getElementById('unselect-all-button'); // Get the new button
-
     // Initial load of assets
     await fetchAssets();
 
@@ -196,6 +196,7 @@ function createAndAppendCard(folder, filename, type) {
     const checkbox = document.createElement('input');
     checkbox.type = 'checkbox';
     checkbox.className = 'card-select-checkbox';
+    // CONFIRM THIS EVENT LISTENER IS EXACTLY AS SHOWN
     checkbox.addEventListener('change', (e) => toggleCardSelection(asset, e.target.checked));
     checkboxContainer.appendChild(checkbox);
     card.appendChild(checkboxContainer);
@@ -276,6 +277,7 @@ function createAndAppendCard(folder, filename, type) {
  */
 function toggleCardSelection(asset, isSelected) {
     asset.isSelected = isSelected;
+    // CONFIRM THIS CALL IS PRESENT
     updateCardVisualState(asset); // Update visual state immediately
 
     // Add/remove from selectedAssets array
@@ -286,6 +288,7 @@ function toggleCardSelection(asset, isSelected) {
         selectedAssets.splice(index, 1);
     }
 
+    // CONFIRM THIS CALL IS PRESENT
     // Update the state of "Edit Group" and "Unselect All" buttons
     updateGroupActionButtons();
 }
@@ -306,7 +309,6 @@ function updateGroupActionButtons() {
         unselectAllButton.disabled = !hasAnySelected;
     }
 }
-
 
 /**
  * Handles the click event for the "Edit Group" button.
