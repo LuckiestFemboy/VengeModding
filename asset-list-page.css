@@ -79,6 +79,50 @@ header h1 {
     background: linear-gradient(135deg, #fd79a8, #6c5ce7);
 }
 
+/* New: Styles for the multi-select action container */
+.multi-select-actions {
+    display: flex; /* Hidden by default in HTML, shown by JS */
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1rem;
+    padding: 0 1rem;
+    flex-wrap: wrap; /* Allow wrapping on smaller screens */
+}
+
+.multi-select-actions .selected-count {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #fd79a8; /* Highlighted color for count */
+    padding: 0.5rem 1rem;
+    border: 1px solid rgba(253, 121, 168, 0.3);
+    border-radius: 6px;
+    background: rgba(253, 121, 168, 0.1);
+}
+
+.multi-select-actions .bulk-action-trigger {
+    background: linear-gradient(135deg, #fd79a8, #eb3b5a); /* Reddish gradient */
+    padding: 0.8rem 1.5rem;
+    border-radius: 6px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.multi-select-actions .bulk-action-trigger:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.multi-select-actions .bulk-action-trigger:disabled {
+    background: #444;
+    cursor: not-allowed;
+    opacity: 0.6;
+    box-shadow: none;
+    transform: none;
+}
+
+
 /* Container styles */
 .container {
     width: 100%;
@@ -128,7 +172,7 @@ header h1 {
     border-color: rgba(108, 92, 231, 0.3);
 }
 
-/* New: Style for edited cards */
+/* Style for edited cards */
 .texture-card.edited-card {
     background: #ffffff; /* Full white background */
     border: 2px solid #6c5ce7; /* Highlight border */
@@ -404,6 +448,72 @@ header h1 {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+/* New: Styles for multi-select mode */
+body.multi-select-active .texture-card:not(.mp3) {
+    cursor: pointer; /* Change cursor for clickable cards */
+    border: 1px solid rgba(255, 255, 255, 0.1); /* Reset border */
+}
+
+body.multi-select-active .texture-card:not(.mp3):hover {
+    transform: translateY(-2px); /* Less aggressive hover in select mode */
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    border-color: #6c5ce7; /* Highlight hover */
+}
+
+body.multi-select-active .texture-card:not(.mp3) .buttons-container {
+    opacity: 0.3; /* Dim edit/copy/download buttons in multi-select mode */
+    pointer-events: none; /* Disable clicks on these buttons */
+}
+
+body.multi-select-active .texture-card:not(.mp3) .edit-asset-button,
+body.multi-select-active .texture-card:not(.mp3) .copy-button,
+body.multi-select-active .texture-card:not(.mp3) .download-button {
+    cursor: not-allowed;
+}
+
+
+/* New: Style for selected cards in multi-select mode */
+.texture-card.selected-for-bulk {
+    background: rgba(108, 92, 231, 0.3); /* Purple background */
+    border: 3px solid #fd79a8; /* Pink border */
+    box-shadow: 0 0 25px rgba(253, 121, 168, 0.5), inset 0 0 15px rgba(253, 121, 168, 0.3); /* Inner and outer glow */
+    transform: scale(1.02); /* Slightly larger when selected */
+    z-index: 10; /* Bring selected card to front */
+}
+
+/* New: Checkbox visual for selectable cards */
+.texture-card .select-checkbox {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    width: 24px;
+    height: 24px;
+    background-color: rgba(255, 255, 255, 0.8);
+    border: 2px solid #6c5ce7;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.2rem;
+    color: transparent; /* Initially transparent checkmark */
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    z-index: 20; /* Ensure checkbox is on top */
+    opacity: 0; /* Hidden by default, shown in multi-select mode */
+    pointer-events: none; /* Disable clicks outside multi-select mode */
+}
+
+body.multi-select-active .texture-card:not(.mp3) .select-checkbox {
+    opacity: 1; /* Show checkbox in multi-select mode for image cards */
+    pointer-events: auto; /* Enable clicks */
+}
+
+.texture-card.selected-for-bulk .select-checkbox {
+    background-color: #6c5ce7; /* Checked state background */
+    border-color: #fd79a8;
+    color: white; /* Show checkmark */
+}
+
 
 /* Responsive design */
 @media (max-width: 768px) {
@@ -424,9 +534,6 @@ header h1 {
         padding: 1rem;
     }
 
-    /* .media-container.mp3 and .texture-info.mp3 are removed for MP3s,
-       so their media queries are no longer relevant for MP3s */
-
     .container {
         padding: 1rem;
     }
@@ -437,6 +544,15 @@ header h1 {
 
     header h1 {
         font-size: 2rem;
+    }
+
+    .multi-select-actions {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .multi-select-actions .bulk-action-trigger {
+        width: 100%;
     }
 }
 

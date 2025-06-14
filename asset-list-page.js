@@ -1,7 +1,7 @@
 // DOM Elements
 let searchInput;
 let allCards;
-// Store a global list of all assets fetched to be used for zipping
+// Store a global list of all assets fetched to be used for zipping and bulk operations
 // Each asset object will now also store its Blob data and modification status.
 const allAssets = [];
 
@@ -10,6 +10,7 @@ let loadingOverlay;
 let progressBar;
 let progressPercentage;
 let consoleLog;
+let loadingMessageDisplay; // New: to display dynamic loading messages
 
 // Card Creation
 function createAndAppendCard(folder, filename, type) {
@@ -22,7 +23,7 @@ function createAndAppendCard(folder, filename, type) {
 
     let mediaPath = `./mod-assets/${type.toLowerCase()}/${filename}`;
 
-    // Create asset object and add to the global list for zipping
+    // Create asset object and add to the global list for zipping and bulk operations
     // Initialize modification flags and blob storage
     const asset = {
         folder,
@@ -45,7 +46,10 @@ function createAndAppendCard(folder, filename, type) {
         // Create elements for the consolidated MP3 card layout
         const playIcon = document.createElement('i');
         playIcon.className = 'fas fa-play media-icon'; // Keep original class for icon styling
-        playIcon.onclick = () => playAudio(mediaPath);
+        playIcon.onclick = (event) => {
+            event.stopPropagation(); // Prevent card selection when clicking play button
+            playAudio(mediaPath);
+        };
 
         const mp3FilenameDisplay = document.createElement('div');
         mp3FilenameDisplay.className = 'mp3-filename-display';
@@ -54,7 +58,8 @@ function createAndAppendCard(folder, filename, type) {
         const folderNumberButton = document.createElement('button');
         folderNumberButton.className = 'folder-number-button';
         folderNumberButton.textContent = `Folder: ${folder}`;
-        folderNumberButton.onclick = () => {
+        folderNumberButton.onclick = (event) => {
+             event.stopPropagation(); // Prevent card selection when clicking copy button
              // Use document.execCommand('copy') for clipboard operations in iframe context
              const tempInput = document.createElement('textarea');
              tempInput.value = folder;
@@ -69,12 +74,15 @@ function createAndAppendCard(folder, filename, type) {
              }, 2000);
         };
 
-        // Create button elements for the bottom of the card
+        // Create a wrapper for the action buttons to manage their layout
+        const mp3ButtonsWrapper = document.createElement('div');
+        mp3ButtonsWrapper.className = 'mp3-buttons-wrapper'; // New class for this wrapper
+
         const copyFolderButton = document.createElement('button');
         copyFolderButton.className = 'copy-folder-button';
         copyFolderButton.textContent = 'Copy Folder';
-        copyFolderButton.onclick = () => {
-            // Use document.execCommand('copy') for clipboard operations in iframe context
+        copyFolderButton.onclick = (event) => {
+            event.stopPropagation(); // Prevent card selection when clicking copy button
             const tempInput = document.createElement('textarea');
             tempInput.value = folder;
             document.body.appendChild(tempInput);
@@ -85,21 +93,18 @@ function createAndAppendCard(folder, filename, type) {
             copyFolderButton.textContent = 'Copied!';
             setTimeout(() => { copyFolderButton.textContent = 'Copy Folder'; }, 2000);
         };
+        mp3ButtonsWrapper.appendChild(copyFolderButton);
 
         const downloadButton = document.createElement('button');
         downloadButton.className = 'download-button';
         downloadButton.textContent = 'Download';
-        downloadButton.onclick = () => {
+        downloadButton.onclick = (event) => {
+            event.stopPropagation(); // Prevent card selection when clicking download button
             const downloadLink = document.createElement('a');
             downloadLink.href = mediaPath;
             downloadLink.download = filename;
             downloadLink.click();
         };
-
-        // Create a wrapper for the action buttons to manage their layout
-        const mp3ButtonsWrapper = document.createElement('div');
-        mp3ButtonsWrapper.className = 'mp3-buttons-wrapper'; // New class for this wrapper
-        mp3ButtonsWrapper.appendChild(copyFolderButton);
         mp3ButtonsWrapper.appendChild(downloadButton);
 
         // Append all consolidated elements directly to the main card
@@ -109,6 +114,21 @@ function createAndAppendCard(folder, filename, type) {
         card.appendChild(mp3ButtonsWrapper);
 
     } else { // Logic for PNG/JPG cards
+        // Add the selection checkbox for image cards
+        const selectCheckbox = document.createElement('div');
+        selectCheckbox.className = 'select-checkbox';
+        selectCheckbox.innerHTML = '<i class="fas fa-check"></i>'; // Font Awesome checkmark
+        card.appendChild(selectCheckbox);
+
+        // Add click listener to the card for multi-selection
+        card.addEventListener('click', () => {
+            // Check if multi-select mode is active (function from bulk-operations.js)
+            if (typeof window.isMultiSelectModeActive === 'function' && window.isMultiSelectModeActive()) {
+                window.toggleAssetSelection(asset, card); // Function from bulk-operations.js
+            }
+        });
+
+
         // Create media container
         const mediaContainer = document.createElement('div');
         mediaContainer.className = 'media-container';
@@ -163,13 +183,19 @@ function createAndAppendCard(folder, filename, type) {
         const editAssetButton = document.createElement('button');
         editAssetButton.className = 'edit-asset-button';
         editAssetButton.textContent = 'Edit Asset';
-        editAssetButton.onclick = () => {
+        editAssetButton.onclick = (event) => {
+            event.stopPropagation(); // Prevent card selection when clicking edit button
             // Call the modal function from asset-editor-modal.js
             // Pass the entire asset object reference and the card element for in-memory modification and visual update
-            if (typeof window.openAssetEditorModal === 'function') {
-                window.openAssetEditorModal(asset, card);
+            // Only open if multi-select mode is NOT active
+            if (typeof window.isMultiSelectModeActive === 'function' && !window.isMultiSelectModeActive()) {
+                if (typeof window.openAssetEditorModal === 'function') {
+                    window.openAssetEditorModal(asset, card);
+                } else {
+                    console.error('openAssetEditorModal function not found. Is asset-editor-modal.js loaded correctly?');
+                }
             } else {
-                console.error('openAssetEditorModal function not found. Is asset-editor-modal.js loaded correctly?');
+                console.log('Cannot open single editor in multi-select mode.');
             }
         };
         actionButtonsContainer.appendChild(editAssetButton);
@@ -178,7 +204,8 @@ function createAndAppendCard(folder, filename, type) {
         const copyButton = document.createElement('button');
         copyButton.className = 'copy-button'; // Specific class for non-MP3 copy button
         copyButton.textContent = 'Copy Folder';
-        copyButton.onclick = () => {
+        copyButton.onclick = (event) => {
+            event.stopPropagation(); // Prevent card selection when clicking copy button
             // Use document.execCommand('copy') for clipboard operations in iframe context
             const tempInput = document.createElement('textarea');
             tempInput.value = folder;
@@ -195,7 +222,8 @@ function createAndAppendCard(folder, filename, type) {
         const downloadButton = document.createElement('button');
         downloadButton.className = 'download-button';
         downloadButton.textContent = 'Download';
-        downloadButton.onclick = () => {
+        downloadButton.onclick = (event) => {
+            event.stopPropagation(); // Prevent card selection when clicking download button
             const downloadLink = document.createElement('a');
             downloadLink.href = mediaPath;
             downloadLink.download = filename;
@@ -219,7 +247,7 @@ function createAndAppendCard(folder, filename, type) {
 
 /**
  * Updates the visual state of a card based on its associated asset's modification status.
- * This function is called from asset-editor-modal.js after changes are saved.
+ * This function is called from asset-editor-modal.js after changes are saved, and now from bulk-operations.js.
  * @param {Object} asset The asset object whose visual state needs to be updated.
  */
 window.updateCardVisualState = (asset) => {
@@ -358,6 +386,7 @@ async function initializeGallery() {
             console.error('Error loading MP3 files:', error);
         }
 
+        // Populate allCards AFTER all cards have been created and appended
         allCards = document.querySelectorAll('.texture-card');
 
     } catch (error) {
@@ -370,31 +399,76 @@ function playAudio(audioPath) {
     audio.play().catch(error => {
         console.error('Error playing audio:', error);
         console.error('Failed to play audio file. Please check if the file exists and is accessible.');
-        // Removed alert, logging to console instead.
     });
 }
 
-// --- New ZIP Download Functionality with Progress ---
+// --- Loading Overlay and Console Logging Utility Functions (Exposed Globally) ---
+// These functions are now exposed on the window object so bulk-operations.js can call them.
+
+window.showLoadingOverlay = (message) => {
+    if (loadingOverlay && loadingMessageDisplay && progressBar && consoleLog) {
+        loadingMessageDisplay.textContent = message;
+        progressBar.style.width = '0%';
+        progressPercentage.textContent = '0%';
+        consoleLog.textContent = ''; // Clear previous log
+        loadingOverlay.classList.add('active');
+        console.log(`Loading Overlay Shown: ${message}`);
+    } else {
+        console.error('Loading overlay elements not found!');
+    }
+};
+
+window.updateLoadingProgress = (processed, total, currentFileMessage = '') => {
+    if (progressBar && progressPercentage && consoleLog) {
+        const progress = Math.round((processed / total) * 100);
+        progressBar.style.width = `${progress}%`;
+        progressPercentage.textContent = `${progress}%`;
+        if (currentFileMessage) {
+            consoleLog.textContent += `Processing: ${currentFileMessage}\n`;
+        }
+        consoleLog.scrollTop = consoleLog.scrollHeight; // Scroll to bottom
+    }
+};
+
+window.updateConsoleLog = (message) => {
+    if (consoleLog) {
+        consoleLog.textContent += `${message}\n`;
+        consoleLog.scrollTop = consoleLog.scrollHeight;
+    }
+};
+
+window.hideLoadingOverlayWithDelay = (delay, finalMessage = 'Operation Complete!') => {
+    if (loadingOverlay && loadingMessageDisplay) {
+        loadingMessageDisplay.textContent = finalMessage;
+        consoleLog.textContent += `\n${finalMessage}\n`;
+        consoleLog.scrollTop = consoleLog.scrollHeight;
+        setTimeout(() => {
+            loadingOverlay.classList.remove('active');
+            console.log('Loading Overlay Hidden.');
+        }, delay);
+    }
+};
+
+
+// --- ZIP Download Functionality with Progress ---
 
 document.addEventListener('DOMContentLoaded', () => {
     initializeGallery(); // Initialize the gallery and populate allAssets array
 
     const downloadAllZipButton = document.getElementById('download-all-zip-button');
 
-    // Get references to the new loading UI elements
+    // Get references to the new loading UI elements (already done by global functions, just ensuring they exist)
     loadingOverlay = document.getElementById('loading-overlay');
     progressBar = document.getElementById('progress-bar');
     progressPercentage = document.getElementById('progress-percentage');
     consoleLog = document.getElementById('console-log');
+    // New: Reference to the h2 in the loading window
+    loadingMessageDisplay = loadingOverlay ? loadingOverlay.querySelector('h2') : null;
 
 
-    if (downloadAllZipButton && loadingOverlay && progressBar && progressPercentage && consoleLog) {
+    if (downloadAllZipButton && loadingOverlay && progressBar && progressPercentage && consoleLog && loadingMessageDisplay) {
         downloadAllZipButton.addEventListener('click', async () => {
-            // Show loading overlay
-            loadingOverlay.classList.add('active');
-            progressBar.style.width = '0%';
-            progressPercentage.textContent = '0%';
-            consoleLog.textContent = ''; // Clear previous log
+            window.showLoadingOverlay('Generating ZIP...');
 
             const zip = new JSZip();
 
@@ -416,28 +490,27 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (isNew && newImageBlob) {
                         // Use the newly created image blob
                         fileBlobToZip = newImageBlob;
-                        consoleLog.textContent += `Including NEW texture: ${filename} (Folder: ${folder})\n`;
+                        window.updateConsoleLog(`Including NEW texture: ${filename} (Folder: ${folder})`);
                     } else if (isModified && modifiedImageBlob) {
                         // Use the modified image blob
                         fileBlobToZip = modifiedImageBlob;
-                        consoleLog.textContent += `Including MODIFIED texture: ${filename} (Folder: ${folder})\n`;
+                        window.updateConsoleLog(`Including MODIFIED texture: ${filename} (Folder: ${folder})`);
                     } else if (originalImageBlob) {
                         // Use the already fetched original image blob
                         fileBlobToZip = originalImageBlob;
-                        consoleLog.textContent += `Including ORIGINAL asset: ${filename} (Folder: ${folder})\n`;
+                        window.updateConsoleLog(`Including ORIGINAL asset (cached): ${filename} (Folder: ${folder})`);
                     } else {
                         // Fetch the original asset if not already fetched
                         const response = await fetch(mediaPath);
                         if (!response.ok) {
                             console.error(`Failed to fetch original ${mediaPath}: ${response.statusText}`);
-                            consoleLog.textContent += `[ERROR] Failed to fetch original: ${filename}\n`;
-                            consoleLog.scrollTop = consoleLog.scrollHeight;
+                            window.updateConsoleLog(`[ERROR] Failed to fetch original: ${filename}`);
                             return null; // Return null for failed fetches
                         }
                         fileBlobToZip = await response.blob();
                         // Store this fetched blob in the asset object for future use
                         asset.originalImageBlob = fileBlobToZip;
-                        consoleLog.textContent += `Fetched & Including ORIGINAL asset: ${filename} (Folder: ${folder})\n`;
+                        window.updateConsoleLog(`Fetched & Including ORIGINAL asset: ${filename} (Folder: ${folder})`);
                     }
 
                     // Construct the full path inside the ZIP file
@@ -445,16 +518,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     zip.file(zipPath, fileBlobToZip);
 
                     filesProcessed++;
-                    const progress = Math.round((filesProcessed / totalFiles) * 100);
-                    progressBar.style.width = `${progress}%`;
-                    progressPercentage.textContent = `${progress}%`;
-                    consoleLog.scrollTop = consoleLog.scrollHeight; // Scroll to bottom
+                    window.updateLoadingProgress(filesProcessed, totalFiles, filename);
 
                     return true; // Indicate success
                 } catch (error) {
                     console.error(`Error processing ${filename} for zip:`, error);
-                    consoleLog.textContent += `[ERROR] Error processing: ${filename} - ${error.message}\n`;
-                    consoleLog.scrollTop = consoleLog.scrollHeight;
+                    window.updateConsoleLog(`[ERROR] Error processing: ${filename} - ${error.message}`);
                     return null; // Return null for errors
                 }
             });
@@ -462,10 +531,9 @@ document.addEventListener('DOMContentLoaded', () => {
             await Promise.all(fetchPromises); // Wait for all files to be processed
 
             // Ensure progress is 100% after all files are attempted
-            progressBar.style.width = '100%';
-            progressPercentage.textContent = '100%';
-            consoleLog.textContent += `\nAll files processed. Generating ZIP...\n`;
-            consoleLog.scrollTop = consoleLog.scrollHeight;
+            window.updateLoadingProgress(totalFiles, totalFiles, 'All files processed.');
+            window.updateConsoleLog(`\nAll files processed. Generating ZIP...\n`);
+
 
             try {
                 const content = await zip.generateAsync({
@@ -480,28 +548,23 @@ document.addEventListener('DOMContentLoaded', () => {
                     progressBar.style.width = `${generationProgress}%`;
                     progressPercentage.textContent = `${generationProgress}%`;
                     if (metadata.currentFile) {
-                        consoleLog.textContent += `Compressing: ${metadata.currentFile}\n`;
-                        consoleLog.scrollTop = consoleLog.scrollHeight;
+                        window.updateConsoleLog(`Compressing: ${metadata.currentFile}`);
                     }
                 });
 
                 saveAs(content, "mod-assets.zip");
                 downloadAllZipButton.textContent = 'Download Complete!';
-                consoleLog.textContent += `\nZIP file "mod-assets.zip" downloaded successfully!\n`;
-                consoleLog.scrollTop = consoleLog.scrollHeight;
+                window.hideLoadingOverlayWithDelay(3000, 'ZIP file "mod-assets.zip" downloaded successfully!');
             } catch (error) {
                 console.error("Error generating or saving zip:", error);
                 downloadAllZipButton.textContent = 'Download Failed!';
-                consoleLog.textContent += `\n[FATAL ERROR] Failed to generate or save ZIP: ${error.message}\n`;
-                consoleLog.scrollTop = consoleLog.scrollHeight;
-                // Removed alert, logging to console instead.
+                window.hideLoadingOverlayWithDelay(3000, `Download Failed! Error: ${error.message}`);
             } finally {
                 // Keep overlay visible for a bit to show final message, then hide
                 setTimeout(() => {
-                    loadingOverlay.classList.remove('active');
                     downloadAllZipButton.textContent = 'Download All as ZIP';
                     downloadAllZipButton.disabled = false;
-                }, 3000); // Hide after 3 seconds
+                }, 3000); // Only reset button after overlay hides
             }
         });
     } else {
@@ -511,14 +574,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!progressBar) console.error('progress-bar not found!');
         if (!progressPercentage) console.error('progress-percentage not found!');
         if (!consoleLog) console.error('console-log not found!');
+        if (!loadingMessageDisplay) console.error('h2 for loading message not found!');
     }
 });
-
-// Function to play audio (remains unchanged)
-function playAudio(audioPath) {
-    const audio = new Audio(audioPath);
-    audio.play().catch(error => {
-        console.error('Error playing audio:', error);
-        console.error('Failed to play audio file. Please check if the file exists and is accessible.');
-    });
-}

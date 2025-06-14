@@ -82,6 +82,12 @@ document.addEventListener('DOMContentLoaded', () => {
  * @param {Object} asset The asset object from the allAssets array.
  */
 window.openAssetEditorModal = async (asset) => {
+    // New defensive check: Do not open if multi-select mode is active
+    if (typeof window.isMultiSelectModeActive === 'function' && window.isMultiSelectModeActive()) {
+        console.log('Single asset editor cannot be opened while multi-select mode is active.');
+        return;
+    }
+
     if (!assetEditorModal || !modalAssetName || !textureEditorCanvas || !textureEditorCtx) {
         console.error('Modal elements not fully loaded.');
         return;
