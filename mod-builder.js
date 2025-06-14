@@ -312,6 +312,7 @@ async function fetchAssetsForModBuilder() {
         }
 
         console.log("Mod Builder fetched assets successfully for internal use.");
+        console.log("allAssetsForModding contents:", allAssetsForModding); // ADDED FOR DEBUGGING
         modGroupsConfig = modGroups; // Assign the internally defined modGroups to config
     } catch (error) {
         console.error('Error fetching assets for Mod Builder:', error);
@@ -406,11 +407,18 @@ async function showCustomizationPanel(group) {
     if (textureGroupList) textureGroupList.style.display = 'none';
     if (customizationPanel) customizationPanel.style.display = 'flex'; // Use flex for panel layout
 
-    // Filter currentGroupAssets based on the selected group's files
+    console.log("Showing customization panel for group:", group); // ADDED FOR DEBUGGING
+
+    // Filter currentGroupAssets based on the selected group's folder AND file list
+    // This is the crucial filter to ensure only relevant images for the clicked group are shown.
     currentGroupAssets = allAssetsForModding.filter(asset =>
-        group.files.includes(asset.filename) && // Check if filename is in the group's files list
+        asset.folder === group.folder && // <--- CRITICAL FIX: Ensure asset's logical folder matches group's folder
+        group.files.includes(asset.filename) &&
         asset.type !== 'mp3' // Only show image assets for customization
     );
+
+    console.log("Filtered currentGroupAssets:", currentGroupAssets); // ADDED FOR DEBUGGING
+
 
     // Toggle visibility of customization options based on group config
     if (document.getElementById('color-customization-option')) document.getElementById('color-customization-option').style.display = group.canAdjustColor ? 'block' : 'none';
@@ -440,7 +448,7 @@ async function showCustomizationPanel(group) {
         }
         if (drawingResXInput) drawingResXInput.value = 256;
         if (drawingResYInput) drawingResYInput.value = 256;
-        return;
+        return; // Exit here as no modifiable assets for this group
     }
 
     // Load first image as the default for drawing canvas and initial UI state
@@ -456,28 +464,27 @@ async function showCustomizationPanel(group) {
         previewItem.className = 'preview-item';
         previewItem.dataset.assetId = getAssetId(asset); // For easy selection tracking
 
-        if (asset.type !== 'mp3') { // Assuming only image assets are modifiable here
-            const imgPath = getAssetPath(asset.filename); // Use getAssetPath for correct loading!
-            const img = new Image();
-            img.src = imgPath;
-            img.onload = () => {
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                const maxDim = 100; // Max dimension for preview thumbnail
-                const ratio = Math.min(maxDim / img.width, maxDim / img.height);
-                canvas.width = img.width * ratio;
-                canvas.height = img.height * ratio;
-                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                previewItem.appendChild(canvas);
-            };
-            img.onerror = () => {
-                console.error(`Failed to load preview image: ${imgPath}`);
-                const placeholder = document.createElement('div');
-                placeholder.textContent = `Error loading ${asset.filename}`;
-                placeholder.style.color = 'red';
-                previewItem.appendChild(placeholder);
-            };
-        }
+        // No need for type check, already filtered currentGroupAssets to exclude mp3
+        const imgPath = getAssetPath(asset.filename); // Use getAssetPath for correct loading!
+        const img = new Image();
+        img.src = imgPath;
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const maxDim = 100; // Max dimension for preview thumbnail
+            const ratio = Math.min(maxDim / img.width, maxDim / img.height);
+            canvas.width = img.width * ratio;
+            canvas.height = img.height * ratio;
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            previewItem.appendChild(canvas);
+        };
+        img.onerror = () => {
+            console.error(`Failed to load preview image: ${imgPath}`);
+            const placeholder = document.createElement('div');
+            placeholder.textContent = `Error loading ${asset.filename}`;
+            placeholder.style.color = 'red';
+            previewItem.appendChild(placeholder);
+        };
 
         const filenameP = document.createElement('p');
         filenameP.textContent = asset.filename;
@@ -1101,7 +1108,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     drawingResYInput = document.getElementById('drawing-res-y');
     mirrorDrawingCheckbox = document.getElementById('mirror-drawing-checkbox');
 
-
+ 
     // Fetch assets for mod builder
     await fetchAssetsForModBuilder(); // This populates allAssetsForModding and modGroupsConfig
 
