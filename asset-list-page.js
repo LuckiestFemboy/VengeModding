@@ -33,7 +33,8 @@ function createAndAppendCard(folder, filename, type) {
         modifiedImageBlob: null, // Will store Blob of modified image
         newImageBlob: null,      // Will store Blob of newly created image
         isModified: false,       // Flag if modifiedImageBlob exists
-        isNew: false             // Flag if newImageBlob exists
+        isNew: false,            // Flag if newImageBlob exists
+        cardElement: card        // Store a reference to the card DOM element
     };
     allAssets.push(asset);
 
@@ -164,9 +165,9 @@ function createAndAppendCard(folder, filename, type) {
         editAssetButton.textContent = 'Edit Asset';
         editAssetButton.onclick = () => {
             // Call the modal function from asset-editor-modal.js
-            // Pass the entire asset object reference for in-memory modification
+            // Pass the entire asset object reference and the card element for in-memory modification and visual update
             if (typeof window.openAssetEditorModal === 'function') {
-                window.openAssetEditorModal(asset);
+                window.openAssetEditorModal(asset, card);
             } else {
                 console.error('openAssetEditorModal function not found. Is asset-editor-modal.js loaded correctly?');
             }
@@ -211,7 +212,27 @@ function createAndAppendCard(folder, filename, type) {
     if (grid) {
         grid.appendChild(card);
     }
+
+    // Apply initial visual state based on modification flags (if any were somehow pre-set)
+    updateCardVisualState(asset);
 }
+
+/**
+ * Updates the visual state of a card based on its associated asset's modification status.
+ * This function is called from asset-editor-modal.js after changes are saved.
+ * @param {Object} asset The asset object whose visual state needs to be updated.
+ */
+window.updateCardVisualState = (asset) => {
+    const cardElement = asset.cardElement;
+    if (cardElement) {
+        if (asset.isModified || asset.isNew) {
+            cardElement.classList.add('edited-card');
+        } else {
+            cardElement.classList.remove('edited-card');
+        }
+    }
+};
+
 
 // Search Functionality (updated to search the new mp3-filename-display class)
 function filterCards(searchTerm) {
