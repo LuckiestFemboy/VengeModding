@@ -1,6 +1,7 @@
 // Global variables for Mod Builder
 let allAssetsForModding = []; // This will be populated by mod-builder itself
 let modGroupsConfig = []; // This will be defined internally
+let mirrorDrawing = false; // NEW: Global variable to control drawing mirroring
 
 // Mod Builder DOM Elements
 let modBuilderOverlay;
@@ -24,6 +25,7 @@ let applyDrawingButton;
 let clearDrawingButton;
 let drawingResXInput;
 let drawingResYInput;
+let mirrorDrawingCheckbox; // NEW: Checkbox for mirroring
 
 // Mod Builder State
 let currentGroupAssets = []; // Assets belonging to the currently selected group
@@ -39,51 +41,14 @@ function getAssetId(asset) {
     return `${asset.folder}/${asset.filename}`;
 }
 
+// NEW: Base URL for assets
+const BASE_URL = '/'; // IMPORTANT: Set this to the root path where your mod-assets folder and list.txt files are located.
+                      // E.g., if your website is example.com and mod-assets is at example.com/mod-assets, use '/'.
+                      // If your app is at example.com/my-app/ and mod-assets is at example.com/my-app/mod-assets, use '/my-app/'.
+
+
 // --- Mod Builder Configuration (MOVED HERE from asset-list-page.js) ---
 const modGroups = [
-    {
-        name: "Building Textures",
-        folder: "Building", // Keep existing, assuming 'Building' is the actual folder name
-        modifiable: true,
-        files: ["building_wall.png", "roof_texture.jpg"],
-        canAdjustColor: true,
-        canAdjustSaturation: true,
-        canDraw: true
-    },
-    {
-        name: "Character Skins",
-        folder: "Characters", // Keep existing
-        modifiable: true,
-        files: ["player_skin.png", "enemy_skin.png"],
-        canAdjustColor: true,
-        canAdjustSaturation: true,
-        canDraw: false
-    },
-    {
-        name: "UI Elements",
-        folder: "UI", // Keep existing
-        modifiable: true,
-        files: ["button_bg.png", "icon_border.png"],
-        canAdjustColor: true,
-        canAdjustSaturation: false,
-        canDraw: true
-    },
-    {
-        name: "Weapon Textures",
-        folder: "Weapons", // Keep existing
-        modifiable: true,
-        files: ["sword_texture.png", "gun_texture.jpg"],
-        canAdjustColor: true,
-        canAdjustSaturation: true,
-        canDraw: true
-    },
-    {
-        name: "Sound Effects",
-        folder: "Sounds", // Keep existing
-        modifiable: false,
-        files: ["explosion.mp3", "laser.mp3"]
-    },
-    // --- New Asset Categories ---
     {
         name: "Walls Sierra",
         folder: "WallsSierra",
@@ -272,7 +237,7 @@ const modGroups = [
             "FattySky00_Sunny_06.png", "FattySky00_Sunny_02.png", "FattySkybox03_Sunny_05.png", "FattySkybox03_Sunny_02.png",
             "FattySky00_Sunny_04.png", "FattySky00_Sunny_05.png", "FattySkybox03_Sunny_06.png", "FattySky00_Sunny_01.png",
             "FattySky00_Sunny_03.png", "FattySkybox03_Sunny_03.png", "FattySkybox03_Sunny_01.png", "FattySkybox03_Sunny_04.png",
-            "FattySky00_Sunny_01.png" // Duplicate removed here if it was accidental.
+            "FattySky00_Sunny_01.png"
         ],
         canAdjustColor: true,
         canAdjustSaturation: true,
@@ -289,9 +254,6 @@ const modGroups = [
     }
 ];
 
-
-
-
 // Function to fetch assets specifically for Mod Builder (since asset-list-page.js won't pass them)
 async function fetchAssetsForModBuilder() {
     try {
@@ -299,7 +261,7 @@ async function fetchAssetsForModBuilder() {
         allAssetsForModding.length = 0;
 
         // Fetch PNG files
-        const pngResponse = await fetch('pnglist.txt');
+        const pngResponse = await fetch(`${BASE_URL}pnglist.txt`); // PATH FIX
         const pngText = pngResponse.ok ? await pngResponse.text() : '';
         const pngLines = pngText.trim().split('\n');
         for (const line of pngLines) {
@@ -310,7 +272,7 @@ async function fetchAssetsForModBuilder() {
         }
 
         // Fetch JPG files
-        const jpgResponse = await fetch('jpgurl.txt');
+        const jpgResponse = await fetch(`${BASE_URL}jpgurl.txt`); // PATH FIX
         const jpgText = jpgResponse.ok ? await jpgResponse.text() : '';
         const jpgLines = jpgText.trim().split('\n');
         for (const line of jpgLines) {
@@ -321,7 +283,7 @@ async function fetchAssetsForModBuilder() {
         }
 
         // Fetch MP3 files
-        const mp3Response = await fetch('mp3list.txt');
+        const mp3Response = await fetch(`${BASE_URL}mp3list.txt`); // PATH FIX
         const mp3Text = mp3Response.ok ? await mp3Response.text() : '';
         const mp3Lines = mp3Text.trim().split('\n');
         for (const line of mp3Lines) {
@@ -478,7 +440,7 @@ async function showCustomizationPanel(group) {
         previewItem.dataset.assetId = getAssetId(asset); // For easy selection tracking
 
         if (asset.type !== 'mp3') { // Assuming only image assets are modifiable here
-            const imgPath = `./mod-assets/${asset.type.toLowerCase()}/${asset.folder}/${asset.filename}`;
+            const imgPath = `${BASE_URL}mod-assets/${asset.type.toLowerCase()}/${asset.folder}/${asset.filename}`; // PATH FIX
             const img = new Image();
             img.src = imgPath;
             img.onload = () => {
@@ -551,7 +513,7 @@ async function loadImageForDrawing(asset) {
 
     return new Promise((resolve) => {
         const img = new Image();
-        img.src = `./mod-assets/${asset.type.toLowerCase()}/${asset.folder}/${asset.filename}`;
+        img.src = `${BASE_URL}mod-assets/${asset.type.toLowerCase()}/${asset.folder}/${asset.filename}`; // PATH FIX
         img.onload = () => {
             // Prioritize stored resolution if a drawing modification exists, otherwise use image native or default
             let targetWidth = img.width;
@@ -648,13 +610,13 @@ async function applyExistingModificationsToCanvas(asset) {
             backgroundColorPicker.value = mod.backgroundColor;
             // If a drawing is present, need to re-apply background then drawing
             if (mod.drawing && drawingCanvas && currentDrawingContext) {
-                 const img = new Image();
-                 img.src = mod.drawing;
-                 img.onload = () => {
-                     currentDrawingContext.fillStyle = backgroundColorPicker.value;
-                     currentDrawingContext.fillRect(0, 0, drawingCanvas.width, drawingCanvas.height);
-                     currentDrawingContext.drawImage(img, 0, 0, drawingCanvas.width, drawingCanvas.height);
-                 };
+                   const img = new Image();
+                   img.src = mod.drawing;
+                   img.onload = () => {
+                       currentDrawingContext.fillStyle = backgroundColorPicker.value;
+                       currentDrawingContext.fillRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+                       currentDrawingContext.drawImage(img, 0, 0, drawingCanvas.width, drawingCanvas.height);
+                   };
             } else if (drawingCanvas && currentDrawingContext) {
                 // If no drawing, just update background without redrawing anything on top
                 currentDrawingContext.fillStyle = backgroundColorPicker.value;
@@ -750,7 +712,6 @@ function clearSaturationModification() {
     }
 }
 
-
 // Drawing functionality
 let isDrawing = false;
 let lastX = 0;
@@ -797,11 +758,29 @@ function draw(e) {
     currentDrawingContext.lineCap = 'round';
     currentDrawingContext.lineJoin = 'round';
 
+    // Get current coordinates
+    const currentX = e.offsetX;
+    const currentY = e.offsetY;
+
+    // Draw original stroke
     currentDrawingContext.beginPath();
     currentDrawingContext.moveTo(lastX, lastY);
-    currentDrawingContext.lineTo(e.offsetX, e.offsetY);
+    currentDrawingContext.lineTo(currentX, currentY);
     currentDrawingContext.stroke();
-    [lastX, lastY] = [e.offsetX, e.offsetY];
+
+    // NEW: Draw mirrored stroke if mirrorDrawing is enabled
+    if (mirrorDrawing) {
+        const mirroredLastX = drawingCanvas.width - lastX;
+        const mirroredCurrentX = drawingCanvas.width - currentX;
+
+        currentDrawingContext.beginPath();
+        currentDrawingContext.moveTo(mirroredLastX, lastY);
+        currentDrawingContext.lineTo(mirroredCurrentX, currentY);
+        currentDrawingContext.stroke();
+    }
+
+    // Update last coordinates for next stroke
+    [lastX, lastY] = [currentX, currentY];
 }
 
 function clearDrawingCanvas() {
@@ -961,7 +940,7 @@ async function getModifiedImageData(asset, color, saturation) {
     return new Promise(async (resolve, reject) => {
         const img = new Image();
         img.crossOrigin = "Anonymous"; // Required for tainted canvas with some images
-        img.src = `./mod-assets/${asset.type.toLowerCase()}/${asset.folder}/${asset.filename}`;
+        img.src = `${BASE_URL}mod-assets/${asset.type.toLowerCase()}/${asset.folder}/${asset.filename}`; // PATH FIX
 
         img.onload = () => {
             const canvas = document.createElement('canvas');
@@ -1049,7 +1028,7 @@ async function generateModPackZip(modifiedAssetIds) {
                 // Should not happen if filtered by modifiedAssets.keys(), but as a fallback
                 // If for some reason a mod exists but no concrete change, use original
                 console.warn(`No specific drawing/color/saturation mod found for ${assetId}. Using original.`);
-                const response = await fetch(`./mod-assets/${originalAsset.type.toLowerCase()}/${originalAsset.folder}/${originalAsset.filename}`);
+                const response = await fetch(`${BASE_URL}mod-assets/${originalAsset.type.toLowerCase()}/${originalAsset.folder}/${originalAsset.filename}`); // PATH FIX
                 fileBlob = await response.blob();
             }
 
@@ -1103,6 +1082,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     clearDrawingButton = document.getElementById('clear-drawing-button');
     drawingResXInput = document.getElementById('drawing-res-x');
     drawingResYInput = document.getElementById('drawing-res-y');
+    mirrorDrawingCheckbox = document.getElementById('mirror-drawing-checkbox'); // NEW: Get checkbox element
 
 
     // Fetch assets for mod builder
@@ -1124,6 +1104,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Resolution input event listeners with validation
         if (drawingResXInput) drawingResXInput.addEventListener('input', (e) => validateResolutionInput(e.target));
         if (drawingResYInput) drawingResYInput.addEventListener('input', (e) => validateResolutionInput(e.target));
+
+        // NEW: Event listener for mirroring checkbox
+        if (mirrorDrawingCheckbox) {
+            mirrorDrawingCheckbox.addEventListener('change', (e) => {
+                mirrorDrawing = e.target.checked;
+                console.log(`Mirror drawing set to: ${mirrorDrawing}`);
+            });
+        }
+
 
         // Event listener for the "Create Mod Pack" button on the groups page
         if (createModPackButtonGroupsPage) {
