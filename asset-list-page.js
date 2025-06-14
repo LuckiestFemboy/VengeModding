@@ -2,6 +2,7 @@
 let searchInput;
 let allCards;
 // Store a global list of all assets fetched to be used for zipping
+// Each asset object will now also store its Blob data and modification status.
 const allAssets = [];
 
 // DOM elements for loading/progress
@@ -19,15 +20,26 @@ function createAndAppendCard(folder, filename, type) {
     card.style.visibility = 'visible';
     card.style.opacity = '1';
 
-    let mediaPath; // Declare mediaPath here, as it's used by both branches
+    let mediaPath = `./mod-assets/${type.toLowerCase()}/${filename}`;
 
-    // Add asset to the global list for zipping
-    allAssets.push({ folder, filename, type });
+    // Create asset object and add to the global list for zipping
+    // Initialize modification flags and blob storage
+    const asset = {
+        folder,
+        filename,
+        type,
+        mediaPath,
+        originalImageBlob: null, // Will store the fetched Blob of the original image
+        modifiedImageBlob: null, // Will store Blob of modified image
+        newImageBlob: null,      // Will store Blob of newly created image
+        isModified: false,       // Flag if modifiedImageBlob exists
+        isNew: false             // Flag if newImageBlob exists
+    };
+    allAssets.push(asset);
 
 
     if (type.toLowerCase() === 'mp3') {
         card.className += ' mp3'; // Add mp3 class for specific styling
-        mediaPath = `./mod-assets/${type.toLowerCase()}/${filename}`;
 
         // Create elements for the consolidated MP3 card layout
         const playIcon = document.createElement('i');
@@ -42,7 +54,14 @@ function createAndAppendCard(folder, filename, type) {
         folderNumberButton.className = 'folder-number-button';
         folderNumberButton.textContent = `Folder: ${folder}`;
         folderNumberButton.onclick = () => {
-             navigator.clipboard.writeText(folder);
+             // Use document.execCommand('copy') for clipboard operations in iframe context
+             const tempInput = document.createElement('textarea');
+             tempInput.value = folder;
+             document.body.appendChild(tempInput);
+             tempInput.select();
+             document.execCommand('copy');
+             document.body.removeChild(tempInput);
+
              folderNumberButton.textContent = 'Copied!';
              setTimeout(() => {
                  folderNumberButton.textContent = `Folder: ${folder}`;
@@ -54,7 +73,14 @@ function createAndAppendCard(folder, filename, type) {
         copyFolderButton.className = 'copy-folder-button';
         copyFolderButton.textContent = 'Copy Folder';
         copyFolderButton.onclick = () => {
-            navigator.clipboard.writeText(folder);
+            // Use document.execCommand('copy') for clipboard operations in iframe context
+            const tempInput = document.createElement('textarea');
+            tempInput.value = folder;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+
             copyFolderButton.textContent = 'Copied!';
             setTimeout(() => { copyFolderButton.textContent = 'Copy Folder'; }, 2000);
         };
@@ -81,32 +107,29 @@ function createAndAppendCard(folder, filename, type) {
         card.appendChild(folderNumberButton);
         card.appendChild(mp3ButtonsWrapper);
 
-    } else { // Logic for PNG/JPG cards (remains largely unchanged from before)
-        mediaPath = `./mod-assets/${type.toLowerCase()}/${filename}`;
-
+    } else { // Logic for PNG/JPG cards
         // Create media container
         const mediaContainer = document.createElement('div');
         mediaContainer.className = 'media-container';
 
         // Create appropriate media element/placeholder based on type
-        if (type.toLowerCase() === 'png' || type.toLowerCase() === 'jpg') {
-            const mediaElement = document.createElement('img');
-            mediaElement.className = 'media-image';
-            mediaElement.src = mediaPath;
+        const mediaElement = document.createElement('img');
+        mediaElement.className = 'media-image';
+        mediaElement.src = mediaPath;
 
-            // Add error handling for images
-            mediaElement.onerror = () => {
-                console.error(`Failed to load media: ${mediaPath}`);
-                const placeholder = document.createElement('div');
-                placeholder.className = 'media-placeholder';
-                placeholder.innerHTML = `
-                    <div class="media-icon">❓</div>
-                    <div class="media-filename">${filename}</div>
-                `;
-                mediaContainer.appendChild(placeholder);
-            };
-            mediaContainer.appendChild(mediaElement);
-        }
+        // Add error handling for images
+        mediaElement.onerror = () => {
+            console.error(`Failed to load media: ${mediaPath}`);
+            const placeholder = document.createElement('div');
+            placeholder.className = 'media-placeholder';
+            placeholder.innerHTML = `
+                <div class="media-icon">❓</div>
+                <div class="media-filename">${filename}</div>
+            `;
+            mediaContainer.innerHTML = ''; // Clear original image
+            mediaContainer.appendChild(placeholder);
+        };
+        mediaContainer.appendChild(mediaElement);
         card.appendChild(mediaContainer); // Append mediaContainer for non-MP3s
 
         // Create info container
@@ -117,13 +140,13 @@ function createAndAppendCard(folder, filename, type) {
         const fileInfoContainer = document.createElement('div');
         fileInfoContainer.className = 'file-info';
 
-        // Filename Element Creation for PNG/JPGs (only for non-MP3s)
+        // Filename Element Creation for PNG/JPGs
         const filenameElement = document.createElement('div');
         filenameElement.className = 'texture-filename';
         filenameElement.textContent = filename;
         fileInfoContainer.appendChild(filenameElement);
 
-        // Folder/artist/album element (only for non-MP3s)
+        // Folder/artist/album element
         const folderOrArtistAlbumElement = document.createElement('div');
         folderOrArtistAlbumElement.className = 'texture-name';
         folderOrArtistAlbumElement.textContent = folder;
@@ -135,11 +158,34 @@ function createAndAppendCard(folder, filename, type) {
         const actionButtonsContainer = document.createElement('div');
         actionButtonsContainer.className = 'buttons-container';
 
+        // New "Edit Asset" button
+        const editAssetButton = document.createElement('button');
+        editAssetButton.className = 'edit-asset-button';
+        editAssetButton.textContent = 'Edit Asset';
+        editAssetButton.onclick = () => {
+            // Call the modal function from asset-editor-modal.js
+            // Pass the entire asset object reference for in-memory modification
+            if (typeof window.openAssetEditorModal === 'function') {
+                window.openAssetEditorModal(asset);
+            } else {
+                console.error('openAssetEditorModal function not found. Is asset-editor-modal.js loaded correctly?');
+            }
+        };
+        actionButtonsContainer.appendChild(editAssetButton);
+
+
         const copyButton = document.createElement('button');
         copyButton.className = 'copy-button'; // Specific class for non-MP3 copy button
         copyButton.textContent = 'Copy Folder';
         copyButton.onclick = () => {
-            navigator.clipboard.writeText(folder);
+            // Use document.execCommand('copy') for clipboard operations in iframe context
+            const tempInput = document.createElement('textarea');
+            tempInput.value = folder;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+
             copyButton.textContent = 'Copied!';
             setTimeout(() => { copyButton.textContent = 'Copy Folder'; }, 2000);
         };
@@ -302,23 +348,24 @@ function playAudio(audioPath) {
     const audio = new Audio(audioPath);
     audio.play().catch(error => {
         console.error('Error playing audio:', error);
-        alert('Failed to play audio file. Please check if the file exists and is accessible.');
+        console.error('Failed to play audio file. Please check if the file exists and is accessible.');
+        // Removed alert, logging to console instead.
     });
 }
 
 // --- New ZIP Download Functionality with Progress ---
 
-document.addEventListener('DOMContentLoaded', async () => {
-    // Initialize gallery first
-    await initializeGallery();
+document.addEventListener('DOMContentLoaded', () => {
+    initializeGallery(); // Initialize the gallery and populate allAssets array
 
-    // Get references to the new loading UI elements (these need to be global for mod-builder.js to access)
+    const downloadAllZipButton = document.getElementById('download-all-zip-button');
+
+    // Get references to the new loading UI elements
     loadingOverlay = document.getElementById('loading-overlay');
     progressBar = document.getElementById('progress-bar');
     progressPercentage = document.getElementById('progress-percentage');
     consoleLog = document.getElementById('console-log');
 
-    const downloadAllZipButton = document.getElementById('download-all-zip-button');
 
     if (downloadAllZipButton && loadingOverlay && progressBar && progressPercentage && consoleLog) {
         downloadAllZipButton.addEventListener('click', async () => {
@@ -329,7 +376,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             consoleLog.textContent = ''; // Clear previous log
 
             const zip = new JSZip();
-            const assetsFolder = zip.folder("assets"); // Create the top-level 'assets' folder
+
+            // Define the base path within the zip as per the game's requirements
+            const baseZipPath = "Venge Client/Resource Swapper/files/assets/";
 
             downloadAllZipButton.textContent = 'Preparing ZIP...';
             downloadAllZipButton.disabled = true;
@@ -338,34 +387,53 @@ document.addEventListener('DOMContentLoaded', async () => {
             const totalFiles = allAssets.length;
 
             const fetchPromises = allAssets.map(async (asset) => {
-                const { folder, filename, type } = asset;
-                const mediaPath = `./mod-assets/${type.toLowerCase()}/${filename}`;
-                const zipPath = `assets/${folder}/1/${filename}`; // Desired structure
+                const { folder, filename, type, mediaPath, originalImageBlob, modifiedImageBlob, newImageBlob, isModified, isNew } = asset;
+                let fileBlobToZip = null;
+                let fileNameToZip = filename; // Default to original filename
 
                 try {
-                    const response = await fetch(mediaPath);
-                    if (!response.ok) {
-                        console.error(`Failed to fetch ${mediaPath}: ${response.statusText}`);
-                        // Log error to console output as well
-                        consoleLog.textContent += `[ERROR] Failed to add: ${filename}\n`;
-                        consoleLog.scrollTop = consoleLog.scrollHeight; // Scroll to bottom
-                        return null; // Return null for failed fetches
+                    if (isNew && newImageBlob) {
+                        // Use the newly created image blob
+                        fileBlobToZip = newImageBlob;
+                        consoleLog.textContent += `Including NEW texture: ${filename} (Folder: ${folder})\n`;
+                    } else if (isModified && modifiedImageBlob) {
+                        // Use the modified image blob
+                        fileBlobToZip = modifiedImageBlob;
+                        consoleLog.textContent += `Including MODIFIED texture: ${filename} (Folder: ${folder})\n`;
+                    } else if (originalImageBlob) {
+                        // Use the already fetched original image blob
+                        fileBlobToZip = originalImageBlob;
+                        consoleLog.textContent += `Including ORIGINAL asset: ${filename} (Folder: ${folder})\n`;
+                    } else {
+                        // Fetch the original asset if not already fetched
+                        const response = await fetch(mediaPath);
+                        if (!response.ok) {
+                            console.error(`Failed to fetch original ${mediaPath}: ${response.statusText}`);
+                            consoleLog.textContent += `[ERROR] Failed to fetch original: ${filename}\n`;
+                            consoleLog.scrollTop = consoleLog.scrollHeight;
+                            return null; // Return null for failed fetches
+                        }
+                        fileBlobToZip = await response.blob();
+                        // Store this fetched blob in the asset object for future use
+                        asset.originalImageBlob = fileBlobToZip;
+                        consoleLog.textContent += `Fetched & Including ORIGINAL asset: ${filename} (Folder: ${folder})\n`;
                     }
-                    const blob = await response.blob();
-                    assetsFolder.file(zipPath, blob);
+
+                    // Construct the full path inside the ZIP file
+                    const zipPath = `${baseZipPath}${folder}/1/${fileNameToZip}`;
+                    zip.file(zipPath, fileBlobToZip);
 
                     filesProcessed++;
                     const progress = Math.round((filesProcessed / totalFiles) * 100);
                     progressBar.style.width = `${progress}%`;
                     progressPercentage.textContent = `${progress}%`;
-                    consoleLog.textContent += `Added: ${filename}\n`;
                     consoleLog.scrollTop = consoleLog.scrollHeight; // Scroll to bottom
 
                     return true; // Indicate success
                 } catch (error) {
-                    console.error(`Error adding ${mediaPath} to zip:`, error);
-                    consoleLog.textContent += `[ERROR] Error adding: ${filename} - ${error.message}\n`;
-                    consoleLog.scrollTop = consoleLog.scrollHeight; // Scroll to bottom
+                    console.error(`Error processing ${filename} for zip:`, error);
+                    consoleLog.textContent += `[ERROR] Error processing: ${filename} - ${error.message}\n`;
+                    consoleLog.scrollTop = consoleLog.scrollHeight;
                     return null; // Return null for errors
                 }
             });
@@ -398,14 +466,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 saveAs(content, "mod-assets.zip");
                 downloadAllZipButton.textContent = 'Download Complete!';
-                consoleLog.textContent += `\nZIP file "mod-assets.zip" downloaded!\n`;
+                consoleLog.textContent += `\nZIP file "mod-assets.zip" downloaded successfully!\n`;
                 consoleLog.scrollTop = consoleLog.scrollHeight;
             } catch (error) {
                 console.error("Error generating or saving zip:", error);
                 downloadAllZipButton.textContent = 'Download Failed!';
                 consoleLog.textContent += `\n[FATAL ERROR] Failed to generate or save ZIP: ${error.message}\n`;
                 consoleLog.scrollTop = consoleLog.scrollHeight;
-                alert('Failed to generate or save the ZIP file. Please check console for errors.');
+                // Removed alert, logging to console instead.
             } finally {
                 // Keep overlay visible for a bit to show final message, then hide
                 setTimeout(() => {
@@ -417,7 +485,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     } else {
         console.error('One or more required DOM elements for ZIP functionality not found!');
-        // Log to console if any elements are missing
         if (!downloadAllZipButton) console.error('download-all-zip-button not found!');
         if (!loadingOverlay) console.error('loading-overlay not found!');
         if (!progressBar) console.error('progress-bar not found!');
@@ -425,3 +492,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!consoleLog) console.error('console-log not found!');
     }
 });
+
+// Function to play audio (remains unchanged)
+function playAudio(audioPath) {
+    const audio = new Audio(audioPath);
+    audio.play().catch(error => {
+        console.error('Error playing audio:', error);
+        console.error('Failed to play audio file. Please check if the file exists and is accessible.');
+    });
+}

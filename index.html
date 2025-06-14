@@ -3,14 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Modding Repository</title>
-    <!-- CSS Files -->
+    <title>Venge - Texture Gallery</title>
     <link rel="stylesheet" href="asset-list-page.css">
-    <link rel="stylesheet" href="mod-builder.css">
-    <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- Inter Font (Google Fonts) -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- New: Link to the modal's specific CSS file -->
+    <link rel="stylesheet" href="asset-editor-modal.css">
 </head>
 <body>
     <header>
@@ -25,8 +22,7 @@
 
     <main class="container" style="visibility: visible; opacity: 1;">
         <div id="texture-grid" style="visibility: visible; opacity: 1;">
-            <!-- Texture cards will be loaded here by asset-list-page.js -->
-        </div>
+            </div>
     </main>
 
     <!-- Loading Overlay for ZIP Generation -->
@@ -44,68 +40,56 @@
         </div>
     </div>
 
-    <!-- Mod Builder Overlay -->
-    <div id="mod-builder-overlay" class="mod-builder-overlay">
-        <div class="mod-builder-window">
-            <button class="mod-builder-close-button" id="mod-builder-close-button"><i class="fas fa-times"></i></button>
-            <h2>Mod Builder</h2>
+    <!-- New: Asset Editor Modal -->
+    <div id="asset-editor-modal" class="asset-editor-modal-overlay">
+        <div class="asset-editor-modal-content">
+            <span class="close-button" id="close-editor-modal">&times;</span>
+            <h2 id="modal-asset-name"></h2>
 
-            <button id="create-mod-pack-button-groups-page" class="mod-action-button">Create Mod Pack</button>
-
-            <div id="texture-group-list">
-                <!-- Group buttons will be populated here by mod-builder.js -->
+            <div class="modal-tabs">
+                <button class="tab-button active" id="tab-modify">Modify Existing Texture</button>
+                <button class="tab-button" id="tab-create">Create New Texture</button>
             </div>
 
-            <div id="customization-panel">
-                <button class="mod-back-button" id="mod-back-button"><i class="fas fa-arrow-left"></i> Back to Groups</button>
-                <h2 id="customization-panel-title">Customize Group</h2>
-
-                <div class="customization-options-container">
-                    <div class="customization-option" id="color-customization-option">
-                        <h3>Adjust Color</h3>
-                        <input type="color" id="color-picker" value="#ffffff">
-                        <button class="mod-action-button" id="apply-color-button">Apply Color</button>
-                        <button class="mod-action-button clear-mod-button" id="clear-color-button">Clear Color</button>
-                    </div>
-
-                    <div class="customization-option" id="saturation-customization-option">
-                        <h3>Adjust Saturation</h3>
-                        <input type="range" id="saturation-slider" min="0" max="200" value="100">
-                        <span id="saturation-value">100%</span>
-                        <button class="mod-action-button" id="apply-saturation-button">Apply Saturation</button>
-                        <button class="mod-action-button clear-mod-button" id="clear-saturation-button">Clear Saturation</button>
-                    </div>
-
-                    <div class="customization-option" id="drawing-customization-option">
-                        <h3>Drawing Tools</h3>
-                        <div class="resolution-inputs">
-                            <label for="drawing-res-x">Resolution:</label>
-                            <input type="number" id="drawing-res-x" class="resolution-input" value="256" min="2" max="2048">
-                            <span>x</span>
-                            <input type="number" id="drawing-res-y" class="resolution-input" value="256" min="2" max="2048">
-                        </div>
-                        <input type="color" id="drawing-color-picker" value="#ffffff">
-                        <input type="color" id="background-color-picker" value="#000000">
-
-                        <!-- NEW: Mirror Drawing Checkbox -->
-                        <label for="mirror-drawing-checkbox">
-                            <input type="checkbox" id="mirror-drawing-checkbox"> Mirror Drawing
-                        </label>
-
-                        <canvas id="drawingCanvas"></canvas>
-                        <div class="pattern-previews">
-                            <!-- Pattern preview canvases will be populated here by JS -->
-                        </div>
-                        <button class="mod-action-button" id="apply-drawing-button">Apply Drawing</button>
-                        <button class="mod-action-button clear-canvas-button" id="clear-drawing-button">Clear Drawing</button>
-                    </div>
+            <div class="tab-content" id="content-modify">
+                <h3>Adjust Saturation</h3>
+                <div class="saturation-control">
+                    <label for="saturation-slider">Saturation:</label>
+                    <input type="range" id="saturation-slider" min="0" max="200" value="100">
+                    <span id="saturation-value">100%</span>
                 </div>
+                <div class="canvas-preview-container">
+                    <canvas id="texture-editor-canvas"></canvas>
+                </div>
+                <button id="save-modified-texture" class="modal-action-button">Save Modified Texture</button>
+            </div>
+
+            <div class="tab-content" id="content-create" style="display:none;">
+                <h3>Create New Texture</h3>
+                <div class="create-texture-inputs">
+                    <div class="input-group">
+                        <label for="new-texture-width">Width:</label>
+                        <input type="number" id="new-texture-width" value="512" min="1" max="4096">
+                    </div>
+                    <div class="input-group">
+                        <label for="new-texture-height">Height:</label>
+                        <input type="number" id="new-texture-height" value="512" min="1" max="4096">
+                    </div>
+                    <div class="input-group">
+                        <label for="new-texture-color">Background Color:</label>
+                        <input type="color" id="new-texture-color" value="#6c5ce7">
+                    </div>
+                    <!-- Removed: new-texture-filename input as per user request -->
+                </div>
+                <button id="save-new-texture" class="modal-action-button">Save New Texture</button>
             </div>
         </div>
     </div>
 
-    <!-- JavaScript Files (Important: Load JSZip and FileSaver.js BEFORE your scripts) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <script src="asset-list-page.js"></script>
-    <script src="mod-builder.js"></script>
+    <!-- New: Link to the modal's specific JavaScript file -->
+    <script src="asset-editor-modal.js"></script>
 </body>
 </html>
