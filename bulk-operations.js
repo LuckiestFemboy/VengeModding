@@ -9,7 +9,6 @@ const selectedAssets = new Set(); // Stores references to asset objects (from al
 let toggleMultiSelectButton;
 let multiSelectActionsContainer;
 let selectedAssetsCountDisplay;
-// Removed: openBulkModifyButton, openBulkCreateButton
 let openBulkEditButton; // NEW: Single button for bulk editing
 
 let bulkOperationsModal;
@@ -33,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!toggleMultiSelectButton) console.error('ERROR: toggle-multi-select-button not found!');
     if (!multiSelectActionsContainer) console.error('ERROR: multi-select-actions container not found!');
     if (!selectedAssetsCountDisplay) console.error('ERROR: selected-assets-count display not found!');
-    if (!openBulkEditButton) console.error('ERROR: open-bulk-edit-button not found!'); // NEW check
+    if (!openBulkEditButton) console.error('ERROR: open-bulk-edit-button not found!');
 
 
     // Get bulk operations modal DOM elements
@@ -50,14 +49,20 @@ document.addEventListener('DOMContentLoaded', () => {
     // Add robust error logging for bulk modal DOM elements
     if (!bulkOperationsModal) console.error('ERROR: bulk-operations-modal not found!');
     if (!closeBulkModalButton) console.error('ERROR: close-bulk-modal button not found!');
-    // ... add more checks for other bulk modal elements if needed
+    if (!bulkSaturationSlider) console.error('ERROR: bulk-saturation-slider not found!');
+    if (!bulkSaturationValueDisplay) console.error('ERROR: bulk-saturation-value not found!');
+    if (!applyBulkSaturationButton) console.error('ERROR: apply-bulk-saturation button not found!');
+    if (!bulkNewTextureWidthInput) console.error('ERROR: bulk-new-texture-width input not found!');
+    if (!bulkNewTextureHeightInput) console.error('ERROR: bulk-new-texture-height input not found!');
+    if (!bulkNewTextureColorInput) console.error('ERROR: bulk-new-texture-color input not found!');
+    if (!saveBulkNewTextureButton) console.error('ERROR: save-bulk-new-texture button not found!');
+
 
     // Add Event Listeners
     if (toggleMultiSelectButton) {
         toggleMultiSelectButton.addEventListener('click', toggleMultiSelectMode);
     }
 
-    // NEW: Listen for click on the single bulk edit button
     if (openBulkEditButton) {
         openBulkEditButton.addEventListener('click', openBulkOperationsModal);
     }
@@ -98,15 +103,21 @@ function toggleMultiSelectMode() {
         toggleMultiSelectButton.textContent = 'Exit Selection';
         // Show bulk action buttons container
         if (multiSelectActionsContainer) {
-            multiSelectActionsContainer.style.display = 'flex';
-            console.log('Multi-select mode ON: multi-select-actions container display set to flex.');
+            console.log('DEBUG (show): multiSelectActionsContainer before style change:', multiSelectActionsContainer.style.display);
+            multiSelectActionsContainer.style.display = 'flex'; // Force to flex
+            console.log('DEBUG (show): multiSelectActionsContainer AFTER style change to flex:', multiSelectActionsContainer.style.display);
+        } else {
+            console.error('DEBUG (show): multiSelectActionsContainer is null!');
         }
     } else {
         toggleMultiSelectButton.textContent = 'Select Assets';
         // Hide bulk action buttons container
         if (multiSelectActionsContainer) {
-            multiSelectActionsContainer.style.display = 'none';
-            console.log('Multi-select mode OFF: multi-select-actions container display set to none.');
+            console.log('DEBUG (hide): multiSelectActionsContainer before style change:', multiSelectActionsContainer.style.display);
+            multiSelectActionsContainer.style.display = 'none'; // Force to none
+            console.log('DEBUG (hide): multiSelectActionsContainer AFTER style change to none:', multiSelectActionsContainer.style.display);
+        } else {
+            console.error('DEBUG (hide): multiSelectActionsContainer is null!');
         }
         clearSelectedAssets(); // Clear all selections when exiting mode
     }
@@ -196,6 +207,9 @@ function updateBulkActionButtonsState() {
         openBulkEditButton.disabled = !enableButton;
         openBulkEditButton.style.opacity = enableButton ? '1' : '0.5';
         openBulkEditButton.style.pointerEvents = enableButton ? 'auto' : 'none'; // Ensure clicks are enabled/disabled
+        console.log(`DEBUG: openBulkEditButton disabled state: ${openBulkEditButton.disabled}, opacity: ${openBulkEditButton.style.opacity}`);
+    } else {
+        console.error('DEBUG: openBulkEditButton is null when trying to update its state!');
     }
 }
 
@@ -260,13 +274,13 @@ async function applyBulkSaturation() {
             // Prioritize previously modified or original image blob
             if (asset.modifiedImageBlob) {
                 imageBlob = asset.modifiedImageBlob;
-                window.updateConsoleLog(`Using cached modified blob for ${asset.filename}`);
+                console.log(`Using cached modified blob for ${asset.filename}`);
             } else if (asset.originalImageBlob) {
                 imageBlob = asset.originalImageBlob;
-                window.updateConsoleLog(`Using cached original blob for ${asset.filename}`);
+                console.log(`Using cached original blob for ${asset.filename}`);
             } else {
                 // If no blob is present, fetch the original image
-                window.updateConsoleLog(`Fetching original image for ${asset.filename}`);
+                console.log(`Fetching original image for ${asset.filename}`);
                 const response = await fetch(asset.mediaPath);
                 if (!response.ok) throw new Error(`Failed to fetch image: ${response.statusText}`);
                 imageBlob = await response.blob();
