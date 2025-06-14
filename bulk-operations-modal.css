@@ -1,5 +1,3 @@
-I'm creating a new CSS file named bulk-operations-modal.css. This file will contain all the necessary styles for the upcoming bulk operations modal, ensuring a clean separation from the existing asset-editor-modal.css.
-
 /* bulk-operations-modal.css */
 
 /* Bulk Operations Modal Overlay */
@@ -42,6 +40,7 @@ I'm creating a new CSS file named bulk-operations-modal.css. This file will cont
     color: #ffffff;
     max-height: 90vh;
     overflow-y: auto;
+    margin: auto; /* NEW: This helps center the content within the flex container */
 }
 
 .bulk-operations-modal-content h2 {
