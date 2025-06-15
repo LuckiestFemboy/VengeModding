@@ -10,6 +10,8 @@
     <link rel="stylesheet" href="asset-editor-modal.css">
     <!-- New: Link to the bulk operations modal's specific CSS file -->
     <link rel="stylesheet" href="bulk-operations-modal.css">
+    <!-- New: Link to the export options popup's specific CSS file (will be created next) -->
+    <link rel="stylesheet" href="export-options-popup.css">
 </head>
 <body>
     <header>
@@ -126,6 +128,19 @@
                     <input type="color" id="bulk-new-texture-color" value="#6c5ce7">
                 </div>
                 <button id="save-bulk-new-texture" class="bulk-action-button">Create New Textures</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- New: Export Options Selection Popup -->
+    <div id="export-options-popup" class="export-options-overlay">
+        <div class="export-options-content">
+            <span class="close-export-popup-button" id="close-export-popup">&times;</span>
+            <h2>Select Export Type</h2>
+            <p>Choose the desired ZIP file structure:</p>
+            <div class="export-buttons-container">
+                <button id="export-client-button" class="export-option-button">Client Export</button>
+                <button id="export-browser-button" class="export-option-button">Browser Export</button>
             </div>
         </div>
     </div>

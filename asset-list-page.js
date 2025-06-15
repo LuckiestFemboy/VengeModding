@@ -12,6 +12,13 @@ let progressPercentage;
 let consoleLog;
 let loadingMessageDisplay; // New: to display dynamic loading messages
 
+// Export Options Popup DOM Elements
+let exportOptionsPopup;
+let closeExportPopupButton;
+let exportClientButton;
+let exportBrowserButton;
+
+
 // Card Creation
 function createAndAppendCard(folder, filename, type) {
     // Create main card element
@@ -314,6 +321,21 @@ async function initializeGallery() {
         const searchButton = document.getElementById('search-button');
         const clearButton = document.getElementById('clear-search-button');
 
+        // Get references to export options popup elements
+        exportOptionsPopup = document.getElementById('export-options-popup');
+        closeExportPopupButton = document.getElementById('close-export-popup');
+        exportClientButton = document.getElementById('export-client-button');
+        exportBrowserButton = document.getElementById('export-browser-button');
+
+        if (!exportOptionsPopup || !closeExportPopupButton || !exportClientButton || !exportBrowserButton) {
+            console.error('One or more export options popup elements not found!');
+        } else {
+            closeExportPopupButton.addEventListener('click', hideExportOptionsPopup);
+            exportClientButton.addEventListener('click', () => initiateZipDownload('client'));
+            exportBrowserButton.addEventListener('click', () => initiateZipDownload('browser'));
+        }
+
+
         if (searchInput && searchButton && clearButton) {
             searchInput.addEventListener('input', (e) => {
                 filterCards(e.target.value.trim());
@@ -450,7 +472,163 @@ window.hideLoadingOverlayWithDelay = (delay, finalMessage = 'Operation Complete!
 };
 
 
+// --- Export Options Popup Control ---
+function showExportOptionsPopup() {
+    if (exportOptionsPopup) {
+        exportOptionsPopup.classList.add('active');
+    }
+}
+
+function hideExportOptionsPopup() {
+    if (exportOptionsPopup) {
+        exportOptionsPopup.classList.remove('active');
+    }
+}
+
+
 // --- ZIP Download Functionality with Progress ---
+
+// Modified ZIP generation function to accept exportType
+async function initiateZipDownload(exportType) {
+    hideExportOptionsPopup(); // Hide the options popup immediately
+
+    window.showLoadingOverlay(`Generating ZIP (${exportType.charAt(0).toUpperCase() + exportType.slice(1)} Export)...`);
+
+    const zip = new JSZip();
+
+    let baseZipPathForAssets;
+    let fileNameForZip = "mod-assets.zip";
+    const staticFilesToFetch = [
+        'charfix.js',
+        'HowToUse.txt',
+        'init.js',
+        'manifest.json',
+        'popup.html',
+        'README.md'
+    ];
+
+
+    if (exportType === 'client') {
+        baseZipPathForAssets = "Venge Client/Resource Swapper/files/assets/";
+        fileNameForZip = "mod-client-export.zip";
+    } else if (exportType === 'browser') {
+        baseZipPathForAssets = "venge-swapper-main/files/assets/";
+        fileNameForZip = "mod-browser-export.zip";
+
+        // Add static files for browser export
+        for (const staticFileName of staticFilesToFetch) {
+            try {
+                window.updateConsoleLog(`Fetching static file: ${staticFileName}`);
+                const staticFilePath = `./browser-static-files-for-fetch/${staticFileName}`;
+                const response = await fetch(staticFilePath);
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch ${staticFileName}: ${response.statusText}`);
+                }
+                const blob = await response.blob();
+                zip.file(`venge-swapper-main/${staticFileName}`, blob);
+                window.updateConsoleLog(`Added static file to zip: venge-swapper-main/${staticFileName}`);
+            } catch (error) {
+                console.error(`Error adding static file ${staticFileName} to zip:`, error);
+                window.updateConsoleLog(`[ERROR] Failed to add static file: ${staticFileName} - ${error.message}`);
+            }
+        }
+    }
+
+
+    const downloadAllZipButton = document.getElementById('download-all-zip-button');
+    downloadAllZipButton.textContent = 'Preparing ZIP...';
+    downloadAllZipButton.disabled = true;
+
+    let filesProcessed = 0;
+    const totalFiles = allAssets.length;
+
+    const fetchPromises = allAssets.map(async (asset) => {
+        const { folder, filename, type, mediaPath, originalImageBlob, modifiedImageBlob, newImageBlob, isModified, isNew } = asset;
+        let fileBlobToZip = null;
+        let fileNameToZip = filename; // Default to original filename
+
+        try {
+            if (isNew && newImageBlob) {
+                // Use the newly created image blob
+                fileBlobToZip = newImageBlob;
+                window.updateConsoleLog(`Including NEW texture: ${filename} (Folder: ${folder})`);
+            } else if (isModified && modifiedImageBlob) {
+                // Use the modified image blob
+                fileBlobToZip = modifiedImageBlob;
+                window.updateConsoleLog(`Including MODIFIED texture: ${filename} (Folder: ${folder})`);
+            } else if (originalImageBlob) {
+                // Use the already fetched original image blob
+                fileBlobToZip = originalImageBlob;
+                window.updateConsoleLog(`Including ORIGINAL asset (cached): ${filename} (Folder: ${folder})`);
+            } else {
+                // Fetch the original asset if not already fetched
+                const response = await fetch(mediaPath);
+                if (!response.ok) {
+                    console.error(`Failed to fetch original ${mediaPath}: ${response.statusText}`);
+                    window.updateConsoleLog(`[ERROR] Failed to fetch original: ${filename}`);
+                    return null; // Return null for failed fetches
+                }
+                fileBlobToZip = await response.blob();
+                // Store this fetched blob in the asset object for future use
+                asset.originalImageBlob = fileBlobToZip;
+                window.updateConsoleLog(`Fetched & Including ORIGINAL asset: ${filename} (Folder: ${folder})`);
+            }
+
+            // Construct the full path inside the ZIP file based on export type
+            const zipPath = `${baseZipPathForAssets}${folder}/1/${fileNameToZip}`;
+            zip.file(zipPath, fileBlobToZip);
+
+            filesProcessed++;
+            window.updateLoadingProgress(filesProcessed, totalFiles, filename);
+
+            return true; // Indicate success
+        } catch (error) {
+            console.error(`Error processing ${filename} for zip:`, error);
+            window.updateConsoleLog(`[ERROR] Error processing: ${filename} - ${error.message}`);
+            return null; // Return null for errors
+        }
+    });
+
+    await Promise.all(fetchPromises); // Wait for all files to be processed
+
+    // Ensure progress is 100% after all files are attempted
+    window.updateLoadingProgress(totalFiles, totalFiles, 'All asset files processed.');
+    window.updateConsoleLog(`\nAll asset files processed. Generating ZIP...\n`);
+
+
+    try {
+        const content = await zip.generateAsync({
+            type: "blob",
+            compression: "DEFLATE", // Use compression
+            compressionOptions: {
+                level: 9 // Max compression
+            }
+        }, function updateCallback(metadata) {
+            // Update progress during ZIP generation (optional, but good for large zips)
+            const generationProgress = Math.round(metadata.percent);
+            progressBar.style.width = `${generationProgress}%`;
+            progressPercentage.textContent = `${generationProgress}%`;
+            if (metadata.currentFile) {
+                window.updateConsoleLog(`Compressing: ${metadata.currentFile}`);
+            }
+        });
+
+        saveAs(content, fileNameForZip);
+        downloadAllZipButton.textContent = 'Download Complete!';
+        window.hideLoadingOverlayWithDelay(3000, `ZIP file "${fileNameForZip}" downloaded successfully!`);
+    } catch (error) {
+        console.error("Error generating or saving zip:", error);
+        downloadAllZipButton.textContent = 'Download Failed!';
+        window.hideLoadingOverlayWithDelay(3000, `Download Failed! Error: ${error.message}`);
+    } finally {
+        // Keep overlay visible for a bit to show final message, then hide
+        setTimeout(() => {
+            downloadAllZipButton.textContent = 'Download All as ZIP';
+            downloadAllZipButton.disabled = false;
+        }, 3000); // Only reset button after overlay hides
+    }
+}
+
 
 document.addEventListener('DOMContentLoaded', () => {
     initializeGallery(); // Initialize the gallery and populate allAssets array
@@ -467,106 +645,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     if (downloadAllZipButton && loadingOverlay && progressBar && progressPercentage && consoleLog && loadingMessageDisplay) {
-        downloadAllZipButton.addEventListener('click', async () => {
-            window.showLoadingOverlay('Generating ZIP...');
-
-            const zip = new JSZip();
-
-            // Define the base path within the zip as per the game's requirements
-            const baseZipPath = "Venge Client/Resource Swapper/files/assets/";
-
-            downloadAllZipButton.textContent = 'Preparing ZIP...';
-            downloadAllZipButton.disabled = true;
-
-            let filesProcessed = 0;
-            const totalFiles = allAssets.length;
-
-            const fetchPromises = allAssets.map(async (asset) => {
-                const { folder, filename, type, mediaPath, originalImageBlob, modifiedImageBlob, newImageBlob, isModified, isNew } = asset;
-                let fileBlobToZip = null;
-                let fileNameToZip = filename; // Default to original filename
-
-                try {
-                    if (isNew && newImageBlob) {
-                        // Use the newly created image blob
-                        fileBlobToZip = newImageBlob;
-                        window.updateConsoleLog(`Including NEW texture: ${filename} (Folder: ${folder})`);
-                    } else if (isModified && modifiedImageBlob) {
-                        // Use the modified image blob
-                        fileBlobToZip = modifiedImageBlob;
-                        window.updateConsoleLog(`Including MODIFIED texture: ${filename} (Folder: ${folder})`);
-                    } else if (originalImageBlob) {
-                        // Use the already fetched original image blob
-                        fileBlobToZip = originalImageBlob;
-                        window.updateConsoleLog(`Including ORIGINAL asset (cached): ${filename} (Folder: ${folder})`);
-                    } else {
-                        // Fetch the original asset if not already fetched
-                        const response = await fetch(mediaPath);
-                        if (!response.ok) {
-                            console.error(`Failed to fetch original ${mediaPath}: ${response.statusText}`);
-                            window.updateConsoleLog(`[ERROR] Failed to fetch original: ${filename}`);
-                            return null; // Return null for failed fetches
-                        }
-                        fileBlobToZip = await response.blob();
-                        // Store this fetched blob in the asset object for future use
-                        asset.originalImageBlob = fileBlobToZip;
-                        window.updateConsoleLog(`Fetched & Including ORIGINAL asset: ${filename} (Folder: ${folder})`);
-                    }
-
-                    // Construct the full path inside the ZIP file
-                    const zipPath = `${baseZipPath}${folder}/1/${fileNameToZip}`;
-                    zip.file(zipPath, fileBlobToZip);
-
-                    filesProcessed++;
-                    window.updateLoadingProgress(filesProcessed, totalFiles, filename);
-
-                    return true; // Indicate success
-                } catch (error) {
-                    console.error(`Error processing ${filename} for zip:`, error);
-                    window.updateConsoleLog(`[ERROR] Error processing: ${filename} - ${error.message}`);
-                    return null; // Return null for errors
-                }
-            });
-
-            await Promise.all(fetchPromises); // Wait for all files to be processed
-
-            // Ensure progress is 100% after all files are attempted
-            window.updateLoadingProgress(totalFiles, totalFiles, 'All files processed.');
-            window.updateConsoleLog(`\nAll files processed. Generating ZIP...\n`);
-
-
-            try {
-                const content = await zip.generateAsync({
-                    type: "blob",
-                    compression: "DEFLATE", // Use compression
-                    compressionOptions: {
-                        level: 9 // Max compression
-                    }
-                }, function updateCallback(metadata) {
-                    // Update progress during ZIP generation (optional, but good for large zips)
-                    const generationProgress = Math.round(metadata.percent);
-                    progressBar.style.width = `${generationProgress}%`;
-                    progressPercentage.textContent = `${generationProgress}%`;
-                    if (metadata.currentFile) {
-                        window.updateConsoleLog(`Compressing: ${metadata.currentFile}`);
-                    }
-                });
-
-                saveAs(content, "mod-assets.zip");
-                downloadAllZipButton.textContent = 'Download Complete!';
-                window.hideLoadingOverlayWithDelay(3000, 'ZIP file "mod-assets.zip" downloaded successfully!');
-            } catch (error) {
-                console.error("Error generating or saving zip:", error);
-                downloadAllZipButton.textContent = 'Download Failed!';
-                window.hideLoadingOverlayWithDelay(3000, `Download Failed! Error: ${error.message}`);
-            } finally {
-                // Keep overlay visible for a bit to show final message, then hide
-                setTimeout(() => {
-                    downloadAllZipButton.textContent = 'Download All as ZIP';
-                    downloadAllZipButton.disabled = false;
-                }, 3000); // Only reset button after overlay hides
-            }
-        });
+        // Change the download button's behavior to show the export options popup
+        downloadAllZipButton.removeEventListener('click', null); // Remove any old listeners if this script reloads
+        downloadAllZipButton.addEventListener('click', showExportOptionsPopup);
     } else {
         console.error('One or more required DOM elements for ZIP functionality not found!');
         if (!downloadAllZipButton) console.error('download-all-zip-button not found!');
