@@ -4,6 +4,7 @@ let allCards;
 // Store a global list of all assets fetched to be used for zipping and bulk operations
 // Each asset object will now also store its Blob data and modification status.
 const allAssets = [];
+let assetsLoadedIntoMemory = false; // New flag: true when image blobs are loaded for all assets
 
 // DOM elements for loading/progress
 let loadingOverlay;
@@ -20,8 +21,10 @@ let exportBrowserButton;
 
 
 // Card Creation
-// Modified to accept an optional initialBlob for pre-caching
-function createAndAppendCard(folder, filename, type, initialBlob = null) {
+// Modified to display immediate image path initially, not relying on blob until loadedIntoMemory
+function createAndAppendCard(asset) {
+    const { folder, filename, type, mediaPath } = asset; // Destructure asset object
+
     // Create main card element
     const card = document.createElement('div');
     card.className = 'texture-card';
@@ -29,23 +32,8 @@ function createAndAppendCard(folder, filename, type, initialBlob = null) {
     card.style.visibility = 'visible';
     card.style.opacity = '1';
 
-    let mediaPath = `./mod-assets/${type.toLowerCase()}/${filename}`;
-
-    // Create asset object and add to the global list for zipping and bulk operations
-    // Initialize modification flags and blob storage
-    const asset = {
-        folder,
-        filename,
-        type,
-        mediaPath,
-        originalImageBlob: initialBlob, // Store the initialBlob if provided
-        modifiedImageBlob: null, // Will store Blob of modified image
-        newImageBlob: null,      // Will store Blob of newly created image
-        isModified: false,       // Flag if modifiedImageBlob exists
-        isNew: false,            // Flag if newImageBlob exists
-        cardElement: card        // Store a reference to the card DOM element
-    };
-    allAssets.push(asset);
+    // Store a reference to the card DOM element on the asset object
+    asset.cardElement = card;
 
 
     if (type.toLowerCase() === 'mp3') {
@@ -145,12 +133,9 @@ function createAndAppendCard(folder, filename, type, initialBlob = null) {
         const mediaElement = document.createElement('img');
         mediaElement.className = 'media-image';
         
-        // If an initial blob is provided, use it for the display URL
-        if (initialBlob) {
-            mediaElement.src = URL.createObjectURL(initialBlob);
-        } else {
-            mediaElement.src = mediaPath;
-        }
+        // Initially, image source points directly to the file path.
+        // Blob will be loaded later when assetsLoadedIntoMemory is true.
+        mediaElement.src = mediaPath;
 
         // Add error handling for images
         mediaElement.onerror = () => {
@@ -283,9 +268,27 @@ window.updateCardVisualState = (asset) => {
             cardElement.classList.remove('edited-card');
             // Revert image src to original mediaPath if no longer modified/new
             const mediaImage = cardElement.querySelector('.media-image');
-            if (mediaImage && mediaImage.src.startsWith('blob:') && asset.mediaPath) {
-                URL.revokeObjectURL(mediaImage.src); // Revoke blob URL
-                mediaImage.src = asset.mediaPath; // Revert to original path
+            // Only revert to mediaPath if originalImageBlob isn't loaded (meaning we're displaying direct path)
+            // If originalImageBlob IS loaded, we should use its blob URL for display.
+            if (mediaImage) {
+                if (mediaImage.src.startsWith('blob:') && asset.originalImageBlob && assetsLoadedIntoMemory) {
+                     // If we have a blob and assets are in memory, keep displaying the original blob version
+                     // Revoke existing blob URL if it's different
+                     const currentBlobUrl = mediaImage.src;
+                     const originalBlobUrl = URL.createObjectURL(asset.originalImageBlob); // Create temporarily to compare
+                     if (currentBlobUrl !== originalBlobUrl) {
+                        URL.revokeObjectURL(currentBlobUrl);
+                        mediaImage.src = originalBlobUrl;
+                     } else {
+                        URL.revokeObjectURL(originalBlobUrl); // Revoke the temporary one if it was the same
+                     }
+                } else if (mediaImage.src.startsWith('blob:')) { // if it's a blob URL but no originalImageBlob, revert
+                    URL.revokeObjectURL(mediaImage.src);
+                    mediaImage.src = asset.mediaPath;
+                } else if (!mediaImage.src.startsWith('blob:') && asset.originalImageBlob && assetsLoadedIntoMemory) {
+                    // If currently displaying direct path but blob is loaded, switch to blob URL
+                    mediaImage.src = URL.createObjectURL(asset.originalImageBlob);
+                }
             }
         }
     }
@@ -331,7 +334,7 @@ function clearSearch() {
     filterCards('');
 }
 
-// Main initialization and playAudio function
+// Main initialization function - now only loads metadata and displays cards
 async function initializeGallery() {
     try {
         const grid = document.getElementById('texture-grid');
@@ -354,6 +357,7 @@ async function initializeGallery() {
             console.error('One or more export options popup elements not found!');
         } else {
             closeExportPopupButton.addEventListener('click', hideExportOptionsPopup);
+            // Change these to directly call initiateZipDownload with type, which will handle loading
             exportClientButton.addEventListener('click', () => initiateZipDownload('client'));
             exportBrowserButton.addEventListener('click', () => initiateZipDownload('browser'));
         }
@@ -371,13 +375,12 @@ async function initializeGallery() {
             console.error('Search elements not found!');
         }
 
-        // --- Optimized Asset Loading with Pre-fetching Blobs ---
-        window.showLoadingOverlay('Loading Assets...'); // Show initial loading message
+        window.showLoadingOverlay('Loading Asset Lists...'); // Show initial loading message for metadata
 
-        const fetchPromises = [];
+        const listFetchPromises = [];
 
-        // Load PNG files
-        fetchPromises.push((async () => {
+        // Load PNG file metadata
+        listFetchPromises.push((async () => {
             try {
                 const pngResponse = await fetch('pnglist.txt');
                 if (!pngResponse.ok) {
@@ -391,26 +394,28 @@ async function initializeGallery() {
                     const [folder, filename] = line.split(' ');
                     if (folder && filename) {
                         const mediaPath = `./mod-assets/png/${filename}`;
-                        try {
-                            const response = await fetch(mediaPath);
-                            if (!response.ok) throw new Error(`Failed to fetch PNG: ${response.statusText}`);
-                            const blob = await response.blob();
-                            createAndAppendCard(folder, filename, 'png', blob); // Pass the blob for caching
-                        } catch (error) {
-                            console.error(`Error loading PNG asset ${filename}:`, error);
-                            createAndAppendCard(folder, filename, 'png'); // Create card without blob on error
-                        }
+                        allAssets.push({
+                            folder,
+                            filename,
+                            type: 'png',
+                            mediaPath,
+                            originalImageBlob: null, // Blob will be loaded later
+                            modifiedImageBlob: null,
+                            newImageBlob: null,
+                            isModified: false,
+                            isNew: false
+                        });
                     }
                 }
-                window.updateConsoleLog('PNG assets loaded.');
+                window.updateConsoleLog('PNG asset list loaded.');
             } catch (error) {
-                console.error('Error in PNG loading process:', error);
-                window.updateConsoleLog('[ERROR] Failed to load PNG assets.');
+                console.error('Error in PNG list loading process:', error);
+                window.updateConsoleLog('[ERROR] Failed to load PNG asset list.');
             }
         })());
 
-        // Load JPG files
-        fetchPromises.push((async () => {
+        // Load JPG file metadata
+        listFetchPromises.push((async () => {
             try {
                 const jpgResponse = await fetch('jpgurl.txt');
                 if (!jpgResponse.ok) {
@@ -424,26 +429,28 @@ async function initializeGallery() {
                     const [folder, filename] = line.split(' ');
                     if (folder && filename) {
                         const mediaPath = `./mod-assets/jpg/${filename}`;
-                        try {
-                            const response = await fetch(mediaPath);
-                            if (!response.ok) throw new Error(`Failed to fetch JPG: ${response.statusText}`);
-                            const blob = await response.blob();
-                            createAndAppendCard(folder, filename, 'jpg', blob); // Pass the blob for caching
-                        } catch (error) {
-                            console.error(`Error loading JPG asset ${filename}:`, error);
-                            createAndAppendCard(folder, filename, 'jpg'); // Create card without blob on error
-                        }
+                        allAssets.push({
+                            folder,
+                            filename,
+                            type: 'jpg',
+                            mediaPath,
+                            originalImageBlob: null, // Blob will be loaded later
+                            modifiedImageBlob: null,
+                            newImageBlob: null,
+                            isModified: false,
+                            isNew: false
+                        });
                     }
                 }
-                window.updateConsoleLog('JPG assets loaded.');
+                window.updateConsoleLog('JPG asset list loaded.');
             } catch (error) {
-                console.error('Error in JPG loading process:', error);
-                window.updateConsoleLog('[ERROR] Failed to load JPG assets.');
+                console.error('Error in JPG list loading process:', error);
+                window.updateConsoleLog('[ERROR] Failed to load JPG asset list.');
             }
         })());
 
-        // Load MP3 files (no blob pre-fetching needed for MP3s as they are not image-like for editing/conversion)
-        fetchPromises.push((async () => {
+        // Load MP3 file metadata
+        listFetchPromises.push((async () => {
             try {
                 const mp3Response = await fetch('mp3list.txt');
                 if (!mp3Response.ok) {
@@ -456,20 +463,40 @@ async function initializeGallery() {
                 for (const line of mp3Lines) {
                     const [folder, filename] = line.split(' ');
                     if (folder && filename) {
-                        createAndAppendCard(folder, filename, 'mp3');
+                        const mediaPath = `./mod-assets/mp3/${filename}`;
+                        allAssets.push({
+                            folder,
+                            filename,
+                            type: 'mp3',
+                            mediaPath,
+                            originalImageBlob: null, // Not applicable, but keeping structure consistent
+                            modifiedImageBlob: null,
+                            newImageBlob: null,
+                            isModified: false,
+                            isNew: false
+                        });
                     }
                 }
-                window.updateConsoleLog('MP3 assets loaded.');
+                window.updateConsoleLog('MP3 asset list loaded.');
             } catch (error) {
-                console.error('Error in MP3 loading process:', error);
-                window.updateConsoleLog('[ERROR] Failed to load MP3 assets.');
+                console.error('Error in MP3 list loading process:', error);
+                window.updateConsoleLog('[ERROR] Failed to load MP3 asset list.');
             }
         })());
 
 
-        // Wait for all asset types to be loaded
-        await Promise.all(fetchPromises);
-        window.updateConsoleLog('All assets initialized.');
+        // Wait for all asset lists to be loaded
+        await Promise.all(listFetchPromises);
+        window.updateConsoleLog('\nAll asset lists loaded. Sorting and displaying gallery...');
+
+        // Sort allAssets array alphabetically by filename BEFORE creating cards
+        allAssets.sort((a, b) => a.filename.localeCompare(b.filename));
+
+        // Create and append cards for all assets based on the sorted list
+        for (const asset of allAssets) {
+            createAndAppendCard(asset); // Pass the entire asset object
+        }
+
         window.hideLoadingOverlayWithDelay(1000, 'Gallery Ready!'); // Hide after all assets are processed
 
         // Populate allCards AFTER all cards have been created and appended
@@ -482,6 +509,62 @@ async function initializeGallery() {
         window.hideLoadingOverlayWithDelay(3000, 'Gallery Initialization Failed!');
     }
 }
+
+/**
+ * Loads all image asset blobs into memory (png and jpg files only).
+ * Displays a progress bar during this operation.
+ */
+async function loadAllAssetsIntoMemory() {
+    if (assetsLoadedIntoMemory) {
+        console.log('Assets already loaded into memory. Skipping pre-loading.');
+        return; // Already loaded
+    }
+
+    window.showLoadingOverlay('Loading Textures into Memory...');
+    const imageAssets = allAssets.filter(asset => asset.type === 'png' || asset.type === 'jpg');
+    let processedCount = 0;
+    const totalImageFiles = imageAssets.length;
+
+    const loadPromises = imageAssets.map(async (asset) => {
+        // Only load if originalImageBlob is not already set
+        if (!asset.originalImageBlob) {
+            try {
+                window.updateConsoleLog(`Fetching blob for: ${asset.filename}`);
+                const response = await fetch(asset.mediaPath);
+                if (!response.ok) throw new Error(`Failed to fetch blob: ${response.statusText}`);
+                const blob = await response.blob();
+                asset.originalImageBlob = blob; // Store the fetched blob
+
+                // Update the card's image source to use the blob URL for better performance/caching
+                const mediaImage = asset.cardElement.querySelector('.media-image');
+                if (mediaImage) {
+                    if (mediaImage.src.startsWith('blob:')) {
+                         URL.revokeObjectURL(mediaImage.src); // Revoke old blob URL if any
+                    }
+                    mediaImage.src = URL.createObjectURL(blob);
+                }
+
+            } catch (error) {
+                console.error(`Error loading blob for ${asset.filename}:`, error);
+                window.updateConsoleLog(`[ERROR] Failed to load blob for: ${asset.filename} - ${error.message}`);
+            }
+        } else {
+            // If already loaded (e.g., by editor), update card to use its blob URL if not already
+            const mediaImage = asset.cardElement.querySelector('.media-image');
+            if (mediaImage && !mediaImage.src.startsWith('blob:')) {
+                mediaImage.src = URL.createObjectURL(asset.originalImageBlob);
+            }
+        }
+        processedCount++;
+        window.updateLoadingProgress(processedCount, totalImageFiles, `Loaded: ${asset.filename}`);
+    });
+
+    await Promise.all(loadPromises); // Wait for all image blobs to be loaded
+    assetsLoadedIntoMemory = true;
+    window.updateConsoleLog('\nAll textures loaded into memory.');
+    window.hideLoadingOverlayWithDelay(1000, 'Textures Ready for Export!');
+}
+
 
 function playAudio(audioPath) {
     const audio = new Audio(audioPath);
@@ -560,6 +643,13 @@ function hideExportOptionsPopup() {
 async function initiateZipDownload(exportType) {
     hideExportOptionsPopup(); // Hide the options popup immediately
 
+    // Step 1: Ensure all image assets are loaded into memory first
+    if (!assetsLoadedIntoMemory) {
+        window.updateConsoleLog('Assets not yet loaded into memory. Starting texture pre-loading...');
+        await loadAllAssetsIntoMemory(); // Wait for textures to load
+        window.updateConsoleLog('Texture pre-loading complete. Proceeding with ZIP generation.');
+    }
+
     window.showLoadingOverlay(`Generating ZIP (${exportType.charAt(0).toUpperCase() + exportType.slice(1)} Export)...`);
 
     const zip = new JSZip();
@@ -608,7 +698,7 @@ async function initiateZipDownload(exportType) {
     downloadAllZipButton.disabled = true;
 
     let filesProcessed = 0;
-    const totalFiles = allAssets.length;
+    const totalFiles = allAssets.length; // Now includes all assets, image and mp3
 
     const zipPromises = allAssets.map(async (asset) => {
         const { folder, filename, type, originalImageBlob, modifiedImageBlob, newImageBlob, isModified, isNew } = asset;
@@ -617,20 +707,28 @@ async function initiateZipDownload(exportType) {
 
         try {
             if (isNew && newImageBlob) {
-                // Use the newly created image blob
                 fileBlobToZip = newImageBlob;
                 window.updateConsoleLog(`Including NEW texture: ${filename} (Folder: ${folder})`);
             } else if (isModified && modifiedImageBlob) {
-                // Use the modified image blob
                 fileBlobToZip = modifiedImageBlob;
                 window.updateConsoleLog(`Including MODIFIED texture: ${filename} (Folder: ${folder})`);
-            } else if (originalImageBlob) {
-                // Use the already fetched original image blob (pre-cached)
+            } else if (type !== 'mp3' && originalImageBlob) { // Use the already fetched original image blob (pre-cached)
                 fileBlobToZip = originalImageBlob;
                 window.updateConsoleLog(`Including ORIGINAL asset (cached): ${filename} (Folder: ${folder})`);
-            } else {
-                // This case should be rare if pre-fetching works, but keep as fallback
-                console.warn(`No blob found for ${filename}, attempting to re-fetch.`);
+            } else if (type === 'mp3') { // Directly fetch MP3 as they are not pre-cached as blobs
+                 window.updateConsoleLog(`Fetching MP3 asset: ${filename} (Folder: ${folder})`);
+                 const response = await fetch(asset.mediaPath);
+                 if (!response.ok) {
+                     console.error(`Failed to fetch MP3 ${asset.mediaPath}: ${response.statusText}`);
+                     window.updateConsoleLog(`[ERROR] Failed to fetch MP3: ${filename}`);
+                     return null; // Return null for failed fetches
+                 }
+                 fileBlobToZip = await response.blob();
+                 window.updateConsoleLog(`Fetched MP3: ${filename} (Folder: ${folder})`);
+            }
+            else {
+                // This case should be rare for images if loadAllAssetsIntoMemory is called, but fallback
+                console.warn(`No blob found for ${filename}, attempting to re-fetch as fallback.`);
                 const response = await fetch(asset.mediaPath);
                 if (!response.ok) {
                     console.error(`Failed to fetch original ${asset.mediaPath}: ${response.statusText}`);
@@ -638,8 +736,8 @@ async function initiateZipDownload(exportType) {
                     return null; // Return null for failed fetches
                 }
                 fileBlobToZip = await response.blob();
-                asset.originalImageBlob = fileBlobToZip; // Cache it now
-                window.updateConsoleLog(`Fetched & Including ORIGINAL asset: ${filename} (Folder: ${folder})`);
+                if (type !== 'mp3') asset.originalImageBlob = fileBlobToZip; // Cache it now if it's an image
+                window.updateConsoleLog(`Fetched & Including ORIGINAL asset (fallback): ${filename} (Folder: ${folder})`);
             }
 
             // Construct the full path inside the ZIP file based on export type
@@ -680,9 +778,10 @@ async function initiateZipDownload(exportType) {
                 const generationProgress = Math.round(metadata.percent);
                 progressBar.style.width = `${generationProgress}%`;
                 progressPercentage.textContent = `${generationProgress}% (Compressing)`;
-                if (metadata.currentFile) {
-                    window.updateConsoleLog(`Compressing: ${metadata.currentFile}`);
-                }
+                // Commented out currentFile as it floods the console during compression
+                // if (metadata.currentFile) {
+                //     window.updateConsoleLog(`Compressing: ${metadata.currentFile}`);
+                // }
             }
         });
 
@@ -704,7 +803,7 @@ async function initiateZipDownload(exportType) {
 
 
 document.addEventListener('DOMContentLoaded', () => {
-    initializeGallery(); // Initialize the gallery and populate allAssets array
+    initializeGallery(); // Initialize the gallery and populate allAssets array metadata only
 
     const downloadAllZipButton = document.getElementById('download-all-zip-button');
 
