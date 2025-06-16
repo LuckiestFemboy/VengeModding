@@ -140,6 +140,20 @@
                 </div>
                 <button id="save-bulk-new-texture" class="bulk-action-button">Create New Textures</button>
             </div>
+
+            <!-- New: Upload New Texture Section -->
+            <div class="bulk-upload-texture-inputs">
+                <h3>Upload New Texture for Selected</h3>
+                <div class="input-group">
+                    <label for="bulk-upload-image-input">Choose Image File:</label>
+                    <input type="file" id="bulk-upload-image-input" accept="image/png, image/jpeg">
+                </div>
+                <div class="image-preview-container">
+                    <img id="bulk-upload-image-preview" src="" alt="Uploaded Image Preview" style="display: none;">
+                    <p id="bulk-upload-preview-placeholder" style="text-align: center; color: rgba(255,255,255,0.6);">No image selected</p>
+                </div>
+                <button id="apply-bulk-upload-texture" class="bulk-action-button" disabled>Apply Uploaded Texture</button>
+            </div>
         </div>
     </div>
 
@@ -162,5 +176,7 @@
     <script src="asset-editor-modal.js"></script>
     <!-- New: Link to the bulk operations JavaScript file -->
     <script src="bulk-operations.js"></script>
+    <!-- New: Link to the image conversion utility file -->
+    <script src="image-converter.js"></script>
 </body>
 </html>

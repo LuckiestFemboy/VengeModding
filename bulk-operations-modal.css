@@ -80,7 +80,8 @@
 
 /* Saturation Control Group */
 .bulk-saturation-control,
-.bulk-create-texture-inputs {
+.bulk-create-texture-inputs,
+.bulk-upload-texture-inputs { /* Added for new section */
     background: rgba(255, 255, 255, 0.05); /* Lighter background for sections */
     border-radius: 10px;
     padding: 1.5rem;
@@ -91,14 +92,16 @@
 }
 
 .bulk-saturation-control .input-group,
-.bulk-create-texture-inputs .input-group {
+.bulk-create-texture-inputs .input-group,
+.bulk-upload-texture-inputs .input-group { /* Added for new section */
     display: flex;
     flex-direction: column;
     gap: 0.6rem;
 }
 
 .bulk-saturation-control label,
-.bulk-create-texture-inputs label {
+.bulk-create-texture-inputs label,
+.bulk-upload-texture-inputs label { /* Added for new section */
     font-size: 1.1rem;
     font-weight: 500;
     color: rgba(255, 255, 255, 0.9);
@@ -211,6 +214,58 @@
     border-radius: 8px;
 }
 
+/* Styling for the new Upload Texture Section */
+.bulk-upload-texture-inputs input[type="file"] {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    padding: 0.9rem 1.2rem;
+    color: #ffffff;
+    font-size: 1.05rem;
+    outline: none;
+    transition: border-color 0.2s ease, background 0.2s ease;
+    cursor: pointer;
+}
+
+.bulk-upload-texture-inputs input[type="file"]::file-selector-button {
+    background: linear-gradient(135deg, #6c5ce7, #fd79a8);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 0.7rem 1.2rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-right: 1rem;
+}
+
+.bulk-upload-texture-inputs input[type="file"]::file-selector-button:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+
+.image-preview-container {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 1rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 150px; /* Ensure space even without image */
+    overflow: hidden;
+}
+
+#bulk-upload-image-preview {
+    max-width: 100%;
+    max-height: 200px; /* Limit preview height */
+    height: auto;
+    border-radius: 6px;
+    object-fit: contain; /* Ensure the whole image is visible */
+}
+
+
 /* Bulk Action Buttons */
 .bulk-action-button {
     background: linear-gradient(135deg, #fd79a8, #eb3b5a); /* Reddish gradient for bulk actions */
@@ -264,7 +319,8 @@
     }
 
     .bulk-saturation-control label,
-    .bulk-create-texture-inputs label {
+    .bulk-create-texture-inputs label,
+    .bulk-upload-texture-inputs label { /* Added for new section */
         font-size: 1rem;
     }
 
@@ -279,7 +335,8 @@
     }
 
     .bulk-create-texture-inputs input[type="number"],
-    .bulk-create-texture-inputs input[type="text"] {
+    .bulk-create-texture-inputs input[type="text"],
+    .bulk-upload-texture-inputs input[type="file"] { /* Added for new section */
         padding: 0.8rem 1rem;
         font-size: 1rem;
     }
@@ -306,7 +363,8 @@
     }
 
     .bulk-saturation-control,
-    .bulk-create-texture-inputs {
+    .bulk-create-texture-inputs,
+    .bulk-upload-texture-inputs { /* Added for new section */
         padding: 1rem;
         gap: 1rem;
     }

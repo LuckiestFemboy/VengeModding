@@ -21,6 +21,14 @@ let bulkNewTextureHeightInput;
 let bulkNewTextureColorInput;
 let saveBulkNewTextureButton;
 
+// New: DOM elements for the bulk upload texture section
+let bulkUploadImageInput;
+let bulkUploadImagePreview;
+let applyBulkUploadTextureButton;
+let bulkUploadPreviewPlaceholder;
+
+let uploadedImageBlob = null; // Stores the actual uploaded image blob for bulk application
+
 document.addEventListener('DOMContentLoaded', () => {
     // Get multi-select DOM elements
     toggleMultiSelectButton = document.getElementById('toggle-multi-select-button');
@@ -57,6 +65,17 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!bulkNewTextureColorInput) console.error('ERROR: bulk-new-texture-color input not found!');
     if (!saveBulkNewTextureButton) console.error('ERROR: save-bulk-new-texture button not found!');
 
+    // New: Get references to the bulk upload image section elements
+    bulkUploadImageInput = document.getElementById('bulk-upload-image-input');
+    bulkUploadImagePreview = document.getElementById('bulk-upload-image-preview');
+    applyBulkUploadTextureButton = document.getElementById('apply-bulk-upload-texture');
+    bulkUploadPreviewPlaceholder = document.getElementById('bulk-upload-preview-placeholder');
+
+    if (!bulkUploadImageInput) console.error('ERROR: bulk-upload-image-input not found!');
+    if (!bulkUploadImagePreview) console.error('ERROR: bulk-upload-image-preview not found!');
+    if (!applyBulkUploadTextureButton) console.error('ERROR: apply-bulk-upload-texture button not found!');
+    if (!bulkUploadPreviewPlaceholder) console.error('ERROR: bulk-upload-preview-placeholder not found!');
+
 
     // Add Event Listeners
     if (toggleMultiSelectButton) {
@@ -84,6 +103,15 @@ document.addEventListener('DOMContentLoaded', () => {
     if (saveBulkNewTextureButton) {
         saveBulkNewTextureButton.addEventListener('click', saveBulkNewTexture);
     }
+
+    // New: Add event listeners for the bulk upload image section
+    if (bulkUploadImageInput) {
+        bulkUploadImageInput.addEventListener('change', handleBulkImageUpload);
+    }
+    if (applyBulkUploadTextureButton) {
+        applyBulkUploadTextureButton.addEventListener('click', applyBulkUploadedTexture);
+    }
+
 
     // Export functions to global scope so asset-list-page.js can access them
     window.toggleAssetSelection = toggleAssetSelection;
@@ -231,6 +259,16 @@ function openBulkOperationsModal() {
     if (bulkNewTextureWidthInput) bulkNewTextureWidthInput.value = 512;
     if (bulkNewTextureHeightInput) bulkNewTextureHeightInput.value = 512;
     if (bulkNewTextureColorInput) bulkNewTextureColorInput.value = '#6c5ce7';
+
+    // New: Reset bulk upload section
+    if (bulkUploadImageInput) bulkUploadImageInput.value = ''; // Clear file input
+    if (bulkUploadImagePreview) {
+        bulkUploadImagePreview.src = '';
+        bulkUploadImagePreview.style.display = 'none';
+    }
+    if (bulkUploadPreviewPlaceholder) bulkUploadPreviewPlaceholder.style.display = 'block';
+    uploadedImageBlob = null; // Clear the stored blob
+    if (applyBulkUploadTextureButton) applyBulkUploadTextureButton.disabled = true; // Disable apply button
 }
 
 /**
@@ -411,4 +449,158 @@ async function saveBulkNewTexture() {
     closeBulkOperationsModal();
     toggleMultiSelectMode(); // Exit multi-select mode after operation
     console.log('Bulk new texture creation operation finished.');
+}
+
+
+/**
+ * Handles the file input change for bulk image upload, displays a preview,
+ * and stores the uploaded image blob.
+ * @param {Event} event The change event from the file input.
+ */
+function handleBulkImageUpload(event) {
+    const file = event.target.files[0];
+    if (file) {
+        // Basic file type validation
+        if (!file.type.startsWith('image/')) {
+            window.updateConsoleLog('[WARNING] Please upload an image file (PNG or JPG).');
+            bulkUploadImageInput.value = ''; // Clear the input
+            bulkUploadImagePreview.src = '';
+            bulkUploadImagePreview.style.display = 'none';
+            bulkUploadPreviewPlaceholder.style.display = 'block';
+            uploadedImageBlob = null;
+            applyBulkUploadTextureButton.disabled = true;
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            bulkUploadImagePreview.src = e.target.result;
+            bulkUploadImagePreview.style.display = 'block';
+            bulkUploadPreviewPlaceholder.style.display = 'none';
+            uploadedImageBlob = file; // Store the File object (which is a Blob)
+            applyBulkUploadTextureButton.disabled = false; // Enable the button
+            window.updateConsoleLog(`Uploaded image for bulk use: ${file.name}`);
+        };
+        reader.onerror = (error) => {
+            console.error('Error reading file:', error);
+            window.updateConsoleLog('[ERROR] Failed to read uploaded image file.');
+            bulkUploadImagePreview.src = '';
+            bulkUploadImagePreview.style.display = 'none';
+            bulkUploadPreviewPlaceholder.style.display = 'block';
+            uploadedImageBlob = null;
+            applyBulkUploadTextureButton.disabled = true;
+        };
+        reader.readAsDataURL(file); // Read as Data URL for preview
+    } else {
+        // No file selected
+        bulkUploadImageInput.value = '';
+        bulkUploadImagePreview.src = '';
+        bulkUploadImagePreview.style.display = 'none';
+        bulkUploadPreviewPlaceholder.style.display = 'block';
+        uploadedImageBlob = null;
+        applyBulkUploadTextureButton.disabled = true;
+        window.updateConsoleLog('No image selected for bulk upload.');
+    }
+}
+
+/**
+ * Applies the uploaded image to all selected image assets,
+ * converting formats if necessary.
+ */
+async function applyBulkUploadedTexture() {
+    if (!uploadedImageBlob) {
+        console.warn('No image uploaded for bulk application. Operation aborted.');
+        window.updateConsoleLog('[WARNING] Please upload an image file first.');
+        return;
+    }
+    if (selectedAssets.size === 0) {
+        console.warn('No assets selected for bulk image application. Operation aborted.');
+        window.updateConsoleLog('[WARNING] Please select assets to apply the image to.');
+        return;
+    }
+
+    // Ensure window.convertImageBlob is available
+    if (typeof window.convertImageBlob !== 'function') {
+        console.error('Image conversion utility (convertImageBlob) not found. Make sure image-converter.js is loaded.');
+        window.updateConsoleLog('[FATAL ERROR] Image conversion utility missing. Cannot proceed with bulk upload.');
+        window.hideLoadingOverlayWithDelay(3000, 'Error: Conversion Utility Missing!');
+        return;
+    }
+
+
+    window.showLoadingOverlay('Applying Uploaded Texture...');
+    const totalAssets = selectedAssets.size;
+    let processedCount = 0;
+
+    // Determine if conversion is needed based on selected assets and uploaded image type
+    const uploadedMimeType = uploadedImageBlob.type; // e.g., 'image/png' or 'image/jpeg'
+    const uploadedExtension = uploadedMimeType.split('/')[1]; // 'png' or 'jpeg'
+
+    const targetMimeTypes = new Set();
+    for (const asset of selectedAssets) {
+        // Only consider image types for conversion needs
+        if (asset.type.toLowerCase() === 'png' || asset.type.toLowerCase() === 'jpg') {
+            targetMimeTypes.add(`image/${asset.type.toLowerCase()}`);
+        }
+    }
+
+    // If targetMimeTypes contains both image/png and image/jpeg, or if any asset's type
+    // doesn't match the uploaded type, conversion will be dynamic per asset.
+    const needsDynamicConversion = targetMimeTypes.size > 1 || (targetMimeTypes.size === 1 && !targetMimeTypes.has(uploadedMimeType));
+
+    console.log(`Starting bulk apply for ${totalAssets} assets. Dynamic conversion needed: ${needsDynamicConversion}`);
+    window.updateConsoleLog(`Uploaded image type: ${uploadedMimeType}`);
+
+    for (const asset of selectedAssets) {
+        // Skip MP3s (should already be filtered by selection logic, but good double check)
+        if (asset.type.toLowerCase() === 'mp3') {
+            continue;
+        }
+
+        try {
+            window.updateConsoleLog(`Processing: ${asset.filename}`);
+            let finalBlob = uploadedImageBlob; // Start with the original uploaded blob
+
+            const assetMimeType = `image/${asset.type.toLowerCase()}`;
+
+            // Perform conversion if:
+            // 1. Dynamic conversion is generally needed (mixed types or mismatch)
+            // 2. The current asset's required MIME type does not match the uploaded image's MIME type
+            if (needsDynamicConversion && assetMimeType !== uploadedMimeType) {
+                window.updateConsoleLog(`Converting ${uploadedExtension.toUpperCase()} to ${asset.type.toUpperCase()} for: ${asset.filename}`);
+                finalBlob = await window.convertImageBlob(uploadedImageBlob, assetMimeType);
+            }
+
+            if (finalBlob) {
+                asset.newImageBlob = finalBlob;
+                asset.isNew = true;
+                asset.isModified = false;
+                window.updateCardVisualState(asset); // Update individual card visual state
+                window.updateConsoleLog(`Applied new texture to ${asset.filename}`);
+            } else {
+                throw new Error('Image conversion failed.');
+            }
+
+            processedCount++;
+            window.updateLoadingProgress(processedCount, totalAssets, `Applied to ${asset.filename}`);
+
+        } catch (error) {
+            console.error(`Error applying uploaded texture to ${asset.filename}:`, error);
+            window.updateConsoleLog(`[ERROR] Application failed for: ${asset.filename} - ${error.message}`);
+        }
+    }
+
+    window.updateConsoleLog('\nBulk uploaded texture application complete.');
+    window.hideLoadingOverlayWithDelay(3000, 'Bulk Upload Complete!');
+    closeBulkOperationsModal();
+    toggleMultiSelectMode(); // Exit multi-select mode after operation
+    console.log('Bulk uploaded texture operation finished.');
+
+    // Reset the upload form
+    bulkUploadImageInput.value = '';
+    bulkUploadImagePreview.src = '';
+    bulkUploadImagePreview.style.display = 'none';
+    bulkUploadPreviewPlaceholder.style.display = 'block';
+    uploadedImageBlob = null;
+    applyBulkUploadTextureButton.disabled = true;
 }
