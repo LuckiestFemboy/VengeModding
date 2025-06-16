@@ -9,8 +9,7 @@
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-G4VR1D3B6M"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
+  function gtag(){dataLayer.push(arguments);}\r\n  gtag('js', new Date());
 
   gtag('config', 'G-G4VR1D3B6M');
 </script>
@@ -48,22 +47,25 @@
         </div>
     </main>
 
-    <!-- Loading Overlay for ZIP Generation -->
+    <!-- Loading Overlay for ZIP Generation / Asset Loading / Bulk Operations Progress -->
     <div id="loading-overlay" class="loading-overlay">
         <div class="loading-window">
-            <h2>Generating ZIP...</h2>
+            <div id="main-loader-spinner" class="spinner-container">
+                <i class="fas fa-spinner fa-spin"></i>
+            </div>
+            <h2>Processing...</h2>
             <div class="progress-bar-container">
                 <div id="progress-bar" class="progress-bar"></div>
             </div>
             <div class="progress-text" id="progress-percentage">0%</div>
             <div class="console-output">
-                <h3>Files Added:</h3>
+                <h3>Details:</h3>
                 <pre id="console-log"></pre>
             </div>
         </div>
     </div>
 
-    <!-- Existing: Asset Editor Modal -->
+    <!-- Existing: Asset Editor Modal (NO SPINNER HERE) -->
     <div id="asset-editor-modal" class="asset-editor-modal-overlay">
         <div class="asset-editor-modal-content">
             <span class="close-button" id="close-editor-modal">&times;</span>
@@ -108,7 +110,7 @@
         </div>
     </div>
 
-    <!-- New: Bulk Operations Modal -->
+    <!-- New: Bulk Operations Modal (NO SPINNER HERE) -->
     <div id="bulk-operations-modal" class="bulk-operations-modal-overlay">
         <div class="bulk-operations-modal-content">
             <span class="close-bulk-modal-button" id="close-bulk-modal">&times;</span>
@@ -157,7 +159,7 @@
         </div>
     </div>
 
-    <!-- New: Export Options Selection Popup -->
+    <!-- New: Export Options Selection Popup (NO SPINNER HERE) -->
     <div id="export-options-popup" class="export-options-overlay">
         <div class="export-options-content">
             <span class="close-export-popup-button" id="close-export-popup">&times;</span>
