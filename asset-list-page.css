@@ -487,30 +487,6 @@ header h1 {
     word-break: break-word; /* Break long words */
 }
 
-/* Spinner Styles - General */
-.spinner-container {
-    position: absolute;
-    top: 15px; /* Adjust as needed */
-    right: 15px; /* Adjust as needed */
-    font-size: 2rem; /* Size of the spinner icon */
-    color: #6c5ce7; /* Spinner color */
-    opacity: 0; /* Hidden by default */
-    transition: opacity 0.3s ease;
-    z-index: 10; /* Ensure it's above other content within the modal/overlay */
-}
-
-/* Show spinner only when the main loading overlay is active */
-.loading-overlay.active .spinner-container#main-loader-spinner {
-    opacity: 1; /* Show when the parent overlay is active */
-}
-
-/* Ensure other overlays explicitly hide their spinners if they had them (for safety) */
-.asset-editor-modal-overlay .spinner-container,
-.bulk-operations-modal-overlay .spinner-container,
-.export-options-overlay .spinner-container {
-    opacity: 0 !important; /* Force hide any spinners in these modals */
-}
-
 /* Responsive Adjustments */
 @media (max-width: 768px) {
     header {
@@ -606,10 +582,5 @@ header h1 {
     #console-log {
         font-size: 0.8rem;
         height: 100px;
-    }
-    .spinner-container {
-        font-size: 1.5rem;
-        top: 10px;
-        right: 10px;
     }
 }

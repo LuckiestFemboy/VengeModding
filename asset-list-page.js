@@ -12,7 +12,6 @@ let progressBar;
 let progressPercentage;
 let consoleLog;
 let loadingMessageDisplay; // New: to display dynamic loading messages
-let mainLoaderSpinner; // Reference to the main loading overlay's spinner
 
 // Export Options Popup DOM Elements
 let exportOptionsPopup;
@@ -580,16 +579,15 @@ function playAudio(audioPath) {
 // These functions are now exposed on the window object so bulk-operations.js can call them.
 
 window.showLoadingOverlay = (message) => {
-    if (loadingOverlay && loadingMessageDisplay && progressBar && consoleLog && mainLoaderSpinner) {
+    if (loadingOverlay && loadingMessageDisplay && progressBar && consoleLog) {
         loadingMessageDisplay.textContent = message;
         progressBar.style.width = '0%';
         progressPercentage.textContent = '0%';
         consoleLog.textContent = ''; // Clear previous log
         loadingOverlay.classList.add('active');
-        mainLoaderSpinner.style.opacity = '1'; // Show spinner
         console.log(`Loading Overlay Shown: ${message}`);
     } else {
-        console.error('Loading overlay elements or spinner not found!');
+        console.error('Loading overlay elements not found!');
     }
 };
 
@@ -613,17 +611,16 @@ window.updateConsoleLog = (message) => {
 };
 
 window.hideLoadingOverlayWithDelay = (delay, finalMessage = 'Operation Complete!') => {
-    if (loadingOverlay && loadingMessageDisplay && mainLoaderSpinner) {
+    if (loadingOverlay && loadingMessageDisplay) {
         loadingMessageDisplay.textContent = finalMessage;
         consoleLog.textContent += `\n${finalMessage}\n`;
         consoleLog.scrollTop = consoleLog.scrollHeight;
-        mainLoaderSpinner.style.opacity = '0'; // Hide spinner immediately before overlay hides
         setTimeout(() => {
             loadingOverlay.classList.remove('active');
             console.log('Loading Overlay Hidden.');
         }, delay);
     } else {
-        console.error('Loading overlay elements or spinner not found for hiding!');
+        console.error('Loading overlay elements not found for hiding!');
     }
 };
 
@@ -824,9 +821,9 @@ document.addEventListener('DOMContentLoaded', () => {
     progressPercentage = document.getElementById('progress-percentage');
     consoleLog = document.getElementById('console-log');
     loadingMessageDisplay = loadingOverlay ? loadingOverlay.querySelector('h2') : null;
-    mainLoaderSpinner = document.getElementById('main-loader-spinner'); // Get reference to the spinner
+    // Removed: mainLoaderSpinner = document.getElementById('main-loader-spinner'); // Get reference to the spinner
 
-    if (downloadAllZipButton && loadingOverlay && progressBar && progressPercentage && consoleLog && loadingMessageDisplay && mainLoaderSpinner) {
+    if (downloadAllZipButton && loadingOverlay && progressBar && progressPercentage && consoleLog && loadingMessageDisplay) { // Removed mainLoaderSpinner from check
         // Change the download button's behavior to show the export options popup
         downloadAllZipButton.removeEventListener('click', null); // Remove any old listeners if this script reloads
         downloadAllZipButton.addEventListener('click', showExportOptionsPopup);
@@ -838,6 +835,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!progressPercentage) console.error('progress-percentage not found!');
         if (!consoleLog) console.error('console-log not found!');
         if (!loadingMessageDisplay) console.error('h2 for loading message not found!');
-        if (!mainLoaderSpinner) console.error('main-loader-spinner not found!');
+        // Removed: if (!mainLoaderSpinner) console.error('main-loader-spinner not found!');
     }
 });
