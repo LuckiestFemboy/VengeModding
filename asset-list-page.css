@@ -156,7 +156,8 @@ header h1 {
 
 #texture-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    /* Explicitly setting minmax for consistent column behavior */
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); /* Slightly wider min size */
     gap: 1.5rem;
     padding: 1rem 0;
     justify-content: center;
@@ -176,7 +177,7 @@ header h1 {
     cursor: pointer; /* Indicate clickable for selection */
     border: 2px solid transparent; /* For selected state */
     position: relative; /* For checkbox positioning */
-    min-height: 250px; /* Ensure consistent card height */
+    min-height: 280px; /* Increased min-height for more space */
     overflow: hidden;
 }
 
@@ -223,7 +224,7 @@ header h1 {
 /* Media container (for images) */
 .media-container {
     width: 100%;
-    height: 150px; /* Fixed height for consistent image size */
+    height: 180px; /* Increased height for consistent image size */
     display: flex;
     justify-content: center;
     align-items: center;
@@ -348,7 +349,7 @@ header h1 {
     justify-content: center;
     align-items: center;
     gap: 0.8rem;
-    min-height: 250px;
+    min-height: 280px; /* Keep consistent with image cards */
     background: rgba(92, 108, 231, 0.1); /* Lighter, blueish tint for MP3s */
     border: 2px solid rgba(92, 108, 231, 0.5);
 }
@@ -541,6 +542,603 @@ header h1 {
 
     .texture-card {
         padding: 0.8rem;
+        min-height: 220px; /* Adjusted min-height for mobile */
+    }
+
+    .media-container {
+        height: 120px; /* Adjusted image container height for mobile */
+    }
+
+    .texture-filename {
+        font-size: 1rem;
+    }
+
+    .texture-name {
+        font-size: 0.8rem;
+    }
+
+    .buttons-container button,
+    .mp3-buttons-wrapper button {
+        padding: 0.5rem 0.8rem;
+        font-size: 0.75rem;
+        min-width: 70px;
+    }
+
+    /* Loading overlay for mobile */
+    .loading-window {
+        padding: 1.5rem;
+    }
+
+    .loading-window h2 {
+        font-size: 1.5rem;
+    }
+
+    .progress-text {
+        font-size: 1rem;
+    }
+
+    .console-output {
+        padding: 0.8rem;
+    }
+
+    .console-output h3 {
+        font-size: 0.9rem;
+    }
+
+    #console-log {
+        font-size: 0.8rem;
+        height: 100px;
+    }
+}
+/* Reset and base styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background: #1a1a1a;
+    color: #ffffff;
+    line-height: 1.6;
+}
+
+/* Header styles */
+header {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 2rem;
+    text-align: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+header h1 {
+    font-size: 2.4rem;
+    margin-bottom: 0.5rem;
+    color: #ffffff;
+    text-shadow: 0 0 15px rgba(108, 92, 231, 0.2);
+}
+
+/* Search bar styles */
+.search-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1rem;
+    padding: 0 1rem;
+}
+
+.search-input {
+    width: 100%;
+    max-width: 400px;
+    padding: 0.8rem 1rem;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    font-size: 1rem;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+.search-input::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.search-input:focus {
+    border-color: #6c5ce7;
+    box-shadow: 0 0 15px rgba(108, 92, 231, 0.4);
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.search-button {
+    background: linear-gradient(135deg, #6c5ce7, #fd79a8);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 0.8rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.search-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(108, 92, 231, 0.4);
+}
+
+.search-button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.search-button.clear-button {
+    background: linear-gradient(135deg, #a879fd, #8a5ce7); /* Slightly different gradient */
+}
+
+/* Multi-select actions container */
+.multi-select-actions {
+    display: none; /* Hidden by default */
+    justify-content: center;
+    align-items: center;
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    transition: all 0.3s ease;
+}
+
+.multi-select-actions.active {
+    display: flex; /* Show when active via JS */
+}
+
+.selected-count {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #ffffff;
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.1);
+}
+
+.bulk-action-trigger {
+    background: linear-gradient(135deg, #e74c3c, #c0392b); /* Distinct color for bulk trigger */
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 0.8rem 1.8rem;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.bulk-action-trigger:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(231, 76, 60, 0.4);
+}
+
+.bulk-action-trigger:disabled {
+    background: #444;
+    cursor: not-allowed;
+    opacity: 0.6;
+    box-shadow: none;
+    transform: none;
+}
+
+
+/* Main content grid */
+.container {
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    text-align: center;
+    transition: all 0.5s ease; /* Smooth transition for content reveal */
+    visibility: hidden; /* Hidden by default for initial loading */
+    opacity: 0;
+}
+
+#texture-grid {
+    display: grid;
+    /* Explicitly setting minmax for consistent column behavior */
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); /* Slightly wider min size */
+    gap: 1.5rem;
+    padding: 1rem 0;
+    justify-content: center;
+}
+
+/* Texture card styles */
+.texture-card {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    cursor: pointer; /* Indicate clickable for selection */
+    border: 2px solid transparent; /* For selected state */
+    position: relative; /* For checkbox positioning */
+    min-height: 280px; /* Increased min-height for more space */
+    overflow: hidden;
+}
+
+.texture-card:hover:not(.selected-for-bulk) {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 30px rgba(108, 92, 231, 0.4);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.texture-card.selected-for-bulk {
+    border-color: #6c5ce7; /* Highlight border when selected */
+    background: rgba(108, 92, 231, 0.2); /* Lighter background when selected */
+    transform: scale(0.98); /* Slight scale down when selected */
+    box-shadow: 0 6px 20px rgba(108, 92, 231, 0.5);
+}
+
+/* Checkbox for selection */
+.select-checkbox {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 28px;
+    height: 28px;
+    background: rgba(255, 255, 255, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: transparent; /* Checkmark hidden by default */
+    font-size: 1.2rem;
+    transition: all 0.2s ease;
+    pointer-events: none; /* So clicks pass through to the card */
+    z-index: 10; /* Ensure it's on top of image */
+}
+
+/* Show checkmark when selected */
+.texture-card.selected-for-bulk .select-checkbox {
+    background: #6c5ce7;
+    border-color: #6c5ce7;
+    color: white; /* Show checkmark */
+}
+
+/* Media container (for images) */
+.media-container {
+    width: 100%;
+    height: 180px; /* Increased height for consistent image size */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    border-radius: 8px;
+    margin-bottom: 0.8rem;
+    background: rgba(0, 0, 0, 0.3); /* Placeholder background */
+}
+
+.media-image {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain; /* Ensure image fits without cropping */
+    border-radius: 8px; /* Match container border-radius */
+}
+
+.media-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    width: 100%;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 1.2rem;
+}
+
+.media-placeholder .media-icon {
+    font-size: 3rem;
+    margin-bottom: 0.5rem;
+}
+
+.media-placeholder .media-filename {
+    word-break: break-all;
+    font-size: 0.9rem;
+}
+
+
+/* Texture Info */
+.texture-info {
+    flex-grow: 1; /* Allows info to take remaining space */
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* Pushes buttons to bottom */
+    padding-top: 0.5rem;
+}
+
+.file-info {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center; /* Center filename and folder */
+}
+
+.texture-filename {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #ffffff;
+    word-break: break-all; /* Break long filenames */
+    margin-bottom: 0.2rem;
+}
+
+.texture-name {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.7);
+    word-break: break-all;
+}
+
+/* Buttons Container */
+.buttons-container {
+    display: flex;
+    flex-wrap: wrap; /* Allow buttons to wrap on smaller screens */
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 0.8rem;
+}
+
+.buttons-container button,
+.mp3-buttons-wrapper button { /* Apply to MP3 buttons too */
+    background: linear-gradient(135deg, #6c5ce7, #fd79a8);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 0.6rem 1rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    flex-grow: 1; /* Allows buttons to share space */
+    min-width: 90px; /* Ensure buttons don't get too small */
+}
+
+.buttons-container button:hover,
+.mp3-buttons-wrapper button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(108, 92, 231, 0.3);
+    background: linear-gradient(135deg, #fd79a8, #6c5ce7); /* Reverse gradient on hover */
+}
+
+.buttons-container button:disabled {
+    background: #444;
+    cursor: not-allowed;
+    opacity: 0.6;
+    box-shadow: none;
+    transform: none;
+}
+
+/* Edited card visual state */
+.texture-card.edited-card {
+    background: #2a2a2a; /* Darker background for edited cards */
+    border-color: #6c5ce7; /* Distinct border color */
+    box-shadow: 0 8px 25px rgba(108, 92, 231, 0.6); /* Stronger glow */
+}
+
+/* MP3 Specific Styles */
+.texture-card.mp3 {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 0.8rem;
+    min-height: 280px; /* Keep consistent with image cards */
+    background: rgba(92, 108, 231, 0.1); /* Lighter, blueish tint for MP3s */
+    border: 2px solid rgba(92, 108, 231, 0.5);
+}
+
+.texture-card.mp3 .media-icon {
+    font-size: 4rem; /* Larger icon for MP3 */
+    color: #a8c0fd;
+    margin-bottom: 0.5rem;
+}
+
+.mp3-filename-display {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #ffffff;
+    word-break: break-all;
+    text-align: center;
+}
+
+.folder-number-button {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    color: #ffffff;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.folder-number-button:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+}
+
+.mp3-buttons-wrapper {
+    display: flex;
+    gap: 0.5rem;
+    width: 100%; /* Take full width of card */
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+/* Loading Overlay Styles */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9); /* More opaque background */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    visibility: hidden; /* Hidden by default */
+    opacity: 0;
+    transition: visibility 0.3s ease, opacity 0.3s ease;
+}
+
+.loading-overlay.active {
+    visibility: visible;
+    opacity: 1;
+}
+
+.loading-window {
+    background: #2a2a2a;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    padding: 2rem;
+    width: 90%;
+    max-width: 600px;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
+    text-align: center;
+    position: relative; /* For spinner positioning */
+    overflow: hidden; /* Ensure spinner doesn't overflow rounded corners */
+}
+
+.loading-window h2 {
+    font-size: 2rem;
+    color: #ffffff;
+    margin-bottom: 1.5rem;
+}
+
+.progress-bar-container {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 5px;
+    height: 15px;
+    overflow: hidden;
+    margin-bottom: 1rem;
+}
+
+.progress-bar {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #6c5ce7, #fd79a8); /* Gradient for the bar */
+    border-radius: 5px;
+    transition: width 0.1s ease-out; /* Smooth progress update */
+}
+
+.progress-text {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-top: 0.5rem;
+    color: #ffffff;
+}
+
+.console-output {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-top: 1rem;
+    text-align: left;
+}
+
+.console-output h3 {
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 0.5rem;
+}
+
+#console-log {
+    background: #1a1a1a;
+    color: #0f0; /* Green text for console feel */
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 0.9rem;
+    height: 150px; /* Fixed height for the console */
+    overflow-y: auto; /* Enable scrolling */
+    border: 1px solid #333;
+    padding: 0.5rem;
+    border-radius: 5px;
+    white-space: pre-wrap; /* Preserve whitespace and wrap text */
+    word-break: break-word; /* Break long words */
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    header {
+        padding: 1.5rem;
+    }
+
+    header h1 {
+        font-size: 2rem;
+    }
+
+    .search-container {
+        flex-direction: column;
+        gap: 0.8rem;
+    }
+
+    .search-input {
+        max-width: 100%;
+    }
+
+    .search-button {
+        width: 100%;
+        max-width: 250px; /* Limit button width on small screens */
+        padding: 0.7rem 1.2rem;
+        font-size: 0.9rem;
+    }
+
+    .multi-select-actions {
+        flex-direction: column;
+        gap: 1rem;
+        padding: 0.8rem;
+    }
+
+    .selected-count {
+        font-size: 1rem;
+    }
+
+    .bulk-action-trigger {
+        width: 100%;
+        max-width: 250px;
+        font-size: 0.9rem;
+        padding: 0.7rem 1.5rem;
+    }
+
+    .container {
+        padding: 1rem;
+    }
+
+    #texture-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); /* Smaller cards on mobile */
+        gap: 1rem;
+    }
+
+    .texture-card {
+        padding: 0.8rem;
+        min-height: 220px; /* Adjusted min-height for mobile */
+    }
+
+    .media-container {
+        height: 120px; /* Adjusted image container height for mobile */
     }
 
     .texture-filename {
