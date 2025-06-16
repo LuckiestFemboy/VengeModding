@@ -20,7 +20,8 @@ let exportBrowserButton;
 
 
 // Card Creation
-function createAndAppendCard(folder, filename, type) {
+// Modified to accept an optional initialBlob for pre-caching
+function createAndAppendCard(folder, filename, type, initialBlob = null) {
     // Create main card element
     const card = document.createElement('div');
     card.className = 'texture-card';
@@ -37,7 +38,7 @@ function createAndAppendCard(folder, filename, type) {
         filename,
         type,
         mediaPath,
-        originalImageBlob: null, // Will store the fetched Blob of the original image
+        originalImageBlob: initialBlob, // Store the initialBlob if provided
         modifiedImageBlob: null, // Will store Blob of modified image
         newImageBlob: null,      // Will store Blob of newly created image
         isModified: false,       // Flag if modifiedImageBlob exists
@@ -143,7 +144,13 @@ function createAndAppendCard(folder, filename, type) {
         // Create appropriate media element/placeholder based on type
         const mediaElement = document.createElement('img');
         mediaElement.className = 'media-image';
-        mediaElement.src = mediaPath;
+        
+        // If an initial blob is provided, use it for the display URL
+        if (initialBlob) {
+            mediaElement.src = URL.createObjectURL(initialBlob);
+        } else {
+            mediaElement.src = mediaPath;
+        }
 
         // Add error handling for images
         mediaElement.onerror = () => {
@@ -232,7 +239,7 @@ function createAndAppendCard(folder, filename, type) {
         downloadButton.onclick = (event) => {
             event.stopPropagation(); // Prevent card selection when clicking download button
             const downloadLink = document.createElement('a');
-            downloadLink.href = mediaPath;
+            downloadLink.href = mediaPath; // Use original mediaPath for direct download
             downloadLink.download = filename;
             downloadLink.click();
         };
@@ -262,8 +269,24 @@ window.updateCardVisualState = (asset) => {
     if (cardElement) {
         if (asset.isModified || asset.isNew) {
             cardElement.classList.add('edited-card');
+            // If the card has a media image, update its src to reflect the new/modified blob
+            const mediaImage = cardElement.querySelector('.media-image');
+            if (mediaImage && (asset.modifiedImageBlob || asset.newImageBlob)) {
+                // Revoke old URL if it exists to prevent memory leaks
+                if (mediaImage.src.startsWith('blob:')) {
+                    URL.revokeObjectURL(mediaImage.src);
+                }
+                const blobToDisplay = asset.modifiedImageBlob || asset.newImageBlob;
+                mediaImage.src = URL.createObjectURL(blobToDisplay);
+            }
         } else {
             cardElement.classList.remove('edited-card');
+            // Revert image src to original mediaPath if no longer modified/new
+            const mediaImage = cardElement.querySelector('.media-image');
+            if (mediaImage && mediaImage.src.startsWith('blob:') && asset.mediaPath) {
+                URL.revokeObjectURL(mediaImage.src); // Revoke blob URL
+                mediaImage.src = asset.mediaPath; // Revert to original path
+            }
         }
     }
 };
@@ -348,52 +371,85 @@ async function initializeGallery() {
             console.error('Search elements not found!');
         }
 
+        // --- Optimized Asset Loading with Pre-fetching Blobs ---
+        window.showLoadingOverlay('Loading Assets...'); // Show initial loading message
+
+        const fetchPromises = [];
+
         // Load PNG files
-        try {
-            const pngResponse = await fetch('pnglist.txt');
-            if (!pngResponse.ok) {
-                console.error('Failed to fetch pnglist.txt');
-            } else {
+        fetchPromises.push((async () => {
+            try {
+                const pngResponse = await fetch('pnglist.txt');
+                if (!pngResponse.ok) {
+                    console.error('Failed to fetch pnglist.txt');
+                    return;
+                }
                 const pngText = await pngResponse.text();
                 const pngLines = pngText.trim().split('\n');
 
                 for (const line of pngLines) {
                     const [folder, filename] = line.split(' ');
                     if (folder && filename) {
-                        createAndAppendCard(folder, filename, 'png');
+                        const mediaPath = `./mod-assets/png/${filename}`;
+                        try {
+                            const response = await fetch(mediaPath);
+                            if (!response.ok) throw new Error(`Failed to fetch PNG: ${response.statusText}`);
+                            const blob = await response.blob();
+                            createAndAppendCard(folder, filename, 'png', blob); // Pass the blob for caching
+                        } catch (error) {
+                            console.error(`Error loading PNG asset ${filename}:`, error);
+                            createAndAppendCard(folder, filename, 'png'); // Create card without blob on error
+                        }
                     }
                 }
+                window.updateConsoleLog('PNG assets loaded.');
+            } catch (error) {
+                console.error('Error in PNG loading process:', error);
+                window.updateConsoleLog('[ERROR] Failed to load PNG assets.');
             }
-        } catch (error) {
-            console.error('Error loading PNG files:', error);
-        }
+        })());
 
         // Load JPG files
-        try {
-            const jpgResponse = await fetch('jpgurl.txt');
-            if (!jpgResponse.ok) {
-                console.error('Failed to fetch jpgurl.txt');
-            } else {
+        fetchPromises.push((async () => {
+            try {
+                const jpgResponse = await fetch('jpgurl.txt');
+                if (!jpgResponse.ok) {
+                    console.error('Failed to fetch jpgurl.txt');
+                    return;
+                }
                 const jpgText = await jpgResponse.text();
                 const jpgLines = jpgText.trim().split('\n');
 
                 for (const line of jpgLines) {
                     const [folder, filename] = line.split(' ');
                     if (folder && filename) {
-                        createAndAppendCard(folder, filename, 'jpg');
+                        const mediaPath = `./mod-assets/jpg/${filename}`;
+                        try {
+                            const response = await fetch(mediaPath);
+                            if (!response.ok) throw new Error(`Failed to fetch JPG: ${response.statusText}`);
+                            const blob = await response.blob();
+                            createAndAppendCard(folder, filename, 'jpg', blob); // Pass the blob for caching
+                        } catch (error) {
+                            console.error(`Error loading JPG asset ${filename}:`, error);
+                            createAndAppendCard(folder, filename, 'jpg'); // Create card without blob on error
+                        }
                     }
                 }
+                window.updateConsoleLog('JPG assets loaded.');
+            } catch (error) {
+                console.error('Error in JPG loading process:', error);
+                window.updateConsoleLog('[ERROR] Failed to load JPG assets.');
             }
-        } catch (error) {
-            console.error('Error loading JPG files:', error);
-        }
+        })());
 
-        // Load MP3 files
-        try {
-            const mp3Response = await fetch('mp3list.txt');
-            if (!mp3Response.ok) {
-                console.error('Failed to fetch mp3list.txt');
-            } else {
+        // Load MP3 files (no blob pre-fetching needed for MP3s as they are not image-like for editing/conversion)
+        fetchPromises.push((async () => {
+            try {
+                const mp3Response = await fetch('mp3list.txt');
+                if (!mp3Response.ok) {
+                    console.error('Failed to fetch mp3list.txt');
+                    return;
+                }
                 const mp3Text = await mp3Response.text();
                 const mp3Lines = mp3Text.trim().split('\n');
 
@@ -403,16 +459,27 @@ async function initializeGallery() {
                         createAndAppendCard(folder, filename, 'mp3');
                     }
                 }
+                window.updateConsoleLog('MP3 assets loaded.');
+            } catch (error) {
+                console.error('Error in MP3 loading process:', error);
+                window.updateConsoleLog('[ERROR] Failed to load MP3 assets.');
             }
-        } catch (error) {
-            console.error('Error loading MP3 files:', error);
-        }
+        })());
+
+
+        // Wait for all asset types to be loaded
+        await Promise.all(fetchPromises);
+        window.updateConsoleLog('All assets initialized.');
+        window.hideLoadingOverlayWithDelay(1000, 'Gallery Ready!'); // Hide after all assets are processed
 
         // Populate allCards AFTER all cards have been created and appended
         allCards = document.querySelectorAll('.texture-card');
 
+
     } catch (error) {
         console.error('Error initializing gallery:', error);
+        window.updateConsoleLog(`[FATAL ERROR] Gallery initialization failed: ${error.message}`);
+        window.hideLoadingOverlayWithDelay(3000, 'Gallery Initialization Failed!');
     }
 }
 
@@ -421,6 +488,7 @@ function playAudio(audioPath) {
     audio.play().catch(error => {
         console.error('Error playing audio:', error);
         console.error('Failed to play audio file. Please check if the file exists and is accessible.');
+        window.updateConsoleLog(`[AUDIO ERROR] Failed to play: ${audioPath}`);
     });
 }
 
@@ -542,8 +610,8 @@ async function initiateZipDownload(exportType) {
     let filesProcessed = 0;
     const totalFiles = allAssets.length;
 
-    const fetchPromises = allAssets.map(async (asset) => {
-        const { folder, filename, type, mediaPath, originalImageBlob, modifiedImageBlob, newImageBlob, isModified, isNew } = asset;
+    const zipPromises = allAssets.map(async (asset) => {
+        const { folder, filename, type, originalImageBlob, modifiedImageBlob, newImageBlob, isModified, isNew } = asset;
         let fileBlobToZip = null;
         let fileNameToZip = filename; // Default to original filename
 
@@ -557,20 +625,20 @@ async function initiateZipDownload(exportType) {
                 fileBlobToZip = modifiedImageBlob;
                 window.updateConsoleLog(`Including MODIFIED texture: ${filename} (Folder: ${folder})`);
             } else if (originalImageBlob) {
-                // Use the already fetched original image blob
+                // Use the already fetched original image blob (pre-cached)
                 fileBlobToZip = originalImageBlob;
                 window.updateConsoleLog(`Including ORIGINAL asset (cached): ${filename} (Folder: ${folder})`);
             } else {
-                // Fetch the original asset if not already fetched
-                const response = await fetch(mediaPath);
+                // This case should be rare if pre-fetching works, but keep as fallback
+                console.warn(`No blob found for ${filename}, attempting to re-fetch.`);
+                const response = await fetch(asset.mediaPath);
                 if (!response.ok) {
-                    console.error(`Failed to fetch original ${mediaPath}: ${response.statusText}`);
+                    console.error(`Failed to fetch original ${asset.mediaPath}: ${response.statusText}`);
                     window.updateConsoleLog(`[ERROR] Failed to fetch original: ${filename}`);
                     return null; // Return null for failed fetches
                 }
                 fileBlobToZip = await response.blob();
-                // Store this fetched blob in the asset object for future use
-                asset.originalImageBlob = fileBlobToZip;
+                asset.originalImageBlob = fileBlobToZip; // Cache it now
                 window.updateConsoleLog(`Fetched & Including ORIGINAL asset: ${filename} (Folder: ${folder})`);
             }
 
@@ -578,6 +646,7 @@ async function initiateZipDownload(exportType) {
             const zipPath = `${baseZipPathForAssets}${folder}/1/${fileNameToZip}`;
             zip.file(zipPath, fileBlobToZip);
 
+            // Update progress only after the file is added to JSZip
             filesProcessed++;
             window.updateLoadingProgress(filesProcessed, totalFiles, filename);
 
@@ -589,11 +658,12 @@ async function initiateZipDownload(exportType) {
         }
     });
 
-    await Promise.all(fetchPromises); // Wait for all files to be processed
+    // Wait for all files to be processed (fetched and added to JSZip instance)
+    await Promise.all(zipPromises);
 
     // Ensure progress is 100% after all files are attempted
-    window.updateLoadingProgress(totalFiles, totalFiles, 'All asset files processed.');
-    window.updateConsoleLog(`\nAll asset files processed. Generating ZIP...\n`);
+    window.updateLoadingProgress(totalFiles, totalFiles, 'All asset files added to ZIP buffer.');
+    window.updateConsoleLog(`\nAll asset files buffered. Starting ZIP compression...\n`);
 
 
     try {
@@ -601,15 +671,18 @@ async function initiateZipDownload(exportType) {
             type: "blob",
             compression: "DEFLATE", // Use compression
             compressionOptions: {
-                level: 9 // Max compression
+                level: 5 // Changed from 9 to 5 for better performance
             }
         }, function updateCallback(metadata) {
             // Update progress during ZIP generation (optional, but good for large zips)
-            const generationProgress = Math.round(metadata.percent);
-            progressBar.style.width = `${generationProgress}%`;
-            progressPercentage.textContent = `${generationProgress}%`;
-            if (metadata.currentFile) {
-                window.updateConsoleLog(`Compressing: ${metadata.currentFile}`);
+            // Only update if metadata.percent is meaningful (not 0 or 100 for too long)
+            if (metadata.percent > 0 && metadata.percent < 100) {
+                const generationProgress = Math.round(metadata.percent);
+                progressBar.style.width = `${generationProgress}%`;
+                progressPercentage.textContent = `${generationProgress}% (Compressing)`;
+                if (metadata.currentFile) {
+                    window.updateConsoleLog(`Compressing: ${metadata.currentFile}`);
+                }
             }
         });
 
