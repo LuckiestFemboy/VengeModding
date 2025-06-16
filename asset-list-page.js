@@ -619,8 +619,6 @@ window.hideLoadingOverlayWithDelay = (delay, finalMessage = 'Operation Complete!
             loadingOverlay.classList.remove('active');
             console.log('Loading Overlay Hidden.');
         }, delay);
-    } else {
-        console.error('Loading overlay elements not found for hiding!');
     }
 };
 
@@ -774,22 +772,16 @@ async function initiateZipDownload(exportType) {
                 level: 5 // Changed from 9 to 5 for better performance
             }
         }, function updateCallback(metadata) {
-            // Update progress during ZIP generation
-            if (metadata.percent > 0 && metadata.percent <= 100) { // Keep 100% update to show completion before actual download
+            // Update progress during ZIP generation (optional, but good for large zips)
+            // Only update if metadata.percent is meaningful (not 0 or 100 for too long)
+            if (metadata.percent > 0 && metadata.percent < 100) {
                 const generationProgress = Math.round(metadata.percent);
-                // Update message to indicate compression
-                if (generationProgress < 100) {
-                     // Only update currentFile message if it changes to avoid log spam
-                    if (consoleLog.lastFileCompressed !== metadata.currentFile) {
-                        window.updateConsoleLog(`Compressing: ${metadata.currentFile || '...'}`);
-                        consoleLog.lastFileCompressed = metadata.currentFile; // Store last logged file
-                    }
-                    progressPercentage.textContent = `${generationProgress}% (Compressing)`;
-                } else {
-                    progressPercentage.textContent = `100% (Finalizing)`;
-                    window.updateConsoleLog(`Compression complete!`);
-                }
                 progressBar.style.width = `${generationProgress}%`;
+                progressPercentage.textContent = `${generationProgress}% (Compressing)`;
+                // Commented out currentFile as it floods the console during compression
+                // if (metadata.currentFile) {
+                //     window.updateConsoleLog(`Compressing: ${metadata.currentFile}`);
+                // }
             }
         });
 
@@ -815,15 +807,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const downloadAllZipButton = document.getElementById('download-all-zip-button');
 
-    // Get references to the loading UI elements
+    // Get references to the new loading UI elements (already done by global functions, just ensuring they exist)
     loadingOverlay = document.getElementById('loading-overlay');
     progressBar = document.getElementById('progress-bar');
     progressPercentage = document.getElementById('progress-percentage');
     consoleLog = document.getElementById('console-log');
+    // New: Reference to the h2 in the loading window
     loadingMessageDisplay = loadingOverlay ? loadingOverlay.querySelector('h2') : null;
-    // Removed: mainLoaderSpinner = document.getElementById('main-loader-spinner'); // Get reference to the spinner
 
-    if (downloadAllZipButton && loadingOverlay && progressBar && progressPercentage && consoleLog && loadingMessageDisplay) { // Removed mainLoaderSpinner from check
+
+    if (downloadAllZipButton && loadingOverlay && progressBar && progressPercentage && consoleLog && loadingMessageDisplay) {
         // Change the download button's behavior to show the export options popup
         downloadAllZipButton.removeEventListener('click', null); // Remove any old listeners if this script reloads
         downloadAllZipButton.addEventListener('click', showExportOptionsPopup);
@@ -835,6 +828,5 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!progressPercentage) console.error('progress-percentage not found!');
         if (!consoleLog) console.error('console-log not found!');
         if (!loadingMessageDisplay) console.error('h2 for loading message not found!');
-        // Removed: if (!mainLoaderSpinner) console.error('main-loader-spinner not found!');
     }
 });
