@@ -1,356 +1,527 @@
-body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+/* Reset and base styles */
+* {
     margin: 0;
     padding: 0;
-    background-color: #eef5fa; /* Very light, airy background */
-    color: #3b5c70; /* Muted dark text for overall page */
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background: #F8F8F8; /* Very light grey background */
+    color: #333333; /* Dark grey text */
     line-height: 1.6;
 }
 
-.container {
-    max-width: 1200px;
-    margin: 30px auto;
-    padding: 0 20px;
-}
-
+/* Header styles */
 header {
-    background-color: #ffffff; /* White header background */
-    padding: 20px 0;
-    border-bottom: 1px solid #e0e6ed; /* Soft border */
-    box-shadow: 0 2px 8px rgba(180, 200, 220, 0.1); /* Subtle shadow */
-    margin-bottom: 30px;
-}
-
-header .container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.logo {
-    font-size: 2em;
-    font-weight: 700;
-    color: #7ab8e0; /* Soft blue logo color */
-    text-decoration: none;
-}
-
-nav ul {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    gap: 25px;
-}
-
-nav ul li a {
-    text-decoration: none;
-    color: #6a8ba0; /* Muted navigation links */
-    font-weight: 500;
-    font-size: 1.1em;
-    transition: color 0.2s ease-in-out;
-}
-
-nav ul li a:hover {
-    color: #7ab8e0; /* Soft blue on hover */
-}
-
-.page-header {
-    margin-bottom: 25px;
+    background: #FFFFFF; /* White header background */
+    padding: 2rem;
     text-align: center;
+    border-bottom: 1px solid #E0E0E0; /* Light border */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); /* Softer shadow */
 }
 
-.page-header h1 {
-    font-size: 2.5em;
-    color: #5c7c8c; /* Muted header color */
-    font-weight: 700;
-    margin-bottom: 10px;
+header h1 {
+    font-size: 2.4rem;
+    margin-bottom: 0.5rem;
+    color: #555555; /* Muted dark text */
+    text-shadow: none; /* Remove text shadow */
 }
 
-.page-header p {
-    color: #8fa1b3; /* Lighter description text */
-    font-size: 1.1em;
-}
-
-/* Action bar for search, filter, add new */
-.action-bar {
+/* Search bar styles */
+.search-container {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background-color: #ffffff; /* White action bar background */
-    padding: 15px 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(180, 200, 220, 0.1); /* Subtle shadow */
-    margin-bottom: 25px;
-    flex-wrap: wrap;
-    gap: 15px;
-}
-
-.search-filter-group {
-    display: flex;
-    gap: 10px;
-    flex-grow: 1;
-    max-width: 600px;
-}
-
-.search-filter-group input[type="text"],
-.search-filter-group select {
-    padding: 10px 15px;
-    border: 1px solid #d0dae6; /* Lighter border */
-    border-radius: 6px;
-    font-size: 1em;
-    color: #4b6a7a; /* Darker text for inputs */
-    background-color: #ffffff; /* White input background */
-    transition: border-color 0.2s ease-in-out;
-}
-
-.search-filter-group input[type="text"]:focus,
-.search-filter-group select:focus {
-    border-color: #9ac2e0; /* Softer focus color */
-    outline: none;
-    box-shadow: 0 0 5px rgba(154, 194, 224, 0.3); /* Soft focus shadow */
-}
-
-.search-filter-group input[type="text"] {
-    flex-grow: 1;
-}
-
-.add-new-button {
-    background-color: #a0d0ed; /* Soft blue */
-    color: white;
-    padding: 10px 20px;
-    border-radius: 6px;
-    text-decoration: none;
-    font-weight: 500;
-    transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.add-new-button:hover {
-    background-color: #8cbbe6; /* Slightly darker blue on hover */
-    transform: translateY(-1px);
-}
-
-.add-new-button svg {
-    fill: white;
-    height: 18px;
-    width: 18px;
-}
-
-/* Asset grid */
-.asset-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 25px;
-}
-
-.asset-card {
-    background-color: #ffffff; /* White card background */
-    border-radius: 10px;
-    box-shadow: 0 4px 15px rgba(180, 200, 220, 0.15); /* Softer, lighter shadow */
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-}
-
-.asset-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 6px 20px rgba(160, 180, 200, 0.25); /* More pronounced shadow on hover */
-}
-
-.asset-image-container {
-    width: 100%;
-    height: 180px;
-    background-color: #f7f9fc; /* Light background for image area */
-    display: flex;
-    align-items: center;
     justify-content: center;
-    overflow: hidden;
-    border-bottom: 1px solid #e0e6ed; /* Soft border */
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1rem;
+    padding: 0 1rem;
 }
 
-.asset-image-container img {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
+.search-input {
+    width: 100%;
+    max-width: 400px;
+    padding: 0.8rem 1rem;
+    border: 1px solid #E0E0E0; /* Light border */
+    border-radius: 6px;
+    background: #FFFFFF; /* White background */
+    color: #333333; /* Dark text */
+    font-size: 1rem;
+    outline: none;
 }
 
-.asset-info {
-    padding: 15px 20px 20px;
-    display: flex;
-    flex-direction: column;
-    flex-grow: 1;
+.search-input::placeholder {
+    color: #777777; /* Muted placeholder */
 }
 
-.asset-info h3 {
-    font-size: 1.4em;
-    margin-top: 0;
-    margin-bottom: 8px;
-    color: #5c7c8c; /* Muted title color */
-    flex-grow: 1;
+.search-input:focus {
+    border-color: #D7BDE2; /* Light purple on focus */
+    background: #F0F0F0; /* Slightly darker light background */
 }
 
-.asset-info p {
-    font-size: 0.95em;
-    color: #8fa1b3; /* Lighter description text */
-    margin-bottom: 15px;
-}
-
-.asset-meta {
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.85em;
-    color: #aebecd; /* Light metadata text */
-    margin-bottom: 15px;
-}
-
-.asset-tags {
-    margin-top: auto; /* Push tags to the bottom */
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-bottom: 15px; /* Space before buttons */
-}
-
-.asset-tag {
-    background-color: #e0e9f2; /* Light tag background */
-    color: #6a8ba0; /* Muted tag text */
-    padding: 5px 10px;
-    border-radius: 5px;
-    font-size: 0.8em;
-    font-weight: 500;
-}
-
-.asset-actions {
-    display: flex;
-    gap: 10px;
-    margin-top: 10px;
-}
-
-.asset-actions button {
-    flex: 1;
-    padding: 10px 15px;
+.search-button {
+    padding: 0.8rem 1.5rem;
+    background: linear-gradient(135deg, #A7D9F0, #D7BDE2); /* Pastel blue-purple gradient */
+    color: #333333; /* Dark text */
     border: none;
     border-radius: 6px;
-    font-weight: 500;
+    font-size: 1rem;
     cursor: pointer;
-    transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+    transition: all 0.2s ease;
 }
 
-.asset-actions .edit-button {
-    background-color: #b0d8f0; /* Soft blue for edit */
-    color: #3b5c70; /* Darker text for contrast */
+.search-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.asset-actions .edit-button:hover {
-    background-color: #9ac2e0; /* Darker blue on hover */
+.search-button.clear-button {
+    background: linear-gradient(135deg, #D7BDE2, #A7D9F0); /* Reversed pastel gradient */
+}
+
+/* New: Styles for the multi-select action container */
+.multi-select-actions {
+    display: flex; /* Hidden by default in HTML, shown by JS */
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1rem;
+    padding: 0 1rem;
+    flex-wrap: wrap; /* Allow wrapping on smaller screens */
+}
+
+.multi-select-actions .selected-count {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #FFD1DC; /* Light pink for count */
+    padding: 0.5rem 1rem;
+    border: 1px solid #FFD1DC; /* Light pink border */
+    border-radius: 6px;
+    background: rgba(255, 209, 220, 0.2); /* Very light pink background */
+}
+
+.multi-select-actions .bulk-action-trigger {
+    background: linear-gradient(135deg, #FFD1DC, #D7BDE2); /* Pastel pink-purple gradient */
+    padding: 0.8rem 1.5rem;
+    border-radius: 6px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.multi-select-actions .bulk-action-trigger:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.multi-select-actions .bulk-action-trigger:disabled {
+    background: #E0E0E0; /* Light grey for disabled */
+    color: #AAAAAA;
+    cursor: not-allowed;
+    opacity: 0.8;
+    box-shadow: none;
+    transform: none;
+}
+
+
+/* Container styles */
+.container {
+    width: 100%;
+    max-width: 1800px;
+    margin: 0 auto;
+    padding: 2rem;
+    background: #F8F8F8; /* Match body background */
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+/* Grid layout - Fixed to prevent overlapping */
+#texture-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 2rem;
+    padding: 2rem;
+    min-height: 100vh;
+    background: #F8F8F8; /* Match body background */
+    justify-content: center;
+    max-width: 100%;
+}
+
+/* Card styles - Base for all cards */
+.texture-card {
+    background: #FFFFFF; /* White card background */
+    border-radius: 16px;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05); /* Softer shadow */
+    width: 100%;
+    max-width: 380px;
+    height: 420px; /* Fixed height for consistent card size for non-MP3s */
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    transition: all 0.3s ease;
+    padding: 0;
+    margin: 0 auto;
+    border: 1px solid #E0E0E0; /* Light border */
+    backdrop-filter: blur(3px); /* Lighter blur */
+    overflow: hidden; /* Keep hidden for non-MP3s */
+}
+
+.texture-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1); /* More prominent but light shadow */
+    border-color: #D7BDE2; /* Light purple border on hover */
+}
+
+/* Style for edited cards */
+.texture-card.edited-card {
+    background: #F0F0F0; /* Lighter grey background */
+    border: 2px solid #A7D9F0; /* Highlight border (light blue) */
+    box-shadow: 0 4px 15px rgba(167, 217, 240, 0.4); /* Stronger light blue shadow */
+    color: #333333; /* Dark text for legibility on light background */
+}
+
+.texture-card.edited-card .texture-filename,
+.texture-card.edited-card .texture-name,
+.texture-card.edited-card .mp3-filename-display,
+.texture-card.edited-card .folder-number-button {
+    color: #333333; /* Ensure text is dark on white background */
+}
+
+/* MP3-specific card styling (consolidated layout) */
+.texture-card.mp3 {
+    height: auto; /* Let content dictate height */
+    min-height: 220px; /* Minimum height for consolidated MP3 card */
+    max-height: none; /* Allow it to expand vertically */
+    display: flex;
+    flex-direction: column; /* Stack contents vertically */
+    align-items: center; /* Center items horizontally within the card */
+    justify-content: space-between; /* Push elements to top/bottom, space in between */
+    padding: 1rem; /* Overall internal padding for the card */
+    background: #EAF7FC; /* A very light blue tint for the whole card */
+    border: 1px solid #A7D9F0; /* Light blue border */
+    overflow: hidden; /* Re-enable overflow hidden for the main card */
+}
+
+/* MP3 specific edited card style */
+.texture-card.mp3.edited-card {
+    background: #F2FAFD; /* A lighter blue tint for MP3 edited cards */
+    border: 2px solid #B2D8D8; /* Muted teal highlight border */
+    box-shadow: 0 4px 15px rgba(178, 216, 216, 0.4);
+    color: #333333; /* Dark text */
+}
+
+/* Media container (for PNG/JPG cards) */
+.media-container {
+    width: 100%;
+    height: 250px;
+    border-radius: 16px 16px 0 0;
+    overflow: hidden;
+    background: #F0F0F0; /* Light grey background for canvas area */
+    position: relative;
+    padding: 0;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.media-image {
+    max-width: 100%;
+    max-height: 100%;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Play icon (now direct child of .texture-card.mp3) */
+.media-icon {
+    font-size: 3rem; /* Make it a bit bigger as it's more central */
+    color: #D7BDE2; /* Light purple color */
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-bottom: 0.75rem; /* Space below icon */
+}
+
+.media-icon:hover {
+    color: #FFD1DC; /* Light pink on hover */
+    transform: scale(1.1);
+}
+
+/* Info section for all cards */
+.texture-info {
+    padding: 1rem 1.2rem;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1; /* Allow info to take remaining space */
+    justify-content: space-between;
+    background: #FFFFFF; /* White background */
+    border-radius: 0 0 16px 16px;
+}
+
+.texture-filename {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #333333; /* Dark text */
+    word-break: break-all; /* Ensure long names wrap */
+    margin-bottom: 0.25rem;
+}
+
+.texture-name {
+    font-size: 0.95rem;
+    color: #555555; /* Muted text */
+    margin-bottom: 0.75rem;
+    word-break: break-all;
+}
+
+/* Action buttons at the bottom of the card */
+.card-actions {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+    margin-top: auto; /* Push buttons to the bottom */
+}
+
+.action-button,
+.folder-number-button {
+    padding: 0.6rem 1rem;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3rem;
+    font-weight: 500;
+}
+
+.action-button.edit {
+    background: linear-gradient(135deg, #D7BDE2, #A7D9F0); /* Pastel purple-blue gradient */
+    color: #333333; /* Dark text */
+}
+
+.action-button.edit:hover {
+    background: linear-gradient(135deg, #A7D9F0, #D7BDE2); /* Reversed gradient on hover */
     transform: translateY(-1px);
 }
 
-.asset-actions .delete-button {
-    background-color: #fcebeb; /* Very light red for delete */
-    color: #d17a80; /* Muted red text */
-    border: 1px solid #f8d1d1; /* Soft red border */
+.action-button.delete {
+    background: linear-gradient(135deg, #FFD1DC, #D7BDE2); /* Pastel pink-purple gradient */
+    color: #333333; /* Dark text */
 }
 
-.asset-actions .delete-button:hover {
-    background-color: #f7e0e0; /* Darker red on hover */
+.action-button.delete:hover {
+    background: linear-gradient(135deg, #D7BDE2, #FFD1DC); /* Reversed gradient on hover */
     transform: translateY(-1px);
 }
 
-/* Pagination */
-.pagination {
+.folder-number-button {
+    background: #FFFFFF; /* White background */
+    color: #A7D9F0; /* Light blue text */
+    border: 1px solid #A7D9F0; /* Light blue border */
+}
+
+.folder-number-button:hover {
+    background: #A7D9F0; /* Light blue background on hover */
+    color: #FFFFFF; /* White text on hover */
+}
+
+/* Multi-select overlay */
+.card-multi-select-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.5); /* Very light, semi-transparent */
+    border-radius: 16px;
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 10px;
-    margin-top: 40px;
-    padding: 15px;
-    background-color: #ffffff; /* White pagination background */
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(180, 200, 220, 0.1); /* Subtle shadow */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
 }
 
-.pagination button {
-    background-color: #e9eff5; /* Light grey-blue */
-    color: #6a8ba0; /* Muted text */
-    border: 1px solid #d0dae6; /* Soft border */
-    padding: 8px 14px;
+.texture-card.selected .card-multi-select-overlay {
+    opacity: 1;
+    visibility: visible;
+    background: rgba(167, 217, 240, 0.4); /* Light blue tint when selected */
+    border: 3px solid #A7D9F0; /* Solid light blue border */
+}
+
+.card-multi-select-overlay .checkbox-icon {
+    font-size: 3rem;
+    color: #FFFFFF; /* White checkmark */
+    background: #A7D9F0; /* Light blue background for checkmark */
+    border-radius: 50%;
+    padding: 0.5rem;
+    border: 2px solid #FFFFFF;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Loading Overlay Styles (from new requirements) */
+#loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.9); /* Lighter, semi-transparent white */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    visibility: hidden; /* Hidden by default */
+    opacity: 0;
+    transition: visibility 0.3s ease, opacity 0.3s ease;
+    padding: 20px; /* Add some padding for mobile */
+    text-align: center; /* Center text for smaller screens */
+}
+
+#loading-overlay.active {
+    visibility: visible;
+    opacity: 1;
+}
+
+#loading-overlay h2 {
+    font-size: 2rem;
+    color: #555555; /* Muted dark grey */
+    margin-bottom: 1.5rem;
+}
+
+.progress-bar-container {
+    width: 80%;
+    max-width: 500px;
+    background: #E0E0E0; /* Light grey background */
     border-radius: 5px;
-    cursor: pointer;
-    font-weight: 500;
-    transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+    height: 20px;
+    overflow: hidden;
+    margin-bottom: 1rem;
 }
 
-.pagination button:hover:not(:disabled) {
-    background-color: #dde6f0; /* Slightly darker on hover */
-    border-color: #c0cad6;
+.progress-bar {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #FFD1DC, #D7BDE2); /* Pastel pink-purple gradient for the bar */
+    border-radius: 5px;
+    transition: width 0.1s ease-out; /* Smooth progress update */
 }
 
-.pagination button:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
+.progress-text {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-top: 0.5rem;
+    color: #555555; /* Muted dark text */
 }
 
-.pagination span {
-    font-weight: 500;
-    color: #5c7c8c; /* Muted text for page info */
-}
-
-/* Bulk operations section */
-.bulk-operations-bar {
-    background-color: #f7f9fc; /* Soft background */
-    border: 1px solid #e0e6ed; /* Soft border */
+.console-output {
+    background: #F0F0F0; /* Light background */
+    border: 1px solid #E0E0E0; /* Light border */
     border-radius: 8px;
-    padding: 15px 20px;
-    margin-top: 25px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 15px;
-    box-shadow: 0 2px 8px rgba(180, 200, 220, 0.1); /* Subtle shadow */
+    padding: 1rem;
+    margin-top: 1rem;
+    text-align: left;
+    width: 80%;
+    max-width: 500px;
 }
 
-.bulk-operations-bar .select-all-checkbox {
-    display: flex;
-    align-items: center;
-    gap: 8px;
+.console-output h3 {
+    font-size: 1rem;
+    color: #777777; /* Muted grey */
+    margin-bottom: 0.5rem;
 }
 
-.bulk-operations-bar .select-all-checkbox input[type="checkbox"] {
-    accent-color: #7ab8e0; /* Soft blue accent */
-    transform: scale(1.2);
+#console-log {
+    background: #FFFFFF; /* White background */
+    color: #555555; /* Muted text */
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 0.9rem;
+    height: 150px; /* Fixed height for the console */
+    overflow-y: auto; /* Enable scrolling */
+    border: 1px solid #E0E0E0; /* Light border */
+    padding: 0.5rem;
+    border-radius: 4px;
 }
 
-.bulk-operations-bar .select-all-checkbox label {
-    color: #5c7c8c; /* Muted label */
-    font-weight: 500;
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    header {
+        padding: 1.5rem;
+    }
+
+    header h1 {
+        font-size: 2rem;
+    }
+
+    .container {
+        padding: 1rem;
+    }
+
+    #texture-grid {
+        grid-template-columns: 1fr; /* Single column on small screens */
+        padding: 1rem;
+        gap: 1.5rem;
+    }
+
+    .texture-card {
+        max-width: 100%; /* Full width on small screens */
+        height: auto; /* Allow height to adjust */
+        min-height: 380px;
+    }
+
+    .media-container {
+        height: 200px; /* Smaller image height */
+    }
+
+    .texture-info {
+        padding: 0.8rem 1rem;
+    }
+
+    .texture-filename {
+        font-size: 1rem;
+    }
+
+    .texture-name {
+        font-size: 0.85rem;
+    }
+
+    .action-button,
+    .folder-number-button {
+        padding: 0.5rem 0.8rem;
+        font-size: 0.8rem;
+    }
+
+    .search-input {
+        max-width: 100%;
+    }
+
+    .multi-select-actions {
+        flex-direction: column;
+        gap: 0.8rem;
+    }
+
+    .multi-select-actions .selected-count,
+    .multi-select-actions .bulk-action-trigger {
+        width: 100%;
+        text-align: center;
+    }
 }
 
-.bulk-actions-buttons button {
-    background-color: #b0d8f0; /* Soft blue */
-    color: #3b5c70; /* Darker text */
-    padding: 10px 18px;
-    border-radius: 6px;
-    border: 1px solid #9ac2e0; /* Matching soft border */
-    cursor: pointer;
-    font-weight: 500;
-    transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out, transform 0.1s ease-in-out;
-}
+@media (max-width: 480px) {
+    header h1 {
+        font-size: 1.8rem;
+    }
 
-.bulk-actions-buttons button:hover {
-    background-color: #9ac2e0; /* Darker blue on hover */
-    border-color: #80add1;
-    transform: translateY(-1px);
-}
+    .container {
+        padding: 0.75rem;
+    }
 
-.bulk-actions-buttons button:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    background-color: #e0e9f2; /* Lighter disabled background */
-    border-color: #d0dae6;
-    color: #aebecd;
+    #texture-grid {
+        padding: 0.75rem;
+        gap: 1rem;
+    }
 }

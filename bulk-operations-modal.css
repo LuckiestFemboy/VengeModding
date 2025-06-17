@@ -1,161 +1,335 @@
-/* General modal overlay and content styling */
-.modal-overlay {
-    background-color: rgba(220, 230, 240, 0.7); /* Lighter, airier overlay */
-    z-index: 1000;
-}
+/* bulk-operations-modal.css */
 
-.modal-content {
-    background-color: #f7f9fc; /* Off-white, soft background */
-    border-radius: 10px;
-    box-shadow: 0 4px 15px rgba(180, 200, 220, 0.3); /* Softer, lighter shadow */
-    max-width: 600px;
-    width: 90%;
-    padding: 25px;
-    z-index: 1001;
-    position: relative;
-}
-
-/* Modal header */
-.modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-bottom: 15px;
-    border-bottom: 1px solid #e0e6ed; /* Softer border */
-    margin-bottom: 20px;
-}
-
-.modal-header h2 {
-    font-size: 1.8em;
-    color: #5c7c8c; /* Muted, soft header color */
-    font-weight: 600;
-}
-
-.close-button {
-    background: none;
-    border: none;
-    font-size: 2em;
-    color: #aebecd; /* Lighter close button */
-    cursor: pointer;
-    transition: color 0.2s ease-in-out;
-}
-
-.close-button:hover {
-    color: #8fa1b3; /* Slightly darker on hover */
-}
-
-/* List of selected assets */
-.selected-assets-list {
-    max-height: 300px;
-    overflow-y: auto;
-    border: 1px solid #e0e6ed; /* Soft border */
-    border-radius: 6px;
-    padding: 10px;
-    margin-bottom: 20px;
-    background-color: #ffffff; /* White list background */
-}
-
-.selected-assets-list p {
-    color: #6a8ba0; /* Muted text for list items */
-    padding: 8px 0;
-    border-bottom: 1px dashed #eff3f7; /* Very light dashed separator */
-}
-
-.selected-assets-list p:last-child {
-    border-bottom: none;
-}
-
-/* Bulk action selection */
-.bulk-action-selection {
-    margin-bottom: 25px;
-}
-
-.bulk-action-selection label {
-    display: block;
-    margin-bottom: 10px;
-    font-weight: 500;
-    color: #6a8ba0; /* Muted label color */
-    font-size: 0.95em;
-}
-
-.bulk-action-selection select {
+/* Bulk Operations Modal Overlay */
+.bulk-operations-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
     width: 100%;
-    padding: 10px;
-    border: 1px solid #d0dae6; /* Lighter border */
-    border-radius: 6px;
-    font-size: 1em;
-    color: #4b6a7a; /* Darker text for select */
-    background-color: #ffffff; /* White select background */
-    transition: border-color 0.2s ease-in-out;
-}
-
-.bulk-action-selection select:focus {
-    border-color: #9ac2e0; /* Softer focus color */
-    outline: none;
-    box-shadow: 0 0 5px rgba(154, 194, 224, 0.3); /* Soft focus shadow */
-}
-
-/* Confirmation message */
-.confirmation-message {
-    background-color: #f0f4f8; /* Light background */
-    border: 1px solid #cce0ef; /* Soft border */
-    border-radius: 6px;
-    padding: 15px;
-    margin-bottom: 25px;
-    color: #5c7c8c; /* Muted text */
-    font-size: 0.95em;
-}
-
-.confirmation-message strong {
-    color: #4b6a7a; /* Slightly darker for emphasis */
-}
-
-/* Modal footer and buttons */
-.modal-footer {
+    height: 100%;
+    background: rgba(255, 255, 255, 0.7); /* Lighter, semi-transparent background */
     display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    padding-top: 20px;
-    border-top: 1px solid #e0e6ed; /* Softer border */
-    margin-top: 20px;
+    justify-content: center;
+    align-items: center;
+    z-index: 1002; /* Higher than asset editor modal */
+    backdrop-filter: blur(8px); /* Softer blur */
+    -webkit-backdrop-filter: blur(8px);
+    visibility: hidden; /* Hidden by default */
+    opacity: 0;
+    transition: visibility 0.3s ease, opacity 0.3s ease;
 }
 
-.modal-footer button {
-    padding: 10px 20px;
-    border-radius: 6px;
-    font-weight: 500;
+.bulk-operations-modal-overlay.active {
+    visibility: visible;
+    opacity: 1;
+}
+
+/* Bulk Operations Modal Content */
+.bulk-operations-modal-content {
+    background: #FFFFFF; /* White background */
+    border: 1px solid #E0E0E0; /* Light border */
+    border-radius: 16px; /* More rounded corners */
+    padding: 2.5rem; /* More padding */
+    width: 95%;
+    max-width: 700px; /* Adjusted max-width for content */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15); /* Softer, prominent shadow */
+    display: flex;
+    flex-direction: column;
+    gap: 2rem; /* Increased spacing between sections */
+    position: relative;
+    color: #333333; /* Dark text for legibility */
+    max-height: 90vh;
+    overflow-y: auto;
+    margin: auto; /* NEW: This helps center the content within the flex container */
+}
+
+.bulk-operations-modal-content h2 {
+    font-size: 2rem; /* Larger title */
+    color: #D7BDE2; /* Light purple primary accent color */
+    text-align: center;
+    margin-bottom: 0.5rem;
+    text-shadow: none; /* Remove text shadow */
+}
+
+/* Close Button */
+.close-bulk-modal-button {
+    position: absolute;
+    top: 1rem;
+    right: 1.5rem;
+    font-size: 2.8rem; /* Even larger for prominent close */
+    color: #777777; /* Muted grey */
     cursor: pointer;
-    transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+    transition: color 0.2s ease, transform 0.2s ease;
+    line-height: 1;
 }
 
-.modal-footer .cancel-button {
-    background-color: #e9eff5; /* Light grey-blue */
-    color: #6a8ba0; /* Muted text */
-    border: 1px solid #d0dae6; /* Soft border */
+.close-bulk-modal-button:hover {
+    color: #FFD1DC; /* Light pink on hover */
+    transform: rotate(90deg); /* Little animation */
 }
 
-.modal-footer .cancel-button:hover {
-    background-color: #dde6f0; /* Slightly darker on hover */
-    border-color: #c0cad6;
+/* Section Headings */
+.bulk-operations-modal-content h3 {
+    font-size: 1.6rem; /* Slightly larger section headings */
+    color: #FFD1DC; /* Light pink secondary accent color */
+    text-align: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #E0E0E0; /* Light border */
+}
+
+/* Saturation Control Group */
+.bulk-saturation-control,
+.bulk-create-texture-inputs,
+.bulk-upload-texture-inputs { /* Added for new section */
+    background: #F8F8F8; /* Very light background for sections */
+    border-radius: 10px;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    border: 1px solid #E0E0E0; /* Light border */
+}
+
+.bulk-saturation-control .input-group,
+.bulk-create-texture-inputs .input-group,
+.bulk-upload-texture-inputs .input-group { /* Added for new section */
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.bulk-saturation-control label,
+.bulk-create-texture-inputs label,
+.bulk-upload-texture-inputs label { /* Added for new section */
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: #555555; /* Muted text */
+}
+
+#bulk-saturation-slider {
+    flex-grow: 1;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 10px; /* Thicker slider */
+    background: linear-gradient(to right, #A7D9F0, #FFD1DC); /* Pastel blue-pink gradient track */
+    border-radius: 5px;
+    outline: none;
+}
+
+#bulk-saturation-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 24px; /* Larger thumb */
+    height: 24px;
+    border-radius: 50%;
+    background: #FFFFFF; /* White thumb */
+    cursor: grab;
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
+    border: 2px solid #D7BDE2; /* Light purple border */
+    transition: all 0.2s ease;
+}
+
+#bulk-saturation-slider::-moz-range-thumb {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #FFFFFF; /* White thumb */
+    cursor: grab;
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
+    border: 2px solid #D7BDE2; /* Light purple border */
+    transition: all 0.2s ease;
+}
+
+#bulk-saturation-slider::-webkit-slider-thumb:active,
+#bulk-saturation-slider::-moz-range-thumb:active {
+    cursor: grabbing;
+    transform: scale(1.1);
+}
+
+#bulk-saturation-value {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #333333; /* Dark text */
+    min-width: 35px;
+    text-align: right;
+}
+
+/* Create New Texture Inputs */
+.bulk-create-texture-inputs input[type="number"],
+.bulk-create-texture-inputs input[type="text"] {
+    padding: 0.9rem 1.2rem;
+    border: 1px solid #E0E0E0; /* Light border */
+    border-radius: 8px;
+    background: #FFFFFF; /* White background */
+    color: #333333; /* Dark text */
+    font-size: 1.1rem;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.bulk-create-texture-inputs input[type="number"]:focus,
+.bulk-create-texture-inputs input[type="text"]:focus {
+    border-color: #A7D9F0; /* Light blue on focus */
+    box-shadow: 0 0 0 3px rgba(167, 217, 240, 0.3);
+}
+
+/* Bulk Upload Texture Inputs */
+.bulk-upload-texture-inputs input[type="file"] {
+    padding: 0.9rem 1.2rem;
+    border: 1px solid #E0E0E0; /* Light border */
+    border-radius: 8px;
+    background: #FFFFFF; /* White background */
+    color: #333333; /* Dark text */
+    font-size: 1.1rem;
+    outline: none;
+    cursor: pointer;
+}
+
+.bulk-upload-texture-inputs input[type="file"]::file-selector-button {
+    background: linear-gradient(135deg, #FFD1DC, #D7BDE2); /* Pastel pink-purple gradient */
+    color: #333333; /* Dark text */
+    border: none;
+    border-radius: 6px;
+    padding: 0.7rem 1rem;
+    margin-right: 15px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.bulk-upload-texture-inputs input[type="file"]::file-selector-button:hover {
     transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.modal-footer .confirm-button {
-    background-color: #7ab8e0; /* Soft blue for confirm */
-    color: white;
-    border: 1px solid #7ab8e0;
+.image-upload-preview {
+    width: 100%;
+    height: 200px; /* Fixed height for preview area */
+    border: 2px dashed #D7BDE2; /* Light purple dashed border */
+    border-radius: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+    position: relative;
+    background: #F0F0F0; /* Lighter background for preview area */
 }
 
-.modal-footer .confirm-button:hover {
-    background-color: #64a7d6; /* Darker blue on hover */
-    border-color: #64a7d6;
-    transform: translateY(-1px);
+.image-upload-preview img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    display: none; /* Hidden by default */
+    border-radius: 8px; /* Slightly rounded corners for the image */
 }
 
-.modal-footer .confirm-button:disabled {
-    opacity: 0.6;
+.image-upload-preview p {
+    color: #777777; /* Muted grey text */
+    font-style: italic;
+}
+
+/* Action Buttons */
+.bulk-action-button {
+    background: linear-gradient(135deg, #A7D9F0, #D7BDE2); /* Pastel blue-purple gradient */
+    color: #333333; /* Dark text */
+    border: none;
+    border-radius: 8px;
+    padding: 1.2rem 2.5rem;
+    font-size: 1.2rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    width: 100%;
+}
+
+.bulk-action-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+    background: linear-gradient(135deg, #D7BDE2, #A7D9F0); /* Reverse gradient on hover */
+}
+
+.bulk-action-button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.bulk-action-button:disabled {
+    background: #E0E0E0; /* Light grey for disabled */
+    color: #AAAAAA;
     cursor: not-allowed;
-    background-color: #b0d8f0; /* Lighter disabled background */
-    border-color: #9ac2e0;
-    color: #e0e9f2;
+    opacity: 0.8;
+    box-shadow: none;
+    transform: none;
+}
+
+/* Responsive Adjustments for Bulk Operations Modal */
+@media (max-width: 768px) {
+    .bulk-operations-modal-content {
+        padding: 1.8rem;
+        gap: 1.5rem;
+    }
+
+    .close-bulk-modal-button {
+        font-size: 2.2rem;
+    }
+
+    .bulk-operations-modal-content h2 {
+        font-size: 1.8rem;
+    }
+
+    .bulk-operations-modal-content h3 {
+        font-size: 1.4rem;
+    }
+
+    .bulk-saturation-control label,
+    .bulk-create-texture-inputs label,
+    .bulk-upload-texture-inputs label { /* Added for new section */
+        font-size: 1rem;
+    }
+
+    #bulk-saturation-slider::-webkit-slider-thumb,
+    #bulk-saturation-slider::-moz-range-thumb {
+        width: 20px;
+        height: 20px;
+    }
+
+    #bulk-saturation-value {
+        font-size: 1.1rem;
+    }
+
+    .bulk-create-texture-inputs input[type="number"],
+    .bulk-create-texture-inputs input[type="text"],
+    .bulk-upload-texture-inputs input[type="file"] { /* Added for new section */
+        padding: 0.8rem 1rem;
+        font-size: 1rem;
+    }
+
+    .bulk-action-button {
+        padding: 1rem 2rem;
+        font-size: 1.1rem;
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .bulk-operations-modal-content {
+        padding: 1.2rem;
+        gap: 1rem;
+    }
+
+    .bulk-operations-modal-content h2 {
+        font-size: 1.6rem;
+    }
+
+    .close-bulk-modal-button {
+        font-size: 2rem;
+        top: 0.75rem;
+        right: 1rem;
+    }
+
+    .image-upload-preview {
+        height: 150px;
+    }
 }

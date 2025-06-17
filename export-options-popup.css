@@ -1,169 +1,147 @@
-/* General popup styling */
-.popup-overlay {
-    background-color: rgba(220, 230, 240, 0.7); /* Lighter, airier overlay */
-    z-index: 1000;
-}
+/* export-options-popup.css */
 
-.export-options-popup-content {
-    background-color: #f7f9fc; /* Off-white, soft background */
-    border-radius: 10px;
-    box-shadow: 0 4px 15px rgba(180, 200, 220, 0.3); /* Softer, lighter shadow */
-    max-width: 500px;
-    width: 90%;
-    padding: 25px;
-    z-index: 1001;
-    position: relative;
-}
-
-/* Popup header */
-.popup-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-bottom: 15px;
-    border-bottom: 1px solid #e0e6ed; /* Softer border */
-    margin-bottom: 20px;
-}
-
-.popup-header h2 {
-    font-size: 1.6em;
-    color: #5c7c8c; /* Muted, soft header color */
-    font-weight: 600;
-}
-
-.close-button {
-    background: none;
-    border: none;
-    font-size: 1.8em;
-    color: #aebecd; /* Lighter close button */
-    cursor: pointer;
-    transition: color 0.2s ease-in-out;
-}
-
-.close-button:hover {
-    color: #8fa1b3; /* Slightly darker on hover */
-}
-
-/* Export options form */
-.export-options-form {
-    margin-bottom: 20px;
-}
-
-.form-group {
-    margin-bottom: 18px;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: 500;
-    color: #6a8ba0; /* Muted label color */
-    font-size: 0.95em;
-}
-
-.form-group select {
+/* Export Options Overlay */
+.export-options-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
     width: 100%;
-    padding: 10px;
-    border: 1px solid #d0dae6; /* Lighter border */
-    border-radius: 6px;
-    font-size: 1em;
-    color: #4b6a7a; /* Darker text for select */
-    background-color: #ffffff; /* White select background */
-    transition: border-color 0.2s ease-in-out;
-}
-
-.form-group select:focus {
-    border-color: #9ac2e0; /* Softer focus color */
-    outline: none;
-    box-shadow: 0 0 5px rgba(154, 194, 224, 0.3); /* Soft focus shadow */
-}
-
-.checkbox-group {
+    height: 100%;
+    background: rgba(255, 255, 255, 0.7); /* Lighter, semi-transparent background */
     display: flex;
+    justify-content: center;
     align-items: center;
-    gap: 10px;
-    margin-bottom: 15px;
+    z-index: 1003; /* Higher than other modals to ensure it's on top */
+    backdrop-filter: blur(8px); /* Blur effect */
+    -webkit-backdrop-filter: blur(8px);
+    visibility: hidden; /* Hidden by default */
+    opacity: 0;
+    transition: visibility 0.3s ease, opacity 0.3s ease;
 }
 
-.checkbox-group input[type="checkbox"] {
-    accent-color: #7ab8e0; /* Soft blue accent */
-    transform: scale(1.1);
+.export-options-overlay.active {
+    visibility: visible;
+    opacity: 1;
 }
 
-.checkbox-group label {
-    margin: 0;
-    color: #5c7c8c; /* Muted label */
-    font-weight: 400;
-}
-
-/* File list for export */
-.files-to-export {
-    max-height: 150px;
-    overflow-y: auto;
-    border: 1px solid #e0e6ed; /* Soft border */
-    border-radius: 6px;
-    padding: 10px;
-    margin-bottom: 20px;
-    background-color: #ffffff; /* White list background */
-}
-
-.files-to-export p {
-    color: #6a8ba0; /* Muted text for list items */
-    padding: 6px 0;
-    border-bottom: 1px dashed #eff3f7; /* Very light dashed separator */
-    font-size: 0.9em;
-}
-
-.files-to-export p:last-child {
-    border-bottom: none;
-}
-
-/* Popup footer and buttons */
-.popup-footer {
+/* Export Options Content Box */
+.export-options-content {
+    background: #FFFFFF; /* White background */
+    border: 1px solid #E0E0E0; /* Light border */
+    border-radius: 12px;
+    padding: 2.5rem; /* Ample padding */
+    width: 90%;
+    max-width: 450px; /* Compact width for a choice popup */
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1); /* Softer shadow */
     display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    padding-top: 20px;
-    border-top: 1px solid #e0e6ed; /* Softer border */
-    margin-top: 20px;
+    flex-direction: column;
+    gap: 1.5rem; /* Space between elements */
+    position: relative;
+    color: #333333; /* Dark text for legibility */
+    text-align: center;
+    margin: auto; /* Center the content within the flex container */
 }
 
-.popup-footer button {
-    padding: 10px 20px;
-    border-radius: 6px;
-    font-weight: 500;
+.export-options-content h2 {
+    font-size: 2rem;
+    color: #D7BDE2; /* Light purple primary accent color */
+    margin-bottom: 0.5rem;
+}
+
+.export-options-content p {
+    font-size: 1.1rem;
+    color: #555555; /* Muted text */
+    margin-bottom: 1rem;
+}
+
+/* Close Button */
+.close-export-popup-button {
+    position: absolute;
+    top: 1rem;
+    right: 1.5rem;
+    font-size: 2.5rem; /* Larger for easier clicking */
+    color: #777777; /* Muted grey */
     cursor: pointer;
-    transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+    transition: color 0.2s ease;
+    line-height: 1;
 }
 
-.popup-footer .cancel-button {
-    background-color: #e9eff5; /* Light grey-blue */
-    color: #6a8ba0; /* Muted text */
-    border: 1px solid #d0dae6; /* Soft border */
+.close-export-popup-button:hover {
+    color: #FFD1DC; /* Light pink on hover */
 }
 
-.popup-footer .cancel-button:hover {
-    background-color: #dde6f0; /* Slightly darker on hover */
-    border-color: #c0cad6;
-    transform: translateY(-1px);
+/* Export Buttons Container */
+.export-buttons-container {
+    display: flex;
+    flex-direction: column; /* Stack buttons vertically */
+    gap: 1rem; /* Space between buttons */
 }
 
-.popup-footer .export-button {
-    background-color: #7ab8e0; /* Soft blue for export */
-    color: white;
-    border: 1px solid #7ab8e0;
+/* Export Option Buttons */
+.export-option-button {
+    background: linear-gradient(135deg, #A7D9F0, #D7BDE2); /* Pastel blue-purple gradient */
+    color: #333333; /* Dark text */
+    border: none;
+    border-radius: 8px;
+    padding: 1.2rem 2rem;
+    font-size: 1.2rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    text-shadow: none; /* Remove text shadow */
 }
 
-.popup-footer .export-button:hover {
-    background-color: #64a7d6; /* Darker blue on hover */
-    border-color: #64a7d6;
-    transform: translateY(-1px);
+.export-option-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+    background: linear-gradient(135deg, #D7BDE2, #A7D9F0); /* Reverse gradient on hover */
 }
 
-.popup-footer .export-button:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    background-color: #b0d8f0; /* Lighter disabled background */
-    border-color: #9ac2e0;
-    color: #e0e9f2;
+.export-option-button:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1); /* Lighter shadow on active */
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .export-options-content {
+        padding: 2rem;
+        max-width: 90%;
+    }
+
+    .export-options-content h2 {
+        font-size: 1.8rem;
+    }
+
+    .export-options-content p {
+        font-size: 1rem;
+    }
+
+    .close-export-popup-button {
+        font-size: 2rem;
+        top: 0.75rem;
+        right: 1rem;
+    }
+
+    .export-option-button {
+        padding: 1rem 1.5rem;
+        font-size: 1.1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .export-options-content {
+        padding: 1.5rem;
+        gap: 1rem;
+    }
+
+    .export-options-content h2 {
+        font-size: 1.6rem;
+    }
+
+    .export-option-button {
+        padding: 0.8rem 1.2rem;
+        font-size: 1rem;
+    }
 }
