@@ -1,10 +1,14 @@
 // DOM Elements
 let searchInput;
-let allCards;
+let allCards; // This declares it
+window.allCards = allCards; // NEW: Expose globally
+
 // Store a global list of all assets fetched to be used for zipping and bulk operations
 // Each asset object will now also store its Blob data and modification status.
-const allAssets = [];
-let assetsLoadedIntoMemory = false; // New flag: true when image blobs are loaded for all assets
+const allAssets = []; // This declares it
+window.allAssets = allAssets; // NEW: Expose allAssets globally
+let assetsLoadedIntoMemory = false; // Existing flag: true when image blobs are loaded for all assets
+
 
 // DOM elements for loading/progress
 let loadingOverlay;
@@ -69,6 +73,10 @@ function createAndAppendCard(asset) {
                  folderNumberButton.textContent = `Folder: ${folder}`;
              }, 2000);
         };
+
+// ... (inside asset-list-page.js, after the createAndAppendCard function definition) ...
+
+window.createAndAppendCard = createAndAppendCard; // NEW: Expose globally
 
         // Create a wrapper for the action buttons to manage their layout
         const mp3ButtonsWrapper = document.createElement('div');
