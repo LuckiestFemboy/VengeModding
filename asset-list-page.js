@@ -1,4 +1,3 @@
-// asset-list-page.js
 // DOM Elements
 let searchInput;
 let allCards;
@@ -19,10 +18,6 @@ let exportOptionsPopup;
 let closeExportPopupButton;
 let exportClientButton;
 let exportBrowserButton;
-
-// New: Session Management Buttons
-let exportSessionButton;
-let importSessionButton;
 
 
 // Card Creation
@@ -196,175 +191,623 @@ function createAndAppendCard(asset) {
                 if (typeof window.openAssetEditorModal === 'function') {
                     window.openAssetEditorModal(asset, card);
                 } else {
-                    console.error('openAssetEditorModal function not found. Is asset-editor-modal.js loaded?');
+                    console.error('openAssetEditorModal function not found. Is asset-editor-modal.js loaded correctly?');
                 }
             } else {
-                console.log('Cannot open single asset editor while multi-select mode is active.');
+                console.log('Cannot open single editor in multi-select mode.');
             }
         };
         actionButtonsContainer.appendChild(editAssetButton);
 
-        // Download button
+
+        const copyButton = document.createElement('button');
+        copyButton.className = 'copy-button'; // Specific class for non-MP3 copy button
+        copyButton.textContent = 'Copy Folder';
+        copyButton.onclick = (event) => {
+            event.stopPropagation(); // Prevent card selection when clicking copy button
+            // Use document.execCommand('copy') for clipboard operations in iframe context
+            const tempInput = document.createElement('textarea');
+            tempInput.value = folder;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+
+            copyButton.textContent = 'Copied!';
+            setTimeout(() => { copyButton.textContent = 'Copy Folder'; }, 2000);
+        };
+        actionButtonsContainer.appendChild(copyButton);
+
         const downloadButton = document.createElement('button');
         downloadButton.className = 'download-button';
         downloadButton.textContent = 'Download';
         downloadButton.onclick = (event) => {
             event.stopPropagation(); // Prevent card selection when clicking download button
-            // Check if asset has a newImageBlob and download that, otherwise download original mediaPath
-            if (asset.newImageBlob) {
-                // Create a temporary URL for the Blob and trigger download
-                const url = URL.createObjectURL(asset.newImageBlob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = asset.filename; // Use original filename for download
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url); // Clean up the URL
-            } else {
-                // Fallback to original mediaPath if no newImageBlob
-                const downloadLink = document.createElement('a');
-                downloadLink.href = asset.mediaPath;
-                downloadLink.download = asset.filename;
-                downloadLink.click();
-            }
+            const downloadLink = document.createElement('a');
+            downloadLink.href = mediaPath; // Use original mediaPath for direct download
+            downloadLink.download = filename;
+            downloadLink.click();
         };
         actionButtonsContainer.appendChild(downloadButton);
 
         infoContainer.appendChild(actionButtonsContainer);
-        card.appendChild(infoContainer);
+        card.appendChild(infoContainer); // Append infoContainer for non-MP3s
     }
-    document.getElementById('texture-grid').appendChild(card);
-    allCards = document.querySelectorAll('.texture-card'); // Update allCards NodeList
+
+    // Finally, append the card to the grid
+    const grid = document.getElementById('texture-grid');
+    if (grid) {
+        grid.appendChild(card);
+    }
+
+    // Apply initial visual state based on modification flags (if any were somehow pre-set)
+    updateCardVisualState(asset);
 }
 
-// Function to play audio (for mp3 type)
-function playAudio(mediaPath) {
-    const audio = new Audio(mediaPath);
-    audio.play();
-}
-
-// Search functionality
-function filterAssets() {
-    const searchTerm = searchInput.value.toLowerCase();
-    allAssets.forEach(asset => {
-        const card = asset.cardElement; // Use the stored DOM element reference
-        if (!card) return; // Skip if card element isn't found
-
-        const filename = asset.filename.toLowerCase();
-        const folder = asset.folder.toLowerCase();
-        
-        if (filename.includes(searchTerm) || folder.includes(searchTerm)) {
-            card.style.display = 'block';
+/**
+ * Updates the visual state of a card based on its associated asset's modification status.
+ * This function is called from asset-editor-modal.js after changes are saved, and now from bulk-operations.js.
+ * @param {Object} asset The asset object whose visual state needs to be updated.
+ */
+window.updateCardVisualState = (asset) => {
+    const cardElement = asset.cardElement;
+    if (cardElement) {
+        if (asset.isModified || asset.isNew) {
+            cardElement.classList.add('edited-card');
+            // If the card has a media image, update its src to reflect the new/modified blob
+            const mediaImage = cardElement.querySelector('.media-image');
+            if (mediaImage && (asset.modifiedImageBlob || asset.newImageBlob)) {
+                // Revoke old URL if it exists to prevent memory leaks
+                if (mediaImage.src.startsWith('blob:')) {
+                    URL.revokeObjectURL(mediaImage.src);
+                }
+                const blobToDisplay = asset.modifiedImageBlob || asset.newImageBlob;
+                mediaImage.src = URL.createObjectURL(blobToDisplay);
+            }
         } else {
+            cardElement.classList.remove('edited-card');
+            // Revert image src to original mediaPath if no longer modified/new
+            const mediaImage = cardElement.querySelector('.media-image');
+            // Only revert to mediaPath if originalImageBlob isn't loaded (meaning we're displaying direct path)
+            // If originalImageBlob IS loaded, we should use its blob URL for display.
+            if (mediaImage) {
+                if (mediaImage.src.startsWith('blob:') && asset.originalImageBlob && assetsLoadedIntoMemory) {
+                     // If we have a blob and assets are in memory, keep displaying the original blob version
+                     // Revoke existing blob URL if it's different
+                     const currentBlobUrl = mediaImage.src;
+                     const originalBlobUrl = URL.createObjectURL(asset.originalImageBlob); // Create temporarily to compare
+                     if (currentBlobUrl !== originalBlobUrl) {
+                        URL.revokeObjectURL(currentBlobUrl);
+                        mediaImage.src = originalBlobUrl;
+                     } else {
+                        URL.revokeObjectURL(originalBlobUrl); // Revoke the temporary one if it was the same
+                     }
+                } else if (mediaImage.src.startsWith('blob:')) { // if it's a blob URL but no originalImageBlob, revert
+                    URL.revokeObjectURL(mediaImage.src);
+                    mediaImage.src = asset.mediaPath;
+                } else if (!mediaImage.src.startsWith('blob:') && asset.originalImageBlob && assetsLoadedIntoMemory) {
+                    // If currently displaying direct path but blob is loaded, switch to blob URL
+                    mediaImage.src = URL.createObjectURL(asset.originalImageBlob);
+                }
+            }
+        }
+    }
+};
+
+
+// Search Functionality (updated to search the new mp3-filename-display class)
+function filterCards(searchTerm) {
+    const lowerSearch = searchTerm.toLowerCase();
+
+    allCards.forEach(card => {
+        // For non-MP3s, check texture-filename
+        const filenameElement = card.querySelector('.texture-filename');
+        const filename = filenameElement ? filenameElement.textContent.toLowerCase() : '';
+
+        // For MP3s, check mp3-filename-display
+        const mp3FilenameDisplay = card.querySelector('.mp3-filename-display');
+        const mp3Filename = mp3FilenameDisplay ? mp3FilenameDisplay.textContent.toLowerCase() : '';
+
+        // Check the texture-name (folder/artist/album name - only for non-MP3s now)
+        const folderNameElement = card.querySelector('.texture-name');
+        const folderName = folderNameElement ? folderNameElement.textContent.toLowerCase() : '';
+
+        // Check the folder-number-button (only for MP3s)
+        const folderNumberButton = card.querySelector('.folder-number-button');
+        const folderButtonText = folderNumberButton ? folderNumberButton.textContent.toLowerCase() : '';
+
+        if (!filename.includes(lowerSearch) && !mp3Filename.includes(lowerSearch) && !folderName.includes(lowerSearch) && !folderButtonText.includes(lowerSearch)) {
             card.style.display = 'none';
+            card.style.visibility = 'hidden';
+            card.style.opacity = '0';
+        } else {
+            card.style.display = 'block';
+            card.style.visibility = 'visible';
+            card.style.opacity = '1';
         }
     });
 }
 
-// Function to fetch assets from the server (assuming a JSON endpoint)
-async function fetchAssets() {
-    window.showLoadingOverlay();
-    window.updateLoadingProgress(0, 1, 'Fetching asset list...');
-    window.updateConsoleLog('Loading asset data...');
+
+function clearSearch() {
+    searchInput.value = '';
+    filterCards('');
+}
+
+// Main initialization function - now only loads metadata and displays cards
+async function initializeGallery() {
     try {
-        const response = await fetch('assets.json'); // Fetch your JSON data
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+        const grid = document.getElementById('texture-grid');
+        if (!grid) {
+            console.error('Texture grid not found!');
+            return;
         }
-        const assets = await response.json();
-        allAssets.push(...assets); // Add fetched assets to the global array
 
-        // Now that all assets are loaded, create cards for them
-        allAssets.forEach(asset => createAndAppendCard(asset));
-        window.updateConsoleLog('Asset data loaded and cards created.');
-        window.updateLoadingProgress(1, 1, 'Assets loaded!');
+        searchInput = document.getElementById('texture-search');
+        const searchButton = document.getElementById('search-button');
+        const clearButton = document.getElementById('clear-search-button');
 
-        // NEW: Load image blobs into memory after initial data is loaded
-        // This makes sure the UI is responsive while images are being processed in background
-        loadAllImageBlobsIntoMemory();
+        // Get references to export options popup elements
+        exportOptionsPopup = document.getElementById('export-options-popup');
+        closeExportPopupButton = document.getElementById('close-export-popup');
+        exportClientButton = document.getElementById('export-client-button');
+        exportBrowserButton = document.getElementById('export-browser-button');
+
+        if (!exportOptionsPopup || !closeExportPopupButton || !exportClientButton || !exportBrowserButton) {
+            console.error('One or more export options popup elements not found!');
+        } else {
+            closeExportPopupButton.addEventListener('click', hideExportOptionsPopup);
+            // Change these to directly call initiateZipDownload with type, which will handle loading
+            exportClientButton.addEventListener('click', () => initiateZipDownload('client'));
+            exportBrowserButton.addEventListener('click', () => initiateZipDownload('browser'));
+        }
+
+
+        if (searchInput && searchButton && clearButton) {
+            searchInput.addEventListener('input', (e) => {
+                filterCards(e.target.value.trim());
+            });
+            searchButton.addEventListener('click', () => {
+                filterCards(searchInput.value.trim());
+            });
+            clearButton.addEventListener('click', clearSearch);
+        } else {
+            console.error('Search elements not found!');
+        }
+
+        window.showLoadingOverlay('Loading Asset Lists...'); // Show initial loading message for metadata
+
+        const listFetchPromises = [];
+
+        // Load PNG file metadata
+        listFetchPromises.push((async () => {
+            try {
+                const pngResponse = await fetch('pnglist.txt');
+                if (!pngResponse.ok) {
+                    console.error('Failed to fetch pnglist.txt');
+                    return;
+                }
+                const pngText = await pngResponse.text();
+                const pngLines = pngText.trim().split('\n');
+
+                for (const line of pngLines) {
+                    const [folder, filename] = line.split(' ');
+                    if (folder && filename) {
+                        const mediaPath = `./mod-assets/png/${filename}`;
+                        allAssets.push({
+                            folder,
+                            filename,
+                            type: 'png',
+                            mediaPath,
+                            originalImageBlob: null, // Blob will be loaded later
+                            modifiedImageBlob: null,
+                            newImageBlob: null,
+                            isModified: false,
+                            isNew: false
+                        });
+                    }
+                }
+                window.updateConsoleLog('PNG asset list loaded.');
+            } catch (error) {
+                console.error('Error in PNG list loading process:', error);
+                window.updateConsoleLog('[ERROR] Failed to load PNG asset list.');
+            }
+        })());
+
+        // Load JPG file metadata
+        listFetchPromises.push((async () => {
+            try {
+                const jpgResponse = await fetch('jpgurl.txt');
+                if (!jpgResponse.ok) {
+                    console.error('Failed to fetch jpgurl.txt');
+                    return;
+                }
+                const jpgText = await jpgResponse.text();
+                const jpgLines = jpgText.trim().split('\n');
+
+                for (const line of jpgLines) {
+                    const [folder, filename] = line.split(' ');
+                    if (folder && filename) {
+                        const mediaPath = `./mod-assets/jpg/${filename}`;
+                        allAssets.push({
+                            folder,
+                            filename,
+                            type: 'jpg',
+                            mediaPath,
+                            originalImageBlob: null, // Blob will be loaded later
+                            modifiedImageBlob: null,
+                            newImageBlob: null,
+                            isModified: false,
+                            isNew: false
+                        });
+                    }
+                }
+                window.updateConsoleLog('JPG asset list loaded.');
+            } catch (error) {
+                console.error('Error in JPG list loading process:', error);
+                window.updateConsoleLog('[ERROR] Failed to load JPG asset list.');
+            }
+        })());
+
+        // Load MP3 file metadata
+        listFetchPromises.push((async () => {
+            try {
+                const mp3Response = await fetch('mp3list.txt');
+                if (!mp3Response.ok) {
+                    console.error('Failed to fetch mp3list.txt');
+                    return;
+                }
+                const mp3Text = await mp3Response.text();
+                const mp3Lines = mp3Text.trim().split('\n');
+
+                for (const line of mp3Lines) {
+                    const [folder, filename] = line.split(' ');
+                    if (folder && filename) {
+                        const mediaPath = `./mod-assets/mp3/${filename}`;
+                        allAssets.push({
+                            folder,
+                            filename,
+                            type: 'mp3',
+                            mediaPath,
+                            originalImageBlob: null, // Not applicable, but keeping structure consistent
+                            modifiedImageBlob: null,
+                            newImageBlob: null,
+                            isModified: false,
+                            isNew: false
+                        });
+                    }
+                }
+                window.updateConsoleLog('MP3 asset list loaded.');
+            } catch (error) {
+                console.error('Error in MP3 list loading process:', error);
+                window.updateConsoleLog('[ERROR] Failed to load MP3 asset list.');
+            }
+        })());
+
+
+        // Wait for all asset lists to be loaded
+        await Promise.all(listFetchPromises);
+        window.updateConsoleLog('\nAll asset lists loaded. Sorting and displaying gallery...');
+
+        // Sort allAssets array alphabetically by filename BEFORE creating cards
+        allAssets.sort((a, b) => a.filename.localeCompare(b.filename));
+
+        // Create and append cards for all assets based on the sorted list
+        for (const asset of allAssets) {
+            createAndAppendCard(asset); // Pass the entire asset object
+        }
+
+        window.hideLoadingOverlayWithDelay(1000, 'Gallery Ready!'); // Hide after all assets are processed
+
+        // Populate allCards AFTER all cards have been created and appended
+        allCards = document.querySelectorAll('.texture-card');
+
 
     } catch (error) {
-        console.error('Error fetching assets:', error);
-        window.updateConsoleLog(`[ERROR] Failed to load assets: ${error.message}`);
-        window.hideLoadingOverlayWithDelay(3000, 'Asset Loading Failed!');
+        console.error('Error initializing gallery:', error);
+        window.updateConsoleLog(`[FATAL ERROR] Gallery initialization failed: ${error.message}`);
+        window.hideLoadingOverlayWithDelay(3000, 'Gallery Initialization Failed!');
     }
 }
 
-// NEW: Function to load all image blobs into memory (for image manipulation and zipping)
-async function loadAllImageBlobsIntoMemory() {
+/**
+ * Loads all image asset blobs into memory (png and jpg files only).
+ * Displays a progress bar during this operation.
+ */
+async function loadAllAssetsIntoMemory() {
     if (assetsLoadedIntoMemory) {
-        console.log('Image blobs already loaded into memory.');
-        return;
+        console.log('Assets already loaded into memory. Skipping pre-loading.');
+        return; // Already loaded
     }
 
-    window.updateLoadingProgress(0, 1, 'Loading images for editing...');
-    window.updateConsoleLog('Pre-loading images into memory for editing and export...');
+    window.showLoadingOverlay('Loading Textures into Memory...');
+    const imageAssets = allAssets.filter(asset => asset.type === 'png' || asset.type === 'jpg');
+    let processedCount = 0;
+    const totalImageFiles = imageAssets.length;
 
-    const imageAssets = allAssets.filter(asset => asset.type.toLowerCase() === 'png' || asset.type.toLowerCase() === 'jpg' || asset.type.toLowerCase() === 'jpeg');
-    let loadedCount = 0;
-    const totalImages = imageAssets.length;
+    const loadPromises = imageAssets.map(async (asset) => {
+        // Only load if originalImageBlob is not already set
+        if (!asset.originalImageBlob) {
+            try {
+                window.updateConsoleLog(`Fetching blob for: ${asset.filename}`);
+                const response = await fetch(asset.mediaPath);
+                if (!response.ok) throw new Error(`Failed to fetch blob: ${response.statusText}`);
+                const blob = await response.blob();
+                asset.originalImageBlob = blob; // Store the fetched blob
 
-    for (const asset of imageAssets) {
-        try {
-            // If the asset already has a newImageBlob (e.g., from an import), use that
-            // Otherwise, fetch the original image
-            const blobToLoad = asset.newImageBlob || await (await fetch(asset.mediaPath)).blob();
-            asset.initialImageBlob = blobToLoad; // Store original blob or current blob
-            
-            // Set newImageBlob to initial for consistency if no modification yet
-            if (!asset.newImageBlob) {
-                asset.newImageBlob = blobToLoad; 
+                // Update the card's image source to use the blob URL for better performance/caching
+                const mediaImage = asset.cardElement.querySelector('.media-image');
+                if (mediaImage) {
+                    if (mediaImage.src.startsWith('blob:')) {
+                         URL.revokeObjectURL(mediaImage.src); // Revoke old blob URL if any
+                    }
+                    mediaImage.src = URL.createObjectURL(blob);
+                }
+
+            } catch (error) {
+                console.error(`Error loading blob for ${asset.filename}:`, error);
+                window.updateConsoleLog(`[ERROR] Failed to load blob for: ${asset.filename} - ${error.message}`);
             }
-
-            // Update the card's image display to use the blob if it's not already
-            const mediaElement = asset.cardElement.querySelector('.media-image');
-            if (mediaElement && !mediaElement.src.startsWith('blob:')) {
-                mediaElement.src = URL.createObjectURL(asset.newImageBlob);
-                mediaElement.onload = () => URL.revokeObjectURL(mediaElement.src); // Clean up object URL
+        } else {
+            // If already loaded (e.g., by editor), update card to use its blob URL if not already
+            const mediaImage = asset.cardElement.querySelector('.media-image');
+            if (mediaImage && !mediaImage.src.startsWith('blob:')) {
+                mediaImage.src = URL.createObjectURL(asset.originalImageBlob);
             }
+        }
+        processedCount++;
+        window.updateLoadingProgress(processedCount, totalImageFiles, `Loaded: ${asset.filename}`);
+    });
 
-            loadedCount++;
-            window.updateLoadingProgress(loadedCount, totalImages, `Loaded: ${asset.filename}`);
-            window.updateConsoleLog(`Loaded ${asset.filename} into memory.`);
-        } catch (error) {
-            console.error(`Error loading image blob for ${asset.filename}:`, error);
-            window.updateConsoleLog(`[ERROR] Failed to load ${asset.filename} into memory.`);
+    await Promise.all(loadPromises); // Wait for all image blobs to be loaded
+    assetsLoadedIntoMemory = true;
+    window.updateConsoleLog('\nAll textures loaded into memory.');
+    window.hideLoadingOverlayWithDelay(1000, 'Textures Ready for Export!');
+}
+
+
+function playAudio(audioPath) {
+    const audio = new Audio(audioPath);
+    audio.play().catch(error => {
+        console.error('Error playing audio:', error);
+        console.error('Failed to play audio file. Please check if the file exists and is accessible.');
+        window.updateConsoleLog(`[AUDIO ERROR] Failed to play: ${audioPath}`);
+    });
+}
+
+// --- Loading Overlay and Console Logging Utility Functions (Exposed Globally) ---
+// These functions are now exposed on the window object so bulk-operations.js can call them.
+
+window.showLoadingOverlay = (message) => {
+    if (loadingOverlay && loadingMessageDisplay && progressBar && consoleLog) {
+        loadingMessageDisplay.textContent = message;
+        progressBar.style.width = '0%';
+        progressPercentage.textContent = '0%';
+        consoleLog.textContent = ''; // Clear previous log
+        loadingOverlay.classList.add('active');
+        console.log(`Loading Overlay Shown: ${message}`);
+    } else {
+        console.error('Loading overlay elements not found!');
+    }
+};
+
+window.updateLoadingProgress = (processed, total, currentFileMessage = '') => {
+    if (progressBar && progressPercentage && consoleLog) {
+        const progress = Math.round((processed / total) * 100);
+        progressBar.style.width = `${progress}%`;
+        progressPercentage.textContent = `${progress}%`;
+        if (currentFileMessage) {
+            consoleLog.textContent += `Processing: ${currentFileMessage}\n`;
+        }
+        consoleLog.scrollTop = consoleLog.scrollHeight; // Scroll to bottom
+    }
+};
+
+window.updateConsoleLog = (message) => {
+    if (consoleLog) {
+        consoleLog.textContent += `${message}\n`;
+        consoleLog.scrollTop = consoleLog.scrollHeight;
+    }
+};
+
+window.hideLoadingOverlayWithDelay = (delay, finalMessage = 'Operation Complete!') => {
+    if (loadingOverlay && loadingMessageDisplay) {
+        loadingMessageDisplay.textContent = finalMessage;
+        consoleLog.textContent += `\n${finalMessage}\n`;
+        consoleLog.scrollTop = consoleLog.scrollHeight;
+        setTimeout(() => {
+            loadingOverlay.classList.remove('active');
+            console.log('Loading Overlay Hidden.');
+        }, delay);
+    }
+};
+
+
+// --- Export Options Popup Control ---
+function showExportOptionsPopup() {
+    if (exportOptionsPopup) {
+        exportOptionsPopup.classList.add('active');
+    }
+}
+
+function hideExportOptionsPopup() {
+    if (exportOptionsPopup) {
+        exportOptionsPopup.classList.remove('active');
+    }
+}
+
+
+// --- ZIP Download Functionality with Progress ---
+
+// Modified ZIP generation function to accept exportType
+async function initiateZipDownload(exportType) {
+    hideExportOptionsPopup(); // Hide the options popup immediately
+
+    // Step 1: Ensure all image assets are loaded into memory first
+    if (!assetsLoadedIntoMemory) {
+        window.updateConsoleLog('Assets not yet loaded into memory. Starting texture pre-loading...');
+        await loadAllAssetsIntoMemory(); // Wait for textures to load
+        window.updateConsoleLog('Texture pre-loading complete. Proceeding with ZIP generation.');
+    }
+
+    window.showLoadingOverlay(`Generating ZIP (${exportType.charAt(0).toUpperCase() + exportType.slice(1)} Export)...`);
+
+    const zip = new JSZip();
+
+    let baseZipPathForAssets;
+    let fileNameForZip = "mod-assets.zip";
+    const staticFilesToFetch = [
+        'charfix.js',
+        'HowToUse.txt',
+        'init.js',
+        'manifest.json',
+        'popup.html',
+        'README.md'
+    ];
+
+
+    if (exportType === 'client') {
+        baseZipPathForAssets = "Venge Client/Resource Swapper/files/assets/";
+        fileNameForZip = "mod-client-export.zip";
+    } else if (exportType === 'browser') {
+        baseZipPathForAssets = "venge-swapper-main/files/assets/";
+        fileNameForZip = "mod-browser-export.zip";
+
+        // Add static files for browser export
+        for (const staticFileName of staticFilesToFetch) {
+            try {
+                window.updateConsoleLog(`Fetching static file: ${staticFileName}`);
+                const staticFilePath = `./browser-static-files-for-fetch/${staticFileName}`;
+                const response = await fetch(staticFilePath);
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch ${staticFileName}: ${response.statusText}`);
+                }
+                const blob = await response.blob();
+                zip.file(`venge-swapper-main/${staticFileName}`, blob);
+                window.updateConsoleLog(`Added static file to zip: venge-swapper-main/${staticFileName}`);
+            } catch (error) {
+                console.error(`Error adding static file ${staticFileName} to zip:`, error);
+                window.updateConsoleLog(`[ERROR] Failed to add static file: ${staticFileName} - ${error.message}`);
+            }
         }
     }
-    assetsLoadedIntoMemory = true;
-    window.updateConsoleLog('All image blobs loaded into memory.');
-    window.hideLoadingOverlayWithDelay(1500, 'Ready!');
+
+
+    const downloadAllZipButton = document.getElementById('download-all-zip-button');
+    downloadAllZipButton.textContent = 'Preparing ZIP...';
+    downloadAllZipButton.disabled = true;
+
+    let filesProcessed = 0;
+    const totalFiles = allAssets.length; // Now includes all assets, image and mp3
+
+    const zipPromises = allAssets.map(async (asset) => {
+        const { folder, filename, type, originalImageBlob, modifiedImageBlob, newImageBlob, isModified, isNew } = asset;
+        let fileBlobToZip = null;
+        let fileNameToZip = filename; // Default to original filename
+
+        try {
+            if (isNew && newImageBlob) {
+                fileBlobToZip = newImageBlob;
+                window.updateConsoleLog(`Including NEW texture: ${filename} (Folder: ${folder})`);
+            } else if (isModified && modifiedImageBlob) {
+                fileBlobToZip = modifiedImageBlob;
+                window.updateConsoleLog(`Including MODIFIED texture: ${filename} (Folder: ${folder})`);
+            } else if (type !== 'mp3' && originalImageBlob) { // Use the already fetched original image blob (pre-cached)
+                fileBlobToZip = originalImageBlob;
+                window.updateConsoleLog(`Including ORIGINAL asset (cached): ${filename} (Folder: ${folder})`);
+            } else if (type === 'mp3') { // Directly fetch MP3 as they are not pre-cached as blobs
+                 window.updateConsoleLog(`Fetching MP3 asset: ${filename} (Folder: ${folder})`);
+                 const response = await fetch(asset.mediaPath);
+                 if (!response.ok) {
+                     console.error(`Failed to fetch MP3 ${asset.mediaPath}: ${response.statusText}`);
+                     window.updateConsoleLog(`[ERROR] Failed to fetch MP3: ${filename}`);
+                     return null; // Return null for failed fetches
+                 }
+                 fileBlobToZip = await response.blob();
+                 window.updateConsoleLog(`Fetched MP3: ${filename} (Folder: ${folder})`);
+            }
+            else {
+                // This case should be rare for images if loadAllAssetsIntoMemory is called, but fallback
+                console.warn(`No blob found for ${filename}, attempting to re-fetch as fallback.`);
+                const response = await fetch(asset.mediaPath);
+                if (!response.ok) {
+                    console.error(`Failed to fetch original ${asset.mediaPath}: ${response.statusText}`);
+                    window.updateConsoleLog(`[ERROR] Failed to fetch original: ${filename}`);
+                    return null; // Return null for failed fetches
+                }
+                fileBlobToZip = await response.blob();
+                if (type !== 'mp3') asset.originalImageBlob = fileBlobToZip; // Cache it now if it's an image
+                window.updateConsoleLog(`Fetched & Including ORIGINAL asset (fallback): ${filename} (Folder: ${folder})`);
+            }
+
+            // Construct the full path inside the ZIP file based on export type
+            const zipPath = `${baseZipPathForAssets}${folder}/1/${fileNameToZip}`;
+            zip.file(zipPath, fileBlobToZip);
+
+            // Update progress only after the file is added to JSZip
+            filesProcessed++;
+            window.updateLoadingProgress(filesProcessed, totalFiles, filename);
+
+            return true; // Indicate success
+        } catch (error) {
+            console.error(`Error processing ${filename} for zip:`, error);
+            window.updateConsoleLog(`[ERROR] Error processing: ${filename} - ${error.message}`);
+            return null; // Return null for errors
+        }
+    });
+
+    // Wait for all files to be processed (fetched and added to JSZip instance)
+    await Promise.all(zipPromises);
+
+    // Ensure progress is 100% after all files are attempted
+    window.updateLoadingProgress(totalFiles, totalFiles, 'All asset files added to ZIP buffer.');
+    window.updateConsoleLog(`\nAll asset files buffered. Starting ZIP compression...\n`);
+
+
+    try {
+        const content = await zip.generateAsync({
+            type: "blob",
+            compression: "DEFLATE", // Use compression
+            compressionOptions: {
+                level: 5 // Changed from 9 to 5 for better performance
+            }
+        }, function updateCallback(metadata) {
+            // Update progress during ZIP generation (optional, but good for large zips)
+            // Only update if metadata.percent is meaningful (not 0 or 100 for too long)
+            if (metadata.percent > 0 && metadata.percent < 100) {
+                const generationProgress = Math.round(metadata.percent);
+                progressBar.style.width = `${generationProgress}%`;
+                progressPercentage.textContent = `${generationProgress}% (Compressing)`;
+                // Commented out currentFile as it floods the console during compression
+                // if (metadata.currentFile) {
+                //     window.updateConsoleLog(`Compressing: ${metadata.currentFile}`);
+                // }
+            }
+        });
+
+        saveAs(content, fileNameForZip);
+        downloadAllZipButton.textContent = 'Download Complete!';
+        window.hideLoadingOverlayWithDelay(3000, `ZIP file "${fileNameForZip}" downloaded successfully!`);
+    } catch (error) {
+        console.error("Error generating or saving zip:", error);
+        downloadAllZipButton.textContent = 'Download Failed!';
+        window.hideLoadingOverlayWithDelay(3000, `Download Failed! Error: ${error.message}`);
+    } finally {
+        // Keep overlay visible for a bit to show final message, then hide
+        setTimeout(() => {
+            downloadAllZipButton.textContent = 'Download All as ZIP';
+            downloadAllZipButton.disabled = false;
+        }, 3000); // Only reset button after overlay hides
+    }
 }
 
 
-// Event Listeners
 document.addEventListener('DOMContentLoaded', () => {
-    searchInput = document.getElementById('texture-search');
-    const searchButton = document.getElementById('search-button');
-    const clearSearchButton = document.getElementById('clear-search-button');
+    initializeGallery(); // Initialize the gallery and populate allAssets array metadata only
+
     const downloadAllZipButton = document.getElementById('download-all-zip-button');
 
-    // New: Get references to the session management buttons
-    exportSessionButton = document.getElementById('export-session-button');
-    importSessionButton = document.getElementById('import-session-button');
-
-    if (searchInput) {
-        searchInput.addEventListener('input', filterAssets);
-    }
-
-    if (searchButton) {
-        searchButton.addEventListener('click', filterAssets);
-    }
-
-    if (clearSearchButton) {
-        clearSearchButton.addEventListener('click', () => {
-            searchInput.value = '';
-            filterAssets();
-        });
-    }
-
-    // Initialize DOM elements for loading/progress (already done by global functions, just ensuring they exist)
+    // Get references to the new loading UI elements (already done by global functions, just ensuring they exist)
     loadingOverlay = document.getElementById('loading-overlay');
     progressBar = document.getElementById('progress-bar');
     progressPercentage = document.getElementById('progress-percentage');
@@ -386,63 +829,4 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!consoleLog) console.error('console-log not found!');
         if (!loadingMessageDisplay) console.error('h2 for loading message not found!');
     }
-
-    // New: Add event listeners for session management buttons
-    if (exportSessionButton && typeof window.exportSession === 'function') {
-        exportSessionButton.addEventListener('click', window.exportSession);
-    } else {
-        console.error('Export Session button or exportSession function not found!');
-    }
-
-    if (importSessionButton && typeof window.importSession === 'function') {
-        importSessionButton.addEventListener('click', window.importSession);
-    } else {
-        console.error('Import Session button or importSession function not found!');
-    }
-
-
-    // Initial fetch of assets when the page loads
-    fetchAssets();
 });
-
-
-// New: Global function to update a specific card's visual state after modification/creation
-// This function will be called from asset-editor-modal.js and bulk-operations.js
-if (typeof window.updateCardVisualState === 'undefined') {
-    window.updateCardVisualState = (asset) => {
-        const cardElement = asset.cardElement;
-        if (!cardElement) {
-            console.warn('Attempted to update card visual state for an asset without a cardElement:', asset);
-            return;
-        }
-
-        const mediaImage = cardElement.querySelector('.media-image');
-        const filenameElement = cardElement.querySelector('.texture-filename');
-        const folderElement = cardElement.querySelector('.texture-name'); // For folder/artist/album
-
-        if (asset.isNew || asset.isModified) {
-            cardElement.classList.add('modified'); // Add a class for visual indication
-        } else {
-            cardElement.classList.remove('modified');
-        }
-
-        // Update the image source if there's a new blob
-        if (mediaImage && asset.newImageBlob) {
-            // Revoke previous object URL if it exists to prevent memory leaks
-            if (mediaImage.src.startsWith('blob:')) {
-                URL.revokeObjectURL(mediaImage.src);
-            }
-            mediaImage.src = URL.createObjectURL(asset.newImageBlob);
-            mediaImage.onload = () => URL.revokeObjectURL(mediaImage.src); // Clean up
-        }
-
-        // You might also want to update filename/folder if those can be changed
-        if (filenameElement) {
-            filenameElement.textContent = asset.filename;
-        }
-        if (folderElement) {
-            folderElement.textContent = asset.folder;
-        }
-        // Potentially update other displayed properties
-    };
-}
