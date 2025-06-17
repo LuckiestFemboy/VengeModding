@@ -7,25 +7,25 @@
 
 body {
     font-family: 'Inter', sans-serif;
-    background: #F8F8F8; /* Very light grey background */
-    color: #333333; /* Dark grey text */
+    background: #1a1a1a;
+    color: #ffffff;
     line-height: 1.6;
 }
 
 /* Header styles */
 header {
-    background: #FFFFFF; /* White header background */
+    background: rgba(255, 255, 255, 0.05);
     padding: 2rem;
     text-align: center;
-    border-bottom: 1px solid #E0E0E0; /* Light border */
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); /* Softer shadow */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 header h1 {
     font-size: 2.4rem;
     margin-bottom: 0.5rem;
-    color: #555555; /* Muted dark text */
-    text-shadow: none; /* Remove text shadow */
+    color: #ffffff;
+    text-shadow: 0 0 15px rgba(108, 92, 231, 0.2);
 }
 
 /* Search bar styles */
@@ -42,27 +42,27 @@ header h1 {
     width: 100%;
     max-width: 400px;
     padding: 0.8rem 1rem;
-    border: 1px solid #E0E0E0; /* Light border */
+    border: 2px solid rgba(255, 255, 255, 0.2);
     border-radius: 6px;
-    background: #FFFFFF; /* White background */
-    color: #333333; /* Dark text */
+    background: rgba(255, 255, 255, 0.05);
+    color: #ffffff;
     font-size: 1rem;
     outline: none;
 }
 
 .search-input::placeholder {
-    color: #777777; /* Muted placeholder */
+    color: rgba(255, 255, 255, 0.4);
 }
 
 .search-input:focus {
-    border-color: #D7BDE2; /* Light purple on focus */
-    background: #F0F0F0; /* Slightly darker light background */
+    border-color: #6c5ce7;
+    background: rgba(255, 255, 255, 0.1);
 }
 
 .search-button {
     padding: 0.8rem 1.5rem;
-    background: linear-gradient(135deg, #A7D9F0, #D7BDE2); /* Pastel blue-purple gradient */
-    color: #333333; /* Dark text */
+    background: linear-gradient(135deg, #6c5ce7, #fd79a8);
+    color: white;
     border: none;
     border-radius: 6px;
     font-size: 1rem;
@@ -76,7 +76,7 @@ header h1 {
 }
 
 .search-button.clear-button {
-    background: linear-gradient(135deg, #D7BDE2, #A7D9F0); /* Reversed pastel gradient */
+    background: linear-gradient(135deg, #fd79a8, #6c5ce7);
 }
 
 /* New: Styles for the multi-select action container */
@@ -93,15 +93,15 @@ header h1 {
 .multi-select-actions .selected-count {
     font-size: 1.1rem;
     font-weight: 600;
-    color: #FFD1DC; /* Light pink for count */
+    color: #fd79a8; /* Highlighted color for count */
     padding: 0.5rem 1rem;
-    border: 1px solid #FFD1DC; /* Light pink border */
+    border: 1px solid rgba(253, 121, 168, 0.3);
     border-radius: 6px;
-    background: rgba(255, 209, 220, 0.2); /* Very light pink background */
+    background: rgba(253, 121, 168, 0.1);
 }
 
 .multi-select-actions .bulk-action-trigger {
-    background: linear-gradient(135deg, #FFD1DC, #D7BDE2); /* Pastel pink-purple gradient */
+    background: linear-gradient(135deg, #fd79a8, #eb3b5a); /* Reddish gradient */
     padding: 0.8rem 1.5rem;
     border-radius: 6px;
     font-size: 1rem;
@@ -115,10 +115,9 @@ header h1 {
 }
 
 .multi-select-actions .bulk-action-trigger:disabled {
-    background: #E0E0E0; /* Light grey for disabled */
-    color: #AAAAAA;
+    background: #444;
     cursor: not-allowed;
-    opacity: 0.8;
+    opacity: 0.6;
     box-shadow: none;
     transform: none;
 }
@@ -130,9 +129,9 @@ header h1 {
     max-width: 1800px;
     margin: 0 auto;
     padding: 2rem;
-    background: #F8F8F8; /* Match body background */
+    background: #1a1a1a;
     border-radius: 12px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 /* Grid layout - Fixed to prevent overlapping */
@@ -142,17 +141,17 @@ header h1 {
     gap: 2rem;
     padding: 2rem;
     min-height: 100vh;
-    background: #F8F8F8; /* Match body background */
+    background: rgba(255, 255, 255, 0.02);
     justify-content: center;
     max-width: 100%;
 }
 
 /* Card styles - Base for all cards */
 .texture-card {
-    background: #FFFFFF; /* White card background */
+    background: rgba(255, 255, 255, 0.05);
     border-radius: 16px;
     cursor: pointer;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05); /* Softer shadow */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     width: 100%;
     max-width: 380px;
     height: 420px; /* Fixed height for consistent card size for non-MP3s */
@@ -162,30 +161,30 @@ header h1 {
     transition: all 0.3s ease;
     padding: 0;
     margin: 0 auto;
-    border: 1px solid #E0E0E0; /* Light border */
-    backdrop-filter: blur(3px); /* Lighter blur */
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
     overflow: hidden; /* Keep hidden for non-MP3s */
 }
 
 .texture-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1); /* More prominent but light shadow */
-    border-color: #D7BDE2; /* Light purple border on hover */
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+    border-color: rgba(108, 92, 231, 0.3);
 }
 
 /* Style for edited cards */
 .texture-card.edited-card {
-    background: #F0F0F0; /* Lighter grey background */
-    border: 2px solid #A7D9F0; /* Highlight border (light blue) */
-    box-shadow: 0 4px 15px rgba(167, 217, 240, 0.4); /* Stronger light blue shadow */
-    color: #333333; /* Dark text for legibility on light background */
+    background: #ffffff; /* Full white background */
+    border: 2px solid #6c5ce7; /* Highlight border */
+    box-shadow: 0 4px 20px rgba(108, 92, 231, 0.4); /* Stronger shadow */
+    color: #1a1a1a; /* Dark text for legibility on white background */
 }
 
 .texture-card.edited-card .texture-filename,
 .texture-card.edited-card .texture-name,
 .texture-card.edited-card .mp3-filename-display,
 .texture-card.edited-card .folder-number-button {
-    color: #333333; /* Ensure text is dark on white background */
+    color: #1a1a1a; /* Ensure text is dark on white background */
 }
 
 /* MP3-specific card styling (consolidated layout) */
@@ -198,18 +197,19 @@ header h1 {
     align-items: center; /* Center items horizontally within the card */
     justify-content: space-between; /* Push elements to top/bottom, space in between */
     padding: 1rem; /* Overall internal padding for the card */
-    background: #EAF7FC; /* A very light blue tint for the whole card */
-    border: 1px solid #A7D9F0; /* Light blue border */
+    background: rgba(108, 92, 231, 0.15); /* A slightly stronger purple tint for the whole card */
+    border: 1px solid rgba(108, 92, 231, 0.25);
     overflow: hidden; /* Re-enable overflow hidden for the main card */
 }
 
 /* MP3 specific edited card style */
 .texture-card.mp3.edited-card {
-    background: #F2FAFD; /* A lighter blue tint for MP3 edited cards */
-    border: 2px solid #B2D8D8; /* Muted teal highlight border */
-    box-shadow: 0 4px 15px rgba(178, 216, 216, 0.4);
-    color: #333333; /* Dark text */
+    background: #e6e6ff; /* A lighter purplish tint for MP3 edited cards */
+    border: 2px solid #fd79a8; /* Highlight border */
+    box-shadow: 0 4px 20px rgba(253, 121, 168, 0.4);
+    color: #1a1a1a; /* Dark text */
 }
+
 
 /* Media container (for PNG/JPG cards) */
 .media-container {
@@ -217,7 +217,7 @@ header h1 {
     height: 250px;
     border-radius: 16px 16px 0 0;
     overflow: hidden;
-    background: #F0F0F0; /* Light grey background for canvas area */
+    background: rgba(255, 255, 255, 0.03);
     position: relative;
     padding: 0;
     flex-shrink: 0;
@@ -237,218 +237,307 @@ header h1 {
 /* Play icon (now direct child of .texture-card.mp3) */
 .media-icon {
     font-size: 3rem; /* Make it a bit bigger as it's more central */
-    color: #D7BDE2; /* Light purple color */
+    color: #6c5ce7;
     cursor: pointer;
     transition: all 0.2s ease;
     margin-bottom: 0.75rem; /* Space below icon */
+    flex-shrink: 0; /* Don't shrink icon */
 }
 
 .media-icon:hover {
-    color: #FFD1DC; /* Light pink on hover */
     transform: scale(1.1);
+    color: #fd79a8;
 }
 
-/* Info section for all cards */
-.texture-info {
-    padding: 1rem 1.2rem;
-    display: flex;
-    flex-direction: column;
-    flex-grow: 1; /* Allow info to take remaining space */
-    justify-content: space-between;
-    background: #FFFFFF; /* White background */
-    border-radius: 0 0 16px 16px;
-}
-
-.texture-filename {
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: #333333; /* Dark text */
-    word-break: break-all; /* Ensure long names wrap */
-    margin-bottom: 0.25rem;
-}
-
-.texture-name {
-    font-size: 0.95rem;
-    color: #555555; /* Muted text */
-    margin-bottom: 0.75rem;
-    word-break: break-all;
-}
-
-/* Action buttons at the bottom of the card */
-.card-actions {
-    display: flex;
-    gap: 0.5rem;
-    justify-content: flex-end;
-    margin-top: auto; /* Push buttons to the bottom */
-}
-
-.action-button,
-.folder-number-button {
-    padding: 0.6rem 1rem;
-    border: none;
-    border-radius: 6px;
-    font-size: 0.9rem;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    display: flex;
+/* Style for the MP3 filename displayed prominently on the card */
+.mp3-filename-display {
+    font-size: 1.1rem; /* Larger font */
+    color: #ffffff; /* White color for good contrast */
+    font-weight: 600; /* Bolder font */
+    text-align: center;
+    word-break: break-word; /* Allow long words to break */
+    white-space: normal; /* Ensure text wraps */
+    padding: 0 0.5rem; /* Horizontal padding */
+    flex-grow: 1; /* Allow it to take up available vertical space */
+    display: flex; /* Use flex to center text vertically if it's short */
     align-items: center;
     justify-content: center;
-    gap: 0.3rem;
-    font-weight: 500;
+    line-height: 1.4; /* Better line spacing for readability */
+    max-height: 5.6em; /* Max 4 lines (1.4em * 4 lines) before truncation */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    margin-bottom: 0.5rem; /* Space below filename */
 }
 
-.action-button.edit {
-    background: linear-gradient(135deg, #D7BDE2, #A7D9F0); /* Pastel purple-blue gradient */
-    color: #333333; /* Dark text */
-}
-
-.action-button.edit:hover {
-    background: linear-gradient(135deg, #A7D9F0, #D7BDE2); /* Reversed gradient on hover */
-    transform: translateY(-1px);
-}
-
-.action-button.delete {
-    background: linear-gradient(135deg, #FFD1DC, #D7BDE2); /* Pastel pink-purple gradient */
-    color: #333333; /* Dark text */
-}
-
-.action-button.delete:hover {
-    background: linear-gradient(135deg, #D7BDE2, #FFD1DC); /* Reversed gradient on hover */
-    transform: translateY(-1px);
-}
-
+/* Folder Number Button (now direct child of .texture-card.mp3) */
 .folder-number-button {
-    background: #FFFFFF; /* White background */
-    color: #A7D9F0; /* Light blue text */
-    border: 1px solid #A7D9F0; /* Light blue border */
+    background: rgba(253, 121, 168, 0.2);
+    border: 1px solid rgba(253, 121, 168, 0.4);
+    color: #ffffff;
+    padding: 0.5rem 0.8rem; /* More padding */
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem; /* Slightly larger */
+    font-weight: 500;
+    text-align: center;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 80%; /* Don't let it stretch full width */
+    width: auto; /* Shrink to content if max-width permits */
+    margin-bottom: 1rem; /* Space before the buttons wrapper */
+    flex-shrink: 0; /* Don't shrink button */
 }
 
 .folder-number-button:hover {
-    background: #A7D9F0; /* Light blue background on hover */
-    color: #FFFFFF; /* White text on hover */
+    background: rgba(253, 121, 168, 0.3);
+    border-color: rgba(253, 121, 168, 0.6);
+    transform: translateY(-1px);
 }
 
-/* Multi-select overlay */
-.card-multi-select-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(255, 255, 255, 0.5); /* Very light, semi-transparent */
-    border-radius: 16px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.2s ease, visibility 0.2s ease;
-}
-
-.texture-card.selected .card-multi-select-overlay {
-    opacity: 1;
-    visibility: visible;
-    background: rgba(167, 217, 240, 0.4); /* Light blue tint when selected */
-    border: 3px solid #A7D9F0; /* Solid light blue border */
-}
-
-.card-multi-select-overlay .checkbox-icon {
-    font-size: 3rem;
-    color: #FFFFFF; /* White checkmark */
-    background: #A7D9F0; /* Light blue background for checkmark */
-    border-radius: 50%;
-    padding: 0.5rem;
-    border: 2px solid #FFFFFF;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-}
-
-/* Loading Overlay Styles (from new requirements) */
-#loading-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(255, 255, 255, 0.9); /* Lighter, semi-transparent white */
+/* Info section (for PNG/JPG cards) */
+.texture-info {
     display: flex;
     flex-direction: column;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    width: 100%;
+    background: transparent;
+    border-radius: 0 0 16px 16px;
+    position: relative;
+    flex: 1;
+    justify-content: space-between;
+    overflow: hidden; /* Keep hidden for text info section */
+}
+
+/* File info section - Left side text content (within texture-info for PNG/JPG) */
+.file-info {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    justify-content: flex-start;
+    min-width: 0;
+    padding-bottom: 0.5rem;
+}
+
+/* Styles for texture-filename (only applies to PNG/JPG cards) */
+.texture-filename {
+    font-size: 0.9rem;
+    color: #ffffff;
+    font-weight: 500;
+    word-break: break-word;
+    line-height: 1.3;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+}
+
+.texture-name { /* This is for the folder name / Artist - Album (only for PNG/JPG) */
+    font-size: 0.8rem;
+    color: #6c5ce7;
+    font-weight: 400;
+    word-break: break-word;
+    line-height: 1.2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+/* Wrapper for MP3 action buttons (now direct child of .texture-card.mp3) */
+.mp3-buttons-wrapper {
+    display: flex;
+    flex-direction: column; /* Stack download and copy buttons vertically */
+    gap: 0.5rem;
+    width: 80%; /* Control button width relative to card */
+    margin-top: auto; /* Push wrapper to the bottom of the card */
+    align-items: center; /* Center buttons within wrapper */
+    flex-shrink: 0; /* Prevent wrapper from shrinking too much */
+}
+
+/* Download and Copy Folder buttons (now inside .mp3-buttons-wrapper) */
+.download-button,
+.copy-folder-button {
+    background: rgba(255, 255, 255, 0.15); /* Consistent with new card background */
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    color: #ffffff;
+    padding: 0.6rem 1rem; /* Slightly more padding */
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem; /* Slightly larger font */
+    width: 100%; /* Make them fill their wrapper */
+    transition: all 0.2s ease;
+    font-weight: 500;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.download-button:hover,
+.copy-folder-button:hover {
+    background: rgba(255, 255, 255, 0.25);
+    border-color: rgba(255, 255, 255, 0.4);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Adjustments for general buttons-container (for non-MP3 cards) */
+.buttons-container {
+    display: flex;
+    flex-direction: row;
+    gap: 0.5rem;
+    justify-content: flex-end;
+    flex-shrink: 0;
+}
+
+.buttons-container .download-button,
+.buttons-container .copy-button { /* Use .copy-button for non-MP3s */
+    background: rgba(108, 92, 231, 0.2);
+    border: 1px solid rgba(108, 92, 231, 0.4);
+    color: #ffffff;
+    padding: 0.5rem 0.6rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.75rem;
+    width: auto;
+    min-width: 70px;
+    transition: all 0.2s ease;
+    font-weight: 500;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.buttons-container .download-button:hover,
+.buttons-container .copy-button:hover {
+    background: rgba(108, 92, 231, 0.3);
+    border-color: rgba(108, 92, 231, 0.6);
+    transform: translateY(-1px);
+}
+
+/* New button for editing/creating assets on each card */
+.edit-asset-button {
+    background: linear-gradient(135deg, #fd79a8, #eb3b5a); /* Reddish gradient for edit */
+    border: none;
+    color: white;
+    padding: 0.5rem 0.6rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    width: auto;
+    min-width: 70px;
+    font-weight: 500;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.edit-asset-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* New: Styles for multi-select mode */
+body.multi-select-active .texture-card:not(.mp3) {
+    cursor: pointer; /* Change cursor for clickable cards */
+    border: 1px solid rgba(255, 255, 255, 0.1); /* Reset border */
+}
+
+body.multi-select-active .texture-card:not(.mp3):hover {
+    transform: translateY(-2px); /* Less aggressive hover in select mode */
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    border-color: #6c5ce7; /* Highlight hover */
+}
+
+body.multi-select-active .texture-card:not(.mp3) .buttons-container {
+    opacity: 0.3; /* Dim edit/copy/download buttons in multi-select mode */
+    pointer-events: none; /* Disable clicks on these buttons */
+}
+
+body.multi-select-active .texture-card:not(.mp3) .edit-asset-button,
+body.multi-select-active .texture-card:not(.mp3) .copy-button,
+body.multi-select-active .texture-card:not(.mp3) .download-button {
+    cursor: not-allowed;
+}
+
+
+/* New: Style for selected cards in multi-select mode */
+.texture-card.selected-for-bulk {
+    background: rgba(108, 92, 231, 0.3); /* Purple background */
+    border: 3px solid #fd79a8; /* Pink border */
+    box-shadow: 0 0 25px rgba(253, 121, 168, 0.5), inset 0 0 15px rgba(253, 121, 168, 0.3); /* Inner and outer glow */
+    transform: scale(1.02); /* Slightly larger when selected */
+    z-index: 10; /* Bring selected card to front */
+}
+
+/* New: Checkbox visual for selectable cards */
+.texture-card .select-checkbox {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    width: 24px;
+    height: 24px;
+    background-color: rgba(255, 255, 255, 0.8);
+    border: 2px solid #6c5ce7;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 1000;
-    visibility: hidden; /* Hidden by default */
-    opacity: 0;
-    transition: visibility 0.3s ease, opacity 0.3s ease;
-    padding: 20px; /* Add some padding for mobile */
-    text-align: center; /* Center text for smaller screens */
+    font-size: 1.2rem;
+    color: transparent; /* Initially transparent checkmark */
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    z-index: 20; /* Ensure checkbox is on top */
+    opacity: 0; /* Hidden by default, shown in multi-select mode */
+    pointer-events: none; /* Disable clicks outside multi-select mode */
 }
 
-#loading-overlay.active {
-    visibility: visible;
-    opacity: 1;
+body.multi-select-active .texture-card:not(.mp3) .select-checkbox {
+    opacity: 1; /* Show checkbox in multi-select mode for image cards */
+    pointer-events: auto; /* Enable clicks */
 }
 
-#loading-overlay h2 {
-    font-size: 2rem;
-    color: #555555; /* Muted dark grey */
-    margin-bottom: 1.5rem;
+.texture-card.selected-for-bulk .select-checkbox {
+    background-color: #6c5ce7; /* Checked state background */
+    border-color: #fd79a8;
+    color: white; /* Show checkmark */
 }
 
-.progress-bar-container {
-    width: 80%;
-    max-width: 500px;
-    background: #E0E0E0; /* Light grey background */
-    border-radius: 5px;
-    height: 20px;
-    overflow: hidden;
-    margin-bottom: 1rem;
-}
 
-.progress-bar {
-    height: 100%;
-    width: 0%;
-    background: linear-gradient(90deg, #FFD1DC, #D7BDE2); /* Pastel pink-purple gradient for the bar */
-    border-radius: 5px;
-    transition: width 0.1s ease-out; /* Smooth progress update */
-}
-
-.progress-text {
-    font-size: 1.1rem;
-    font-weight: 600;
-    margin-top: 0.5rem;
-    color: #555555; /* Muted dark text */
-}
-
-.console-output {
-    background: #F0F0F0; /* Light background */
-    border: 1px solid #E0E0E0; /* Light border */
-    border-radius: 8px;
-    padding: 1rem;
-    margin-top: 1rem;
-    text-align: left;
-    width: 80%;
-    max-width: 500px;
-}
-
-.console-output h3 {
-    font-size: 1rem;
-    color: #777777; /* Muted grey */
-    margin-bottom: 0.5rem;
-}
-
-#console-log {
-    background: #FFFFFF; /* White background */
-    color: #555555; /* Muted text */
-    font-family: 'Consolas', 'Monaco', monospace;
-    font-size: 0.9rem;
-    height: 150px; /* Fixed height for the console */
-    overflow-y: auto; /* Enable scrolling */
-    border: 1px solid #E0E0E0; /* Light border */
-    padding: 0.5rem;
-    border-radius: 4px;
-}
-
-/* Responsive Adjustments */
+/* Responsive design */
 @media (max-width: 768px) {
+    #texture-grid {
+        grid-template-columns: 1fr;
+        padding: 1rem;
+        gap: 1.5rem;
+    }
+
+    .texture-card {
+        max-width: 100%;
+        margin: 0;
+        height: auto; /* Allow all cards to adjust height on smaller screens */
+    }
+
+    .texture-card.mp3 {
+        min-height: 200px; /* Adjust min-height for small screens if needed */
+        padding: 1rem;
+    }
+
+    .container {
+        padding: 1rem;
+    }
+
     header {
         padding: 1.5rem;
     }
@@ -457,71 +546,182 @@ header h1 {
         font-size: 2rem;
     }
 
-    .container {
-        padding: 1rem;
+    .multi-select-actions {
+        flex-direction: column;
+        gap: 0.75rem;
     }
 
-    #texture-grid {
-        grid-template-columns: 1fr; /* Single column on small screens */
-        padding: 1rem;
-        gap: 1.5rem;
+    .multi-select-actions .bulk-action-trigger {
+        width: 100%;
     }
+}
 
-    .texture-card {
-        max-width: 100%; /* Full width on small screens */
-        height: auto; /* Allow height to adjust */
-        min-height: 380px;
-    }
-
-    .media-container {
-        height: 200px; /* Smaller image height */
-    }
-
-    .texture-info {
-        padding: 0.8rem 1rem;
-    }
-
-    .texture-filename {
-        font-size: 1rem;
-    }
-
-    .texture-name {
-        font-size: 0.85rem;
-    }
-
-    .action-button,
-    .folder-number-button {
-        padding: 0.5rem 0.8rem;
-        font-size: 0.8rem;
+@media (max-width: 480px) {
+    .search-container {
+        flex-direction: column;
+        gap: 0.75rem;
     }
 
     .search-input {
         max-width: 100%;
     }
 
-    .multi-select-actions {
-        flex-direction: column;
-        gap: 0.8rem;
+    /* MP3 specific buttons wrapper on smaller screens */
+    .mp3-buttons-wrapper {
+        width: 90%; /* Adjust width for smaller screens */
     }
 
-    .multi-select-actions .selected-count,
-    .multi-select-actions .bulk-action-trigger {
+    .download-button,
+    .copy-folder-button {
+        font-size: 0.8rem;
+    }
+
+    /* General buttons container for PNG/JPGs */
+    .buttons-container {
+        flex-direction: column; /* Stack buttons vertically for smaller cards */
         width: 100%;
-        text-align: center;
+        gap: 0.5rem;
+    }
+
+    .buttons-container .download-button,
+    .buttons-container .copy-button {
+        width: 100%; /* Make them fill the container */
+        min-width: unset;
+        font-size: 0.8rem;
+        padding: 0.6rem 0.8rem;
+    }
+
+    .media-icon {
+        font-size: 2.5rem; /* Slightly smaller icon on very small screens */
+    }
+
+    .mp3-filename-display {
+        font-size: 0.9rem; /* Slightly smaller text on very small screens */
+        max-height: 4.2em; /* Adjusted max lines for smaller font (1.4em * 3 lines) */
+        -webkit-line-clamp: 3;
+    }
+
+    .folder-number-button {
+        font-size: 0.8rem;
+        padding: 0.4rem 0.6rem;
     }
 }
 
-@media (max-width: 480px) {
-    header h1 {
-        font-size: 1.8rem;
-    }
+/* --- New styles for Loading Overlay and Progress Window --- */
 
-    .container {
-        padding: 0.75rem;
-    }
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7); /* Semi-transparent black background */
+    display: flex; /* Use flexbox to center content */
+    justify-content: center;
+    align-items: center;
+    z-index: 1000; /* Ensure it's on top of everything */
+    backdrop-filter: blur(5px); /* Optional: blur background content */
+    -webkit-backdrop-filter: blur(5px); /* For Safari */
+    visibility: hidden; /* Hidden by default */
+    opacity: 0; /* Start fully transparent */
+    transition: visibility 0.3s linear, opacity 0.3s linear; /* Smooth transition */
+}
 
-    #texture-grid {
-        padding: 0.75rem;
-        gap: 1rem;
-    }
+.loading-overlay.active {
+    visibility: visible;
+    opacity: 1;
+}
+
+.loading-window {
+    background: #2a2a2a; /* Darker background for the window */
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 2rem;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+    color: #ffffff;
+}
+
+.loading-window h2 {
+    font-size: 1.8rem;
+    margin-bottom: 0.5rem;
+    color: #6c5ce7;
+}
+
+.progress-bar-container {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 5px;
+    height: 20px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    width: 0%; /* Initial width */
+    background: linear-gradient(90deg, #6c5ce7, #fd79a8); /* Gradient for the bar */
+    border-radius: 5px;
+    transition: width 0.1s ease-out; /* Smooth progress update */
+}
+
+.progress-text {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-top: 0.5rem;
+    color: #ffffff;
+}
+
+.console-output {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-top: 1rem;
+    text-align: left;
+}
+
+.console-output h3 {
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 0.5rem;
+}
+
+#console-log {
+    background: #1a1a1a;
+    color: #0f0; /* Green text for console feel */
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 0.9rem;
+    height: 150px; /* Fixed height for the console */
+    overflow-y: auto; /* Enable scrolling */
+    border: 1px solid #333;
+    padding: 0.5rem;
+    border-radius: 4px;
+    white-space: pre-wrap; /* Preserve whitespace and wrap long lines */
+    word-break: break-all; /* Break long words */
+    scrollbar-width: thin; /* Firefox */
+    scrollbar-color: #6c5ce7 #333; /* Firefox */
+}
+
+/* Custom scrollbar for Webkit (Chrome, Safari) */
+#console-log::-webkit-scrollbar {
+    width: 8px;
+}
+
+#console-log::-webkit-scrollbar-track {
+    background: #333;
+    border-radius: 10px;
+}
+
+#console-log::-webkit-scrollbar-thumb {
+    background: #6c5ce7;
+    border-radius: 10px;
+}
+
+#console-log::-webkit-scrollbar-thumb:hover {
+    background: #fd79a8;
 }

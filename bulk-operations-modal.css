@@ -7,13 +7,13 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(255, 255, 255, 0.7); /* Lighter, semi-transparent background */
+    background: rgba(0, 0, 0, 0.85); /* Slightly darker for distinct modal */
     display: flex;
     justify-content: center;
     align-items: center;
     z-index: 1002; /* Higher than asset editor modal */
-    backdrop-filter: blur(8px); /* Softer blur */
-    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(10px); /* Stronger blur */
+    -webkit-backdrop-filter: blur(10px);
     visibility: hidden; /* Hidden by default */
     opacity: 0;
     transition: visibility 0.3s ease, opacity 0.3s ease;
@@ -26,18 +26,18 @@
 
 /* Bulk Operations Modal Content */
 .bulk-operations-modal-content {
-    background: #FFFFFF; /* White background */
-    border: 1px solid #E0E0E0; /* Light border */
+    background: #202020; /* Even darker background for central modal */
+    border: 1px solid rgba(255, 255, 255, 0.2); /* More visible border */
     border-radius: 16px; /* More rounded corners */
     padding: 2.5rem; /* More padding */
     width: 95%;
     max-width: 700px; /* Adjusted max-width for content */
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15); /* Softer, prominent shadow */
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8); /* More prominent shadow */
     display: flex;
     flex-direction: column;
     gap: 2rem; /* Increased spacing between sections */
     position: relative;
-    color: #333333; /* Dark text for legibility */
+    color: #ffffff;
     max-height: 90vh;
     overflow-y: auto;
     margin: auto; /* NEW: This helps center the content within the flex container */
@@ -45,10 +45,10 @@
 
 .bulk-operations-modal-content h2 {
     font-size: 2rem; /* Larger title */
-    color: #D7BDE2; /* Light purple primary accent color */
+    color: #6c5ce7; /* Primary accent color */
     text-align: center;
     margin-bottom: 0.5rem;
-    text-shadow: none; /* Remove text shadow */
+    text-shadow: 0 0 10px rgba(108, 92, 231, 0.3); /* Subtle glow */
 }
 
 /* Close Button */
@@ -57,38 +57,38 @@
     top: 1rem;
     right: 1.5rem;
     font-size: 2.8rem; /* Even larger for prominent close */
-    color: #777777; /* Muted grey */
+    color: rgba(255, 255, 255, 0.7);
     cursor: pointer;
     transition: color 0.2s ease, transform 0.2s ease;
     line-height: 1;
 }
 
 .close-bulk-modal-button:hover {
-    color: #FFD1DC; /* Light pink on hover */
+    color: #fd79a8;
     transform: rotate(90deg); /* Little animation */
 }
 
 /* Section Headings */
 .bulk-operations-modal-content h3 {
     font-size: 1.6rem; /* Slightly larger section headings */
-    color: #FFD1DC; /* Light pink secondary accent color */
+    color: #fd79a8; /* Secondary accent color */
     text-align: center;
     margin-bottom: 1.5rem;
     padding-bottom: 0.5rem;
-    border-bottom: 1px solid #E0E0E0; /* Light border */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 /* Saturation Control Group */
 .bulk-saturation-control,
 .bulk-create-texture-inputs,
 .bulk-upload-texture-inputs { /* Added for new section */
-    background: #F8F8F8; /* Very light background for sections */
+    background: rgba(255, 255, 255, 0.05); /* Lighter background for sections */
     border-radius: 10px;
     padding: 1.5rem;
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
-    border: 1px solid #E0E0E0; /* Light border */
+    border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .bulk-saturation-control .input-group,
@@ -104,7 +104,7 @@
 .bulk-upload-texture-inputs label { /* Added for new section */
     font-size: 1.1rem;
     font-weight: 500;
-    color: #555555; /* Muted text */
+    color: rgba(255, 255, 255, 0.9);
 }
 
 #bulk-saturation-slider {
@@ -112,7 +112,7 @@
     -webkit-appearance: none;
     appearance: none;
     height: 10px; /* Thicker slider */
-    background: linear-gradient(to right, #A7D9F0, #FFD1DC); /* Pastel blue-pink gradient track */
+    background: linear-gradient(to right, #6c5ce7, #fd79a8); /* Gradient track */
     border-radius: 5px;
     outline: none;
 }
@@ -123,156 +123,191 @@
     width: 24px; /* Larger thumb */
     height: 24px;
     border-radius: 50%;
-    background: #FFFFFF; /* White thumb */
+    background: #ffffff; /* White thumb */
     cursor: grab;
-    box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
-    border: 2px solid #D7BDE2; /* Light purple border */
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
+    border: 2px solid #6c5ce7;
     transition: all 0.2s ease;
+}
+
+#bulk-saturation-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.15);
+    border-color: #fd79a8;
 }
 
 #bulk-saturation-slider::-moz-range-thumb {
     width: 24px;
     height: 24px;
     border-radius: 50%;
-    background: #FFFFFF; /* White thumb */
+    background: #ffffff;
     cursor: grab;
-    box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
-    border: 2px solid #D7BDE2; /* Light purple border */
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
+    border: 2px solid #6c5ce7;
     transition: all 0.2s ease;
 }
 
-#bulk-saturation-slider::-webkit-slider-thumb:active,
-#bulk-saturation-slider::-moz-range-thumb:active {
-    cursor: grabbing;
-    transform: scale(1.1);
+#bulk-saturation-slider::-moz-range-thumb:hover {
+    transform: scale(1.15);
+    border-color: #fd79a8;
 }
+
 
 #bulk-saturation-value {
     font-size: 1.2rem;
-    font-weight: 600;
-    color: #333333; /* Dark text */
-    min-width: 35px;
-    text-align: right;
+    font-weight: 700;
+    color: #ffffff;
+    min-width: 60px;
+    text-align: center;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 0.3rem 0.6rem;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* Create New Texture Inputs */
 .bulk-create-texture-inputs input[type="number"],
 .bulk-create-texture-inputs input[type="text"] {
-    padding: 0.9rem 1.2rem;
-    border: 1px solid #E0E0E0; /* Light border */
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 8px;
-    background: #FFFFFF; /* White background */
-    color: #333333; /* Dark text */
-    font-size: 1.1rem;
+    padding: 0.9rem 1.2rem;
+    color: #ffffff;
+    font-size: 1.05rem;
     outline: none;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    transition: border-color 0.2s ease, background 0.2s ease;
 }
 
 .bulk-create-texture-inputs input[type="number"]:focus,
 .bulk-create-texture-inputs input[type="text"]:focus {
-    border-color: #A7D9F0; /* Light blue on focus */
-    box-shadow: 0 0 0 3px rgba(167, 217, 240, 0.3);
+    border-color: #6c5ce7;
+    background: rgba(255, 255, 255, 0.18);
 }
 
-/* Bulk Upload Texture Inputs */
-.bulk-upload-texture-inputs input[type="file"] {
-    padding: 0.9rem 1.2rem;
-    border: 1px solid #E0E0E0; /* Light border */
+.bulk-create-texture-inputs input[type="color"] {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    border: none;
+    background: transparent;
+    width: 70px;
+    height: 45px;
+    cursor: pointer;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 10px;
+    transition: border-color 0.2s ease;
+}
+
+.bulk-create-texture-inputs input[type="color"]::-webkit-color-swatch-wrapper {
+    padding: 0;
+}
+
+.bulk-create-texture-inputs input[type="color"]::-webkit-color-swatch {
+    border: none;
     border-radius: 8px;
-    background: #FFFFFF; /* White background */
-    color: #333333; /* Dark text */
-    font-size: 1.1rem;
+}
+
+.bulk-create-texture-inputs input[type="color"]::-moz-color-swatch-wrapper {
+    padding: 0;
+}
+
+.bulk-create-texture-inputs input[type="color"]::-moz-color-swatch {
+    border: none;
+    border-radius: 8px;
+}
+
+/* Styling for the new Upload Texture Section */
+.bulk-upload-texture-inputs input[type="file"] {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    padding: 0.9rem 1.2rem;
+    color: #ffffff;
+    font-size: 1.05rem;
     outline: none;
+    transition: border-color 0.2s ease, background 0.2s ease;
     cursor: pointer;
 }
 
 .bulk-upload-texture-inputs input[type="file"]::file-selector-button {
-    background: linear-gradient(135deg, #FFD1DC, #D7BDE2); /* Pastel pink-purple gradient */
-    color: #333333; /* Dark text */
+    background: linear-gradient(135deg, #6c5ce7, #fd79a8);
+    color: white;
     border: none;
     border-radius: 6px;
-    padding: 0.7rem 1rem;
-    margin-right: 15px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.bulk-upload-texture-inputs input[type="file"]::file-selector-button:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.image-upload-preview {
-    width: 100%;
-    height: 200px; /* Fixed height for preview area */
-    border: 2px dashed #D7BDE2; /* Light purple dashed border */
-    border-radius: 10px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    overflow: hidden;
-    margin-bottom: 1.5rem;
-    position: relative;
-    background: #F0F0F0; /* Lighter background for preview area */
-}
-
-.image-upload-preview img {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
-    display: none; /* Hidden by default */
-    border-radius: 8px; /* Slightly rounded corners for the image */
-}
-
-.image-upload-preview p {
-    color: #777777; /* Muted grey text */
-    font-style: italic;
-}
-
-/* Action Buttons */
-.bulk-action-button {
-    background: linear-gradient(135deg, #A7D9F0, #D7BDE2); /* Pastel blue-purple gradient */
-    color: #333333; /* Dark text */
-    border: none;
-    border-radius: 8px;
-    padding: 1.2rem 2.5rem;
-    font-size: 1.2rem;
+    padding: 0.7rem 1.2rem;
+    font-size: 0.9rem;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    width: 100%;
+    margin-right: 1rem;
+}
+
+.bulk-upload-texture-inputs input[type="file"]::file-selector-button:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+
+.image-preview-container {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 1rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 150px; /* Ensure space even without image */
+    overflow: hidden;
+}
+
+#bulk-upload-image-preview {
+    max-width: 100%;
+    max-height: 200px; /* Limit preview height */
+    height: auto;
+    border-radius: 6px;
+    object-fit: contain; /* Ensure the whole image is visible */
+}
+
+
+/* Bulk Action Buttons */
+.bulk-action-button {
+    background: linear-gradient(135deg, #fd79a8, #eb3b5a); /* Reddish gradient for bulk actions */
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 1.2rem 2.5rem;
+    font-size: 1.2rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    width: 90%; /* Wider button */
+    max-width: 350px;
+    margin: 0 auto; /* Center button */
+    box-shadow: 0 6px 20px rgba(253, 121, 168, 0.4);
 }
 
 .bulk-action-button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
-    background: linear-gradient(135deg, #D7BDE2, #A7D9F0); /* Reverse gradient on hover */
-}
-
-.bulk-action-button:active {
-    transform: translateY(0);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(253, 121, 168, 0.6);
 }
 
 .bulk-action-button:disabled {
-    background: #E0E0E0; /* Light grey for disabled */
-    color: #AAAAAA;
+    background: #444;
     cursor: not-allowed;
-    opacity: 0.8;
+    opacity: 0.6;
     box-shadow: none;
     transform: none;
 }
 
-/* Responsive Adjustments for Bulk Operations Modal */
+/* Responsive Adjustments for Bulk Modal */
 @media (max-width: 768px) {
     .bulk-operations-modal-content {
-        padding: 1.8rem;
+        padding: 2rem;
         gap: 1.5rem;
+        max-width: 90%;
     }
 
     .close-bulk-modal-button {
         font-size: 2.2rem;
+        top: 0.8rem;
+        right: 1.2rem;
     }
 
     .bulk-operations-modal-content h2 {
@@ -315,21 +350,27 @@
 
 @media (max-width: 480px) {
     .bulk-operations-modal-content {
-        padding: 1.2rem;
+        padding: 1.5rem;
         gap: 1rem;
     }
 
     .bulk-operations-modal-content h2 {
-        font-size: 1.6rem;
+        font-size: 1.5rem;
     }
 
-    .close-bulk-modal-button {
-        font-size: 2rem;
-        top: 0.75rem;
-        right: 1rem;
+    .bulk-operations-modal-content h3 {
+        font-size: 1.2rem;
     }
 
-    .image-upload-preview {
-        height: 150px;
+    .bulk-saturation-control,
+    .bulk-create-texture-inputs,
+    .bulk-upload-texture-inputs { /* Added for new section */
+        padding: 1rem;
+        gap: 1rem;
+    }
+
+    .bulk-action-button {
+        font-size: 1rem;
+        padding: 0.9rem 1.8rem;
     }
 }
