@@ -769,7 +769,7 @@ async function initiateZipDownload(exportType) {
             type: "blob",
             compression: "DEFLATE", // Use compression
             compressionOptions: {
-                level: 5 // Changed from 9 to 5 for better performance
+                level: 1 // Changed from 9 to 5 for better performance
             }
         }, function updateCallback(metadata) {
             // Update progress during ZIP generation (optional, but good for large zips)
