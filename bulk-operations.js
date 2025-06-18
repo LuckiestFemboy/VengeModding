@@ -21,24 +21,13 @@ let bulkNewTextureHeightInput;
 let bulkNewTextureColorInput;
 let saveBulkNewTextureButton;
 
-// New: DOM elements for the bulk upload image texture section
-let bulkUploadImageSection; // New: to control visibility of the whole section
+// New: DOM elements for the bulk upload texture section
 let bulkUploadImageInput;
 let bulkUploadImagePreview;
 let applyBulkUploadTextureButton;
 let bulkUploadPreviewPlaceholder;
 
 let uploadedImageBlob = null; // Stores the actual uploaded image blob for bulk application
-
-// New: DOM elements for the bulk upload audio (MP3) section
-let bulkUploadAudioSection; // New: to control visibility of the whole section
-let bulkUploadAudioInput;
-let bulkUploadAudioPreview; // This might be a simple icon or text, not an actual audio player
-let applyBulkUploadAudioButton;
-let bulkUploadAudioPreviewPlaceholder;
-
-let uploadedAudioBlob = null; // Stores the actual uploaded audio blob for bulk application
-
 
 document.addEventListener('DOMContentLoaded', () => {
     // Get multi-select DOM elements
@@ -76,31 +65,16 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!bulkNewTextureColorInput) console.error('ERROR: bulk-new-texture-color input not found!');
     if (!saveBulkNewTextureButton) console.error('ERROR: save-bulk-new-texture button not found!');
 
-    // Get references to the bulk upload image section elements
-    bulkUploadImageSection = document.getElementById('bulk-upload-image-section'); // New ID
+    // New: Get references to the bulk upload image section elements
     bulkUploadImageInput = document.getElementById('bulk-upload-image-input');
     bulkUploadImagePreview = document.getElementById('bulk-upload-image-preview');
     applyBulkUploadTextureButton = document.getElementById('apply-bulk-upload-texture');
     bulkUploadPreviewPlaceholder = document.getElementById('bulk-upload-preview-placeholder');
 
-    if (!bulkUploadImageSection) console.error('ERROR: bulk-upload-image-section not found!');
     if (!bulkUploadImageInput) console.error('ERROR: bulk-upload-image-input not found!');
     if (!bulkUploadImagePreview) console.error('ERROR: bulk-upload-image-preview not found!');
     if (!applyBulkUploadTextureButton) console.error('ERROR: apply-bulk-upload-texture button not found!');
     if (!bulkUploadPreviewPlaceholder) console.error('ERROR: bulk-upload-preview-placeholder not found!');
-
-    // New: Get references to the bulk upload audio section elements
-    bulkUploadAudioSection = document.getElementById('bulk-upload-audio-section'); // New ID
-    bulkUploadAudioInput = document.getElementById('bulk-upload-audio-input');
-    bulkUploadAudioPreview = document.getElementById('bulk-upload-audio-preview');
-    applyBulkUploadAudioButton = document.getElementById('apply-bulk-upload-audio');
-    bulkUploadAudioPreviewPlaceholder = document.getElementById('bulk-upload-audio-preview-placeholder');
-
-    if (!bulkUploadAudioSection) console.error('ERROR: bulk-upload-audio-section not found!');
-    if (!bulkUploadAudioInput) console.error('ERROR: bulk-upload-audio-input not found!');
-    if (!bulkUploadAudioPreview) console.error('ERROR: bulk-upload-audio-preview not found!');
-    if (!applyBulkUploadAudioButton) console.error('ERROR: apply-bulk-upload-audio button not found!');
-    if (!bulkUploadAudioPreviewPlaceholder) console.error('ERROR: bulk-upload-audio-preview-placeholder not found!');
 
 
     // Add Event Listeners
@@ -130,20 +104,12 @@ document.addEventListener('DOMContentLoaded', () => {
         saveBulkNewTextureButton.addEventListener('click', saveBulkNewTexture);
     }
 
-    // Add event listeners for the bulk upload image section
+    // New: Add event listeners for the bulk upload image section
     if (bulkUploadImageInput) {
         bulkUploadImageInput.addEventListener('change', handleBulkImageUpload);
     }
     if (applyBulkUploadTextureButton) {
         applyBulkUploadTextureButton.addEventListener('click', applyBulkUploadedTexture);
-    }
-
-    // New: Add event listeners for the bulk upload audio section
-    if (bulkUploadAudioInput) {
-        bulkUploadAudioInput.addEventListener('change', handleBulkAudioUpload);
-    }
-    if (applyBulkUploadAudioButton) {
-        applyBulkUploadAudioButton.addEventListener('click', applyBulkUploadedAudio);
     }
 
 
@@ -165,13 +131,21 @@ function toggleMultiSelectMode() {
         toggleMultiSelectButton.textContent = 'Exit Selection';
         // Show bulk action buttons container
         if (multiSelectActionsContainer) {
-            multiSelectActionsContainer.style.display = 'flex';
+            console.log('DEBUG (show): multiSelectActionsContainer before style change:', multiSelectActionsContainer.style.display);
+            multiSelectActionsContainer.style.display = 'flex'; // Force to flex
+            console.log('DEBUG (show): multiSelectActionsContainer AFTER style change to flex:', multiSelectActionsContainer.style.display);
+        } else {
+            console.error('DEBUG (show): multiSelectActionsContainer is null!');
         }
     } else {
         toggleMultiSelectButton.textContent = 'Select Assets';
         // Hide bulk action buttons container
         if (multiSelectActionsContainer) {
-            multiSelectActionsContainer.style.display = 'none';
+            console.log('DEBUG (hide): multiSelectActionsContainer before style change:', multiSelectActionsContainer.style.display);
+            multiSelectActionsContainer.style.display = 'none'; // Force to none
+            console.log('DEBUG (hide): multiSelectActionsContainer AFTER style change to none:', multiSelectActionsContainer.style.display);
+        } else {
+            console.error('DEBUG (hide): multiSelectActionsContainer is null!');
         }
         clearSelectedAssets(); // Clear all selections when exiting mode
     }
@@ -205,8 +179,13 @@ function toggleMultiSelectMode() {
  * @param {HTMLElement} cardElement The DOM element of the asset card.
  */
 function toggleAssetSelection(asset, cardElement) {
-    // asset-list-page.js now handles the type conflict check.
-    // This function simply adds/removes the asset from the selectedAssets Set.
+    // Only allow selection of PNG/JPG assets (exclude MP3s)
+    if (asset.type.toLowerCase() === 'mp3') {
+        console.log('Attempted to select MP3 file for bulk image operations. Skipping.');
+        // Optionally provide a visible message to the user here instead of just console.log
+        return;
+    }
+
     if (selectedAssets.has(asset)) {
         selectedAssets.delete(asset);
         cardElement.classList.remove('selected-for-bulk');
@@ -217,7 +196,7 @@ function toggleAssetSelection(asset, cardElement) {
         console.log(`Asset selected: ${asset.filename}. Total selected: ${selectedAssets.size}`);
     }
     updateSelectedCountDisplay();
-    updateBulkActionButtonsState(); // Crucial call to update button disabled state and modal sections
+    updateBulkActionButtonsState(); // Crucial call to update button disabled state
 }
 
 /**
@@ -247,111 +226,49 @@ function updateSelectedCountDisplay() {
 
 /**
  * Enables or disables the single bulk edit button based on the number of selected assets.
- * Also controls the visibility of image/audio specific bulk operation sections in the modal.
  */
 function updateBulkActionButtonsState() {
     const enableButton = selectedAssets.size >= 1; // Enable if at least one asset is selected
+    console.log(`updateBulkActionButtonsState: Selected assets = ${selectedAssets.size}, enableButton = ${enableButton}`);
 
-    if (openBulkEditButton) {
+    if (openBulkEditButton) { // Check the new single button
         openBulkEditButton.disabled = !enableButton;
         openBulkEditButton.style.opacity = enableButton ? '1' : '0.5';
-        openBulkEditButton.style.pointerEvents = enableButton ? 'auto' : 'none';
+        openBulkEditButton.style.pointerEvents = enableButton ? 'auto' : 'none'; // Ensure clicks are enabled/disabled
+        console.log(`DEBUG: openBulkEditButton disabled state: ${openBulkEditButton.disabled}, opacity: ${openBulkEditButton.style.opacity}`);
+    } else {
+        console.error('DEBUG: openBulkEditButton is null when trying to update its state!');
     }
-
-    // Determine if selected assets are all images, all audio, or mixed
-    let hasImage = false;
-    let hasAudio = false;
-
-    selectedAssets.forEach(asset => {
-        if (asset.type.toLowerCase() === 'png' || asset.type.toLowerCase() === 'jpg') {
-            hasImage = true;
-        } else if (asset.type.toLowerCase() === 'mp3') {
-            hasAudio = true;
-        }
-    });
-
-    // Control visibility of bulk upload sections in the modal
-    // These will be controlled when the modal is opened/updated
-    // For now, this function primarily updates the openBulkEditButton
-    // The actual display logic for the modal sections will be in openBulkOperationsModal
-    // and potentially a refreshModalContents function if selections change *while* modal is open.
 }
 
 /**
  * Opens the bulk operations modal.
+ * The initialTab parameter is no longer needed as there are no tabs to pre-select.
  */
 function openBulkOperationsModal() {
     if (!bulkOperationsModal) {
         console.error('Bulk operations modal not found!');
         return;
     }
+    bulkOperationsModal.classList.add('active');
+    console.log(`Bulk operations modal opened.`);
 
-    // Reset all modal inputs to default values each time modal is opened
+    // Reset slider and inputs to default values each time modal is opened
     if (bulkSaturationSlider) bulkSaturationSlider.value = 100;
     if (bulkSaturationValueDisplay) bulkSaturationValueDisplay.textContent = '100%';
     if (bulkNewTextureWidthInput) bulkNewTextureWidthInput.value = 512;
     if (bulkNewTextureHeightInput) bulkNewTextureHeightInput.value = 512;
     if (bulkNewTextureColorInput) bulkNewTextureColorInput.value = '#6c5ce7';
 
-    // Reset bulk upload image section
-    if (bulkUploadImageInput) bulkUploadImageInput.value = '';
+    // New: Reset bulk upload section
+    if (bulkUploadImageInput) bulkUploadImageInput.value = ''; // Clear file input
     if (bulkUploadImagePreview) {
         bulkUploadImagePreview.src = '';
         bulkUploadImagePreview.style.display = 'none';
     }
     if (bulkUploadPreviewPlaceholder) bulkUploadPreviewPlaceholder.style.display = 'block';
-    uploadedImageBlob = null;
-    if (applyBulkUploadTextureButton) applyBulkUploadTextureButton.disabled = true;
-
-    // New: Reset bulk upload audio section
-    if (bulkUploadAudioInput) bulkUploadAudioInput.value = '';
-    if (bulkUploadAudioPreview) {
-        bulkUploadAudioPreview.innerHTML = '<i class="fas fa-music"></i> Audio File'; // Display a generic audio icon
-        bulkUploadAudioPreview.style.display = 'none';
-    }
-    if (bulkUploadAudioPreviewPlaceholder) bulkUploadAudioPreviewPlaceholder.style.display = 'block';
-    uploadedAudioBlob = null;
-    if (applyBulkUploadAudioButton) applyBulkUploadAudioButton.disabled = true;
-
-    // Determine the type of selected assets to show relevant sections
-    let hasImage = false;
-    let hasAudio = false;
-
-    selectedAssets.forEach(asset => {
-        if (asset.type.toLowerCase() === 'png' || asset.type.toLowerCase() === 'jpg') {
-            hasImage = true;
-        } else if (asset.type.toLowerCase() === 'mp3') {
-            hasAudio = true;
-        }
-    });
-
-    // Control visibility of bulk sections based on selected asset types
-    // Image-specific sections
-    if (bulkUploadImageSection) {
-        bulkUploadImageSection.style.display = hasImage && !hasAudio ? 'block' : 'none';
-    }
-    // Audio-specific sections
-    if (bulkUploadAudioSection) {
-        bulkUploadAudioSection.style.display = hasAudio && !hasImage ? 'block' : 'none';
-    }
-
-    // If both types somehow selected (should be prevented by asset-list-page.js)
-    // or if no selection, hide all specific sections and show a message or disable operations.
-    if (hasImage && hasAudio) {
-        console.error('Mixed image and audio selection detected in bulk operations modal. This state should be prevented by asset-list-page.js.');
-        if (bulkUploadImageSection) bulkUploadImageSection.style.display = 'none';
-        if (bulkUploadAudioSection) bulkUploadAudioSection.style.display = 'none';
-        window.updateConsoleLog('[ERROR] Mixed image and audio assets selected. Bulk operations not supported for mixed types.');
-        // Optionally display a more prominent message in the modal itself
-    } else if (!hasImage && !hasAudio) {
-        // No assets selected, hide sections
-        if (bulkUploadImageSection) bulkUploadImageSection.style.display = 'none';
-        if (bulkUploadAudioSection) bulkUploadAudioSection.style.display = 'none';
-    }
-
-
-    bulkOperationsModal.classList.add('active');
-    console.log(`Bulk operations modal opened.`);
+    uploadedImageBlob = null; // Clear the stored blob
+    if (applyBulkUploadTextureButton) applyBulkUploadTextureButton.disabled = true; // Disable apply button
 }
 
 /**
@@ -371,80 +288,89 @@ function closeBulkOperationsModal() {
 async function applyBulkSaturation() {
     if (selectedAssets.size === 0) {
         console.warn('No assets selected for bulk saturation. Operation aborted.');
-        window.updateConsoleLog('[WARNING] No assets selected for bulk saturation.');
+        // Consider a user-facing message here.
         return;
     }
+
     // Show loading overlay for bulk operation
     window.showLoadingOverlay('Applying Saturation...');
-    const totalAssets = Array.from(selectedAssets).filter(asset => asset.type.toLowerCase() !== 'mp3').length;
+    const totalAssets = selectedAssets.size;
     let processedCount = 0;
+
     const saturationFactor = bulkSaturationSlider.value / 100;
-    console.log(`Starting bulk saturation for ${totalAssets} image assets with factor: ${saturationFactor}`);
+    console.log(`Starting bulk saturation for ${totalAssets} assets with factor: ${saturationFactor}`);
 
     for (const asset of selectedAssets) {
         if (asset.type.toLowerCase() === 'mp3') {
-            // This should ideally not happen if openBulkOperationsModal hides relevant sections,
-            // but is a safe guard.
-            window.updateConsoleLog(`Skipping saturation for MP3 asset: ${asset.filename}`);
-            continue;
+            continue; // Skip MP3s (should already be filtered by selection logic, but good double check)
         }
+
         try {
             window.updateConsoleLog(`Processing saturation for: ${asset.filename}`);
-            let imageBlob = asset.modifiedImageBlob || asset.originalImageBlob; // Use modified if exists, else original
+            let imageBlob = null;
 
-            if (!imageBlob) {
-                // Fallback: If blob not in memory, fetch it (should be pre-loaded by loadAllAssetsIntoMemory for export)
-                const response = await fetch(asset.mediaPath);
-                if (!response.ok) throw new Error(`Failed to fetch original image for saturation: ${response.statusText}`);
-                imageBlob = await response.blob();
-                asset.originalImageBlob = imageBlob; // Cache it
-            }
-
-            // Convert to PNG for saturation processing if it's JPG (image-converter.js is PNG/JPG specific)
-            const assetMimeType = `image/${asset.type.toLowerCase()}`;
-            let processedBlob = imageBlob;
-            if (asset.type.toLowerCase() === 'jpg') {
-                 // Convert JPG to PNG for saturation
-                window.updateConsoleLog(`Converting JPG to PNG for saturation: ${asset.filename}`);
-                processedBlob = await window.convertImageBlob(imageBlob, 'image/png');
-                if (!processedBlob) throw new Error('JPG to PNG conversion failed.');
-            }
-
-            const modifiedBlob = await new Promise((resolve, reject) => {
-                const img = new Image();
-                img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-                    canvas.width = img.width;
-                    canvas.height = img.height;
-
-                    ctx.filter = `saturate(${saturationFactor * 100}%)`; // Apply saturation filter
-                    ctx.drawImage(img, 0, 0);
-
-                    canvas.toBlob(blob => {
-                        URL.revokeObjectURL(img.src);
-                        resolve(blob);
-                    }, 'image/png'); // Always convert to PNG for consistency after modification
-                };
-                img.onerror = (e) => {
-                    URL.revokeObjectURL(img.src);
-                    reject(new Error(`Error loading image for saturation: ${e.message}`));
-                };
-                img.src = URL.createObjectURL(processedBlob); // Use the potentially converted PNG blob
-            });
-
-            if (modifiedBlob) {
-                asset.modifiedImageBlob = modifiedBlob;
-                asset.isModified = true;
-                asset.isNew = false;
-                window.updateCardVisualState(asset); // Update individual card visual state
-                window.updateConsoleLog(`Applied saturation to ${asset.filename}`);
+            // Prioritize previously modified or original image blob
+            if (asset.modifiedImageBlob) {
+                imageBlob = asset.modifiedImageBlob;
+                console.log(`Using cached modified blob for ${asset.filename}`);
+            } else if (asset.originalImageBlob) {
+                imageBlob = asset.originalImageBlob;
+                console.log(`Using cached original blob for ${asset.filename}`);
             } else {
-                throw new Error('Image saturation failed.');
+                // If no blob is present, fetch the original image
+                console.log(`Fetching original image for ${asset.filename}`);
+                const response = await fetch(asset.mediaPath);
+                if (!response.ok) throw new Error(`Failed to fetch image: ${response.statusText}`);
+                imageBlob = await response.blob();
+                asset.originalImageBlob = imageBlob; // Store original blob for future use
             }
+
+            const img = new Image();
+            const imgLoadPromise = new Promise((resolve, reject) => {
+                img.onload = () => resolve();
+                img.onerror = (e) => reject(new Error('Image load error for bulk processing: ' + e.type));
+                img.src = URL.createObjectURL(imageBlob);
+            });
+            await imgLoadPromise;
+
+            const tempCanvas = document.createElement('canvas');
+            const tempCtx = tempCanvas.getContext('2d');
+            tempCanvas.width = img.width;
+            tempCanvas.height = img.height;
+
+            tempCtx.drawImage(img, 0, 0); // Draw original image to get pixel data
+
+            // Apply saturation directly to pixel data
+            const imageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+            const pixels = imageData.data;
+
+            for (let i = 0; i < pixels.length; i += 4) {
+                const r = pixels[i];
+                const g = pixels[i + 1];
+                const b = pixels[i + 2];
+
+                const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+
+                pixels[i] = luminance + (r - luminance) * saturationFactor;
+                pixels[i + 1] = luminance + (g - luminance) * saturationFactor;
+                pixels[i + 2] = luminance + (b - luminance) * saturationFactor;
+
+                pixels[i] = Math.min(255, Math.max(0, pixels[i]));
+                pixels[i + 1] = Math.min(255, Math.max(0, pixels[i + 1]));
+                pixels[i + 2] = Math.min(255, Math.max(0, pixels[i + 2]));
+            }
+            tempCtx.putImageData(imageData, 0, 0);
+
+            const modifiedBlob = await new Promise(resolve => tempCanvas.toBlob(resolve, 'image/png'));
+            asset.modifiedImageBlob = modifiedBlob;
+            asset.isModified = true;
+            asset.isNew = false;
+
+            window.updateCardVisualState(asset); // Update individual card visual state
+            URL.revokeObjectURL(img.src); // Clean up blob URL
 
             processedCount++;
-            window.updateLoadingProgress(processedCount, totalAssets, `Applied to ${asset.filename}`);
+            window.updateLoadingProgress(processedCount, totalAssets, `Applied saturation to ${asset.filename}`);
 
         } catch (error) {
             console.error(`Error applying saturation to ${asset.filename}:`, error);
@@ -452,97 +378,97 @@ async function applyBulkSaturation() {
         }
     }
 
-    window.updateConsoleLog('\nBulk saturation application complete.');
-    window.hideLoadingOverlayWithDelay(3000, 'Bulk Saturation Complete!');
+    window.updateConsoleLog('\nBulk saturation complete.');
+    window.hideLoadingOverlayWithDelay(3000, 'Bulk Saturation Complete!'); // Show message for 3 seconds
     closeBulkOperationsModal();
     toggleMultiSelectMode(); // Exit multi-select mode after operation
+    console.log('Bulk saturation operation finished.');
 }
 
 /**
- * Saves a newly created bulk texture to all selected image assets.
+ * Creates new identical textures for all selected image assets.
  */
 async function saveBulkNewTexture() {
     if (selectedAssets.size === 0) {
-        console.warn('No assets selected for new texture creation. Operation aborted.');
-        window.updateConsoleLog('[WARNING] No assets selected for new texture creation.');
+        console.warn('No assets selected for bulk new texture creation. Operation aborted.');
+        // Consider a user-facing message here.
         return;
     }
+
+    // Show loading overlay for bulk operation
+    window.showLoadingOverlay('Creating New Textures...');
+    const totalAssets = selectedAssets.size;
+    let processedCount = 0;
 
     const width = parseInt(bulkNewTextureWidthInput.value);
     const height = parseInt(bulkNewTextureHeightInput.value);
     const color = bulkNewTextureColorInput.value;
 
     if (isNaN(width) || isNaN(height) || width <= 0 || height <= 0) {
-        window.updateConsoleLog('[ERROR] Invalid width or height for new texture.');
+        console.error('Invalid width or height for bulk new texture. Operation aborted.');
+        window.updateConsoleLog('[FATAL ERROR] Invalid width or height for new texture. Operation aborted.');
+        window.hideLoadingOverlayWithDelay(3000, 'Error: Invalid Dimensions');
         return;
     }
+    console.log(`Starting bulk new texture creation for ${totalAssets} assets with dimensions ${width}x${height} and color ${color}`);
 
-    window.showLoadingOverlay('Creating New Textures...');
-    const totalAssets = Array.from(selectedAssets).filter(asset => asset.type.toLowerCase() !== 'mp3').length;
-    let processedCount = 0;
-
-    // Create the new texture Blob once
-    let newTextureBlob = null;
-    try {
-        const tempCanvas = document.createElement('canvas');
-        const tempCtx = tempCanvas.getContext('2d');
-        tempCanvas.width = width;
-        tempCanvas.height = height;
-        tempCtx.fillStyle = color;
-        tempCtx.fillRect(0, 0, width, height);
-        newTextureBlob = await new Promise(resolve => tempCanvas.toBlob(resolve, 'image/png'));
-        if (!newTextureBlob) throw new Error('Failed to create new texture blob.');
-        window.updateConsoleLog('New texture blob created successfully.');
-    } catch (error) {
-        console.error('Error creating new texture blob:', error);
-        window.updateConsoleLog(`[ERROR] New texture creation failed: ${error.message}`);
-        window.hideLoadingOverlayWithDelay(3000, 'New Texture Creation Failed!');
-        return;
-    }
 
     for (const asset of selectedAssets) {
         if (asset.type.toLowerCase() === 'mp3') {
-            window.updateConsoleLog(`Skipping new texture creation for MP3 asset: ${asset.filename}`);
-            continue;
+            continue; // Skip MP3s
         }
+
         try {
-            asset.newImageBlob = newTextureBlob; // Assign the same blob reference
+            window.updateConsoleLog(`Creating new texture for: ${asset.filename}`);
+            const tempCanvas = document.createElement('canvas');
+            const tempCtx = tempCanvas.getContext('2d');
+            tempCanvas.width = width;
+            tempCanvas.height = height;
+
+            tempCtx.fillStyle = color;
+            tempCtx.fillRect(0, 0, width, height);
+
+            const newBlob = await new Promise(resolve => tempCanvas.toBlob(resolve, 'image/png'));
+            asset.newImageBlob = newBlob;
             asset.isNew = true;
-            asset.isModified = false;
-            window.updateCardVisualState(asset);
-            window.updateConsoleLog(`Applied new texture to ${asset.filename}`);
+            asset.isModified = false; // Ensure it's marked as new, not modified
+
+            window.updateCardVisualState(asset); // Update individual card visual state
 
             processedCount++;
-            window.updateLoadingProgress(processedCount, totalAssets, `Applied to ${asset.filename}`);
+            window.updateLoadingProgress(processedCount, totalAssets, `Created new texture for ${asset.filename}`);
 
         } catch (error) {
-            console.error(`Error applying new texture to ${asset.filename}:`, error);
-            window.updateConsoleLog(`[ERROR] Application failed for: ${asset.filename} - ${error.message}`);
+            console.error(`Error creating new texture for ${asset.filename}:`, error);
+            window.updateConsoleLog(`[ERROR] New texture creation failed for: ${asset.filename} - ${error.message}`);
         }
     }
 
     window.updateConsoleLog('\nBulk new texture creation complete.');
-    window.hideLoadingOverlayWithDelay(3000, 'Bulk New Texture Complete!');
+    window.hideLoadingOverlayWithDelay(3000, 'Bulk Creation Complete!'); // Show message for 3 seconds
     closeBulkOperationsModal();
     toggleMultiSelectMode(); // Exit multi-select mode after operation
+    console.log('Bulk new texture creation operation finished.');
 }
 
+
 /**
- * Handles the file input change for bulk image uploads.
- * @param {Event} event The change event.
+ * Handles the file input change for bulk image upload, displays a preview,
+ * and stores the uploaded image blob.
+ * @param {Event} event The change event from the file input.
  */
 function handleBulkImageUpload(event) {
     const file = event.target.files[0];
     if (file) {
+        // Basic file type validation
         if (!file.type.startsWith('image/')) {
-            window.updateConsoleLog('[WARNING] Please upload an image file (PNG/JPG).');
-            // Clear input and disable button
-            event.target.value = '';
+            window.updateConsoleLog('[WARNING] Please upload an image file (PNG or JPG).');
+            bulkUploadImageInput.value = ''; // Clear the input
             bulkUploadImagePreview.src = '';
             bulkUploadImagePreview.style.display = 'none';
             bulkUploadPreviewPlaceholder.style.display = 'block';
-            applyBulkUploadTextureButton.disabled = true;
             uploadedImageBlob = null;
+            applyBulkUploadTextureButton.disabled = true;
             return;
         }
 
@@ -551,49 +477,97 @@ function handleBulkImageUpload(event) {
             bulkUploadImagePreview.src = e.target.result;
             bulkUploadImagePreview.style.display = 'block';
             bulkUploadPreviewPlaceholder.style.display = 'none';
-            applyBulkUploadTextureButton.disabled = false;
-            uploadedImageBlob = file; // Store the raw file blob
-            window.updateConsoleLog(`Image selected for bulk upload: ${file.name}`);
+            uploadedImageBlob = file; // Store the File object (which is a Blob)
+            applyBulkUploadTextureButton.disabled = false; // Enable the button
+            window.updateConsoleLog(`Uploaded image for bulk use: ${file.name}`);
         };
-        reader.readAsDataURL(file);
+        reader.onerror = (error) => {
+            console.error('Error reading file:', error);
+            window.updateConsoleLog('[ERROR] Failed to read uploaded image file.');
+            bulkUploadImagePreview.src = '';
+            bulkUploadImagePreview.style.display = 'none';
+            bulkUploadPreviewPlaceholder.style.display = 'block';
+            uploadedImageBlob = null;
+            applyBulkUploadTextureButton.disabled = true;
+        };
+        reader.readAsDataURL(file); // Read as Data URL for preview
     } else {
+        // No file selected
+        bulkUploadImageInput.value = '';
         bulkUploadImagePreview.src = '';
         bulkUploadImagePreview.style.display = 'none';
         bulkUploadPreviewPlaceholder.style.display = 'block';
-        applyBulkUploadTextureButton.disabled = true;
         uploadedImageBlob = null;
+        applyBulkUploadTextureButton.disabled = true;
         window.updateConsoleLog('No image selected for bulk upload.');
     }
 }
 
 /**
- * Applies the uploaded image texture to all selected image assets.
+ * Applies the uploaded image to all selected image assets,
+ * converting formats if necessary.
  */
 async function applyBulkUploadedTexture() {
-    if (selectedAssets.size === 0 || !uploadedImageBlob) {
-        console.warn('No assets selected or no image uploaded for bulk application. Operation aborted.');
-        window.updateConsoleLog('[WARNING] No assets selected or no image uploaded for bulk texture application.');
+    if (!uploadedImageBlob) {
+        console.warn('No image uploaded for bulk application. Operation aborted.');
+        window.updateConsoleLog('[WARNING] Please upload an image file first.');
+        return;
+    }
+    if (selectedAssets.size === 0) {
+        console.warn('No assets selected for bulk image application. Operation aborted.');
+        window.updateConsoleLog('[WARNING] Please select assets to apply the image to.');
         return;
     }
 
+    // Ensure window.convertImageBlob is available
+    if (typeof window.convertImageBlob !== 'function') {
+        console.error('Image conversion utility (convertImageBlob) not found. Make sure image-converter.js is loaded.');
+        window.updateConsoleLog('[FATAL ERROR] Image conversion utility missing. Cannot proceed with bulk upload.');
+        window.hideLoadingOverlayWithDelay(3000, 'Error: Conversion Utility Missing!');
+        return;
+    }
+
+
     window.showLoadingOverlay('Applying Uploaded Texture...');
-    const totalAssets = Array.from(selectedAssets).filter(asset => asset.type.toLowerCase() !== 'mp3').length;
+    const totalAssets = selectedAssets.size;
     let processedCount = 0;
 
+    // Determine if conversion is needed based on selected assets and uploaded image type
+    const uploadedMimeType = uploadedImageBlob.type; // e.g., 'image/png' or 'image/jpeg'
+    const uploadedExtension = uploadedMimeType.split('/')[1]; // 'png' or 'jpeg'
+
+    const targetMimeTypes = new Set();
     for (const asset of selectedAssets) {
+        // Only consider image types for conversion needs
+        if (asset.type.toLowerCase() === 'png' || asset.type.toLowerCase() === 'jpg') {
+            targetMimeTypes.add(`image/${asset.type.toLowerCase()}`);
+        }
+    }
+
+    // If targetMimeTypes contains both image/png and image/jpeg, or if any asset's type
+    // doesn't match the uploaded type, conversion will be dynamic per asset.
+    const needsDynamicConversion = targetMimeTypes.size > 1 || (targetMimeTypes.size === 1 && !targetMimeTypes.has(uploadedMimeType));
+
+    console.log(`Starting bulk apply for ${totalAssets} assets. Dynamic conversion needed: ${needsDynamicConversion}`);
+    window.updateConsoleLog(`Uploaded image type: ${uploadedMimeType}`);
+
+    for (const asset of selectedAssets) {
+        // Skip MP3s (should already be filtered by selection logic, but good double check)
         if (asset.type.toLowerCase() === 'mp3') {
-            window.updateConsoleLog(`Skipping texture application for MP3 asset: ${asset.filename}`);
             continue;
         }
-        try {
-            window.updateConsoleLog(`Processing uploaded texture for: ${asset.filename}`);
-            // Determine the target MIME type for conversion based on the asset's original type
-            const assetMimeType = `image/${asset.type.toLowerCase()}`; // e.g., 'image/png' or 'image/jpg'
 
-            let finalBlob = uploadedImageBlob;
-            // Only convert if the uploaded image type does not match the asset's original type
-            if (uploadedImageBlob.type !== assetMimeType) {
-                window.updateConsoleLog(`Converting uploaded image from ${uploadedImageBlob.type} to ${assetMimeType} for ${asset.filename}`);
+        try {
+            window.updateConsoleLog(`Processing: ${asset.filename}`);
+            let finalBlob = uploadedImageBlob; // Start with the original uploaded blob
+
+            const assetMimeType = `image/${asset.type.toLowerCase()}`;
+
+            // Perform conversion if:
+            // 1. Dynamic conversion is generally needed (mixed types or mismatch)
+            // 2. The current asset's required MIME type does not match the uploaded image's MIME type
+            if (needsDynamicConversion && assetMimeType !== uploadedMimeType) {
+                window.updateConsoleLog(`Converting ${uploadedExtension.toUpperCase()} to ${asset.type.toUpperCase()} for: ${asset.filename}`);
                 finalBlob = await window.convertImageBlob(uploadedImageBlob, assetMimeType);
             }
 
@@ -604,7 +578,7 @@ async function applyBulkUploadedTexture() {
                 window.updateCardVisualState(asset); // Update individual card visual state
                 window.updateConsoleLog(`Applied new texture to ${asset.filename}`);
             } else {
-                throw new Error('Image conversion or application failed.');
+                throw new Error('Image conversion failed.');
             }
 
             processedCount++;
@@ -620,6 +594,7 @@ async function applyBulkUploadedTexture() {
     window.hideLoadingOverlayWithDelay(3000, 'Bulk Upload Complete!');
     closeBulkOperationsModal();
     toggleMultiSelectMode(); // Exit multi-select mode after operation
+    console.log('Bulk uploaded texture operation finished.');
 
     // Reset the upload form
     bulkUploadImageInput.value = '';
@@ -628,102 +603,4 @@ async function applyBulkUploadedTexture() {
     bulkUploadPreviewPlaceholder.style.display = 'block';
     uploadedImageBlob = null;
     applyBulkUploadTextureButton.disabled = true;
-}
-
-
-/**
- * Handles the file input change for bulk audio (MP3) uploads.
- * @param {Event} event The change event.
- */
-function handleBulkAudioUpload(event) {
-    const file = event.target.files[0];
-    if (file) {
-        if (file.type !== 'audio/mpeg') { // Check specifically for MP3
-            window.updateConsoleLog('[WARNING] Please upload an MP3 audio file (.mp3).');
-            // Clear input and disable button
-            event.target.value = '';
-            if (bulkUploadAudioPreview) {
-                bulkUploadAudioPreview.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Invalid File Type';
-                bulkUploadAudioPreview.style.display = 'block';
-            }
-            if (bulkUploadAudioPreviewPlaceholder) bulkUploadAudioPreviewPlaceholder.style.display = 'none';
-            if (applyBulkUploadAudioButton) applyBulkUploadAudioButton.disabled = true;
-            uploadedAudioBlob = null;
-            return;
-        }
-
-        // Display filename or generic audio icon for preview
-        if (bulkUploadAudioPreview) {
-            bulkUploadAudioPreview.innerHTML = `<i class="fas fa-music"></i> ${file.name}`;
-            bulkUploadAudioPreview.style.display = 'block';
-        }
-        if (bulkUploadAudioPreviewPlaceholder) bulkUploadAudioPreviewPlaceholder.style.display = 'none';
-        if (applyBulkUploadAudioButton) applyBulkUploadAudioButton.disabled = false;
-        uploadedAudioBlob = file; // Store the raw file blob
-        window.updateConsoleLog(`MP3 selected for bulk upload: ${file.name}`);
-
-    } else {
-        if (bulkUploadAudioPreview) {
-            bulkUploadAudioPreview.innerHTML = '<i class="fas fa-music"></i> Audio File';
-            bulkUploadAudioPreview.style.display = 'none';
-        }
-        if (bulkUploadAudioPreviewPlaceholder) bulkUploadAudioPreviewPlaceholder.style.display = 'block';
-        if (applyBulkUploadAudioButton) applyBulkUploadAudioButton.disabled = true;
-        uploadedAudioBlob = null;
-        window.updateConsoleLog('No MP3 selected for bulk upload.');
-    }
-}
-
-/**
- * Applies the uploaded audio (MP3) file to all selected audio assets.
- */
-async function applyBulkUploadedAudio() {
-    if (selectedAssets.size === 0 || !uploadedAudioBlob) {
-        console.warn('No assets selected or no MP3 uploaded for bulk application. Operation aborted.');
-        window.updateConsoleLog('[WARNING] No assets selected or no MP3 uploaded for bulk audio application.');
-        return;
-    }
-
-    window.showLoadingOverlay('Applying Uploaded Audio...');
-    const totalAssets = Array.from(selectedAssets).filter(asset => asset.type.toLowerCase() === 'mp3').length;
-    let processedCount = 0;
-
-    for (const asset of selectedAssets) {
-        if (asset.type.toLowerCase() !== 'mp3') {
-            window.updateConsoleLog(`Skipping audio application for non-MP3 asset: ${asset.filename}`);
-            continue;
-        }
-        try {
-            window.updateConsoleLog(`Processing uploaded audio for: ${asset.filename}`);
-
-            // Replace the newAudioBlob with the uploaded one
-            asset.newAudioBlob = uploadedAudioBlob;
-            asset.isNew = true; // Treat as new/replaced for export purposes
-            asset.isModified = true; // Also mark as modified
-            window.updateCardVisualState(asset); // Update individual card visual state (if applicable for audio)
-            window.updateConsoleLog(`Applied new audio to ${asset.filename}`);
-
-            processedCount++;
-            window.updateLoadingProgress(processedCount, totalAssets, `Applied to ${asset.filename}`);
-
-        } catch (error) {
-            console.error(`Error applying uploaded audio to ${asset.filename}:`, error);
-            window.updateConsoleLog(`[ERROR] Application failed for: ${asset.filename} - ${error.message}`);
-        }
-    }
-
-    window.updateConsoleLog('\nBulk uploaded audio application complete.');
-    window.hideLoadingOverlayWithDelay(3000, 'Bulk Audio Upload Complete!');
-    closeBulkOperationsModal();
-    toggleMultiSelectMode(); // Exit multi-select mode after operation
-
-    // Reset the upload form
-    if (bulkUploadAudioInput) bulkUploadAudioInput.value = '';
-    if (bulkUploadAudioPreview) {
-        bulkUploadAudioPreview.innerHTML = '<i class="fas fa-music"></i> Audio File';
-        bulkUploadAudioPreview.style.display = 'none';
-    }
-    if (bulkUploadAudioPreviewPlaceholder) bulkUploadAudioPreviewPlaceholder.style.display = 'block';
-    uploadedAudioBlob = null;
-    if (applyBulkUploadAudioButton) applyBulkUploadAudioButton.disabled = true;
 }
