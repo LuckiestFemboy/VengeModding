@@ -8,7 +8,8 @@
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-G4VR1D3B6M"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}\r\n  gtag('js', new Date());
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
 
   gtag('config', 'G-G4VR1D3B6M');
 </script>
@@ -18,7 +19,7 @@
     <link rel="stylesheet" href="asset-editor-modal.css">
     <link rel="stylesheet" href="bulk-operations-modal.css">
     <link rel="stylesheet" href="export-options-popup.css">
-</head>
+    <link rel="stylesheet" href="mp3-styles.css"> </head>
 <body>
     <header>
         <h1>Modding Repository</h1>
@@ -45,8 +46,7 @@
 
     <div id="loading-overlay" class="loading-overlay">
         <div class="loading-window">
-            <h2>Processing...</h2>
-            <div class="progress-bar-container">
+            <h2 id="loading-message-display">Processing...</h2> <div class="progress-bar-container">
                 <div id="progress-bar" class="progress-bar"></div>
             </div>
             <div class="progress-text" id="progress-percentage">0%</div>
@@ -67,8 +67,7 @@
                 <button class="tab-button" id="tab-create">Create New Texture</button>
             </div>
 
-            <div class="tab-content" id="content-modify">
-                <h3>Adjust Saturation</h3>
+            <div class="tab-content active" id="content-modify"> <h3>Adjust Saturation</h3>
                 <div class="saturation-control">
                     <label for="saturation-slider">Saturation:</label>
                     <input type="range" id="saturation-slider" min="0" max="200" value="100">
@@ -133,8 +132,7 @@
                 <button id="save-bulk-new-texture" class="bulk-action-button">Create New Textures</button>
             </div>
 
-            <div class="bulk-upload-texture-inputs">
-                <h3>Upload New Texture for Selected</h3>
+            <div class="bulk-upload-texture-inputs" id="bulk-upload-image-section"> <h3>Upload New Texture for Selected</h3>
                 <div class="input-group">
                     <label for="bulk-upload-image-input">Choose Image File:</label>
                     <input type="file" id="bulk-upload-image-input" accept="image/png, image/jpeg">
@@ -145,6 +143,22 @@
                 </div>
                 <button id="apply-bulk-upload-texture" class="bulk-action-button" disabled>Apply Uploaded Texture</button>
             </div>
+
+            <div class="bulk-upload-texture-inputs" id="bulk-upload-audio-section" style="display: none;">
+                <h3>Replace with Uploaded MP3 (Audio Assets Only)</h3>
+                <div class="input-group">
+                    <label for="bulk-upload-audio-input">Choose MP3 File:</label>
+                    <input type="file" id="bulk-upload-audio-input" accept=".mp3">
+                </div>
+                <div class="audio-preview-container">
+                    <div id="bulk-upload-audio-preview" class="audio-preview" style="display: none;">
+                        <i class="fas fa-music"></i> Audio File
+                    </div>
+                    <p id="bulk-upload-audio-preview-placeholder" style="text-align: center; color: rgba(255,255,255,0.6);">No MP3 selected</p>
+                </div>
+                <button id="apply-bulk-upload-audio" class="bulk-action-button" disabled>Apply Uploaded MP3</button>
+            </div>
+
         </div>
     </div>
 
@@ -164,9 +178,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <script src="asset-list-page.js"></script>
     <script src="asset-editor-modal.js"></script>
-    <script src="export-options-popup.js"></script>
     <script src="bulk-operations.js"></script>
-    <script src="image-converter.js"></script>
     <script src="import-export.js"></script>
+    <script src="image-converter.js"></script>
+    <script src="export-options-popup.js"></script>
 </body>
 </html>

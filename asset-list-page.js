@@ -23,6 +23,20 @@ let closeExportPopupButton;
 let exportClientButton;
 let exportBrowserButton;
 
+/**
+ * Helper function to determine the broad category of an asset.
+ * @param {Object} asset The asset object.
+ * @returns {string} 'image', 'audio', or 'unknown'.
+ */
+function getAssetCategory(asset) {
+    const type = asset.type.toLowerCase();
+    if (type === 'png' || type === 'jpg') {
+        return 'image';
+    } else if (type === 'mp3') {
+        return 'audio';
+    }
+    return 'unknown';
+}
 
 // Card Creation
 // Modified to display immediate image path initially, not relying on blob until loadedIntoMemory
@@ -42,6 +56,12 @@ function createAndAppendCard(asset) {
 
     if (type.toLowerCase() === 'mp3') {
         card.className += ' mp3'; // Add mp3 class for specific styling
+
+        // Add the selection checkbox for MP3 cards
+        const selectCheckbox = document.createElement('div');
+        selectCheckbox.className = 'select-checkbox';
+        selectCheckbox.innerHTML = '<i class="fas fa-check"></i>'; // Font Awesome checkmark
+        card.appendChild(selectCheckbox);
 
         // Create elements for the consolidated MP3 card layout
         const playIcon = document.createElement('i');
@@ -73,10 +93,6 @@ function createAndAppendCard(asset) {
                  folderNumberButton.textContent = `Folder: ${folder}`;
              }, 2000);
         };
-
-// ... (inside asset-list-page.js, after the createAndAppendCard function definition) ...
-
-window.createAndAppendCard = createAndAppendCard; // NEW: Expose globally
 
         // Create a wrapper for the action buttons to manage their layout
         const mp3ButtonsWrapper = document.createElement('div');
@@ -117,6 +133,29 @@ window.createAndAppendCard = createAndAppendCard; // NEW: Expose globally
         card.appendChild(folderNumberButton);
         card.appendChild(mp3ButtonsWrapper);
 
+        // Add click listener to the card for multi-selection for MP3s
+        card.addEventListener('click', () => {
+            if (typeof window.isMultiSelectModeActive === 'function' && window.isMultiSelectModeActive()) {
+                const clickedAssetCategory = getAssetCategory(asset);
+                let canSelect = true;
+
+                // Check for type conflicts with already selected assets
+                for (const selectedAsset of window.selectedAssets) {
+                    const selectedAssetCategory = getAssetCategory(selectedAsset);
+                    if (selectedAssetCategory !== clickedAssetCategory) {
+                        console.warn(`Cannot select ${clickedAssetCategory} asset while ${selectedAssetCategory} assets are already selected.`);
+                        window.updateConsoleLog(`[WARNING] Cannot select ${clickedAssetCategory} asset while ${selectedAssetCategory} assets are already selected.`);
+                        canSelect = false;
+                        break;
+                    }
+                }
+
+                if (canSelect) {
+                    window.toggleAssetSelection(asset, card); // Function from bulk-operations.js
+                }
+            }
+        });
+
     } else { // Logic for PNG/JPG cards
         // Add the selection checkbox for image cards
         const selectCheckbox = document.createElement('div');
@@ -128,7 +167,25 @@ window.createAndAppendCard = createAndAppendCard; // NEW: Expose globally
         card.addEventListener('click', () => {
             // Check if multi-select mode is active (function from bulk-operations.js)
             if (typeof window.isMultiSelectModeActive === 'function' && window.isMultiSelectModeActive()) {
-                window.toggleAssetSelection(asset, card); // Function from bulk-operations.js
+                const clickedAssetCategory = getAssetCategory(asset);
+                let canSelect = true;
+
+                // Check for type conflicts with already selected assets
+                for (const selectedAsset of window.selectedAssets) {
+                    const selectedAssetCategory = getAssetCategory(selectedAsset);
+                    // Image cards can be selected together (PNG/JPG are both 'image')
+                    // So, the conflict only arises if an 'audio' asset is already selected.
+                    if (selectedAssetCategory !== clickedAssetCategory) {
+                        console.warn(`Cannot select ${clickedAssetCategory} asset while ${selectedAssetCategory} assets are already selected.`);
+                        window.updateConsoleLog(`[WARNING] Cannot select ${clickedAssetCategory} asset while ${selectedAssetCategory} assets are already selected.`);
+                        canSelect = false;
+                        break;
+                    }
+                }
+
+                if (canSelect) {
+                    window.toggleAssetSelection(asset, card); // Function from bulk-operations.js
+                }
             }
         });
 
@@ -252,6 +309,8 @@ window.createAndAppendCard = createAndAppendCard; // NEW: Expose globally
     updateCardVisualState(asset);
 }
 
+window.createAndAppendCard = createAndAppendCard; // NEW: Expose globally
+
 /**
  * Updates the visual state of a card based on its associated asset's modification status.
  * This function is called from asset-editor-modal.js after changes are saved, and now from bulk-operations.js.
@@ -264,6 +323,8 @@ window.updateCardVisualState = (asset) => {
             cardElement.classList.add('edited-card');
             // If the card has a media image, update its src to reflect the new/modified blob
             const mediaImage = cardElement.querySelector('.media-image');
+            // For audio, we might not update a 'media-image' but perhaps a specific audio preview or icon.
+            // For now, this part remains image-specific.
             if (mediaImage && (asset.modifiedImageBlob || asset.newImageBlob)) {
                 // Revoke old URL if it exists to prevent memory leaks
                 if (mediaImage.src.startsWith('blob:')) {
@@ -477,7 +538,10 @@ async function initializeGallery() {
                             filename,
                             type: 'mp3',
                             mediaPath,
-                            originalImageBlob: null, // Not applicable, but keeping structure consistent
+                            originalAudioBlob: null, // New: to store original MP3 blob
+                            newAudioBlob: null, // New: to store new uploaded MP3 blob
+                            // Keeping originalImageBlob/modifiedImageBlob/newImageBlob as null for MP3s
+                            originalImageBlob: null, 
                             modifiedImageBlob: null,
                             newImageBlob: null,
                             isModified: false,
@@ -709,33 +773,27 @@ async function initiateZipDownload(exportType) {
     const totalFiles = allAssets.length; // Now includes all assets, image and mp3
 
     const zipPromises = allAssets.map(async (asset) => {
-        const { folder, filename, type, originalImageBlob, modifiedImageBlob, newImageBlob, isModified, isNew } = asset;
+        const { folder, filename, type, originalImageBlob, modifiedImageBlob, newImageBlob, isModified, isNew, originalAudioBlob, newAudioBlob } = asset; // Destructure new audio blobs
         let fileBlobToZip = null;
         let fileNameToZip = filename; // Default to original filename
 
         try {
-            if (isNew && newImageBlob) {
-                fileBlobToZip = newImageBlob;
-                window.updateConsoleLog(`Including NEW texture: ${filename} (Folder: ${folder})`);
-            } else if (isModified && modifiedImageBlob) {
+            if (isNew && (newImageBlob || newAudioBlob)) { // Check for either new image or new audio blob
+                fileBlobToZip = newImageBlob || newAudioBlob; // Use the one that exists
+                window.updateConsoleLog(`Including NEW asset: ${filename} (Folder: ${folder}, Type: ${type})`);
+            } else if (isModified && modifiedImageBlob) { // Modified is currently only for images
                 fileBlobToZip = modifiedImageBlob;
                 window.updateConsoleLog(`Including MODIFIED texture: ${filename} (Folder: ${folder})`);
+            } else if (type === 'mp3' && originalAudioBlob) { // Use the already fetched original audio blob
+                fileBlobToZip = originalAudioBlob;
+                window.updateConsoleLog(`Including ORIGINAL audio asset (cached): ${filename} (Folder: ${folder})`);
             } else if (type !== 'mp3' && originalImageBlob) { // Use the already fetched original image blob (pre-cached)
                 fileBlobToZip = originalImageBlob;
-                window.updateConsoleLog(`Including ORIGINAL asset (cached): ${filename} (Folder: ${folder})`);
-            } else if (type === 'mp3') { // Directly fetch MP3 as they are not pre-cached as blobs
-                 window.updateConsoleLog(`Fetching MP3 asset: ${filename} (Folder: ${folder})`);
-                 const response = await fetch(asset.mediaPath);
-                 if (!response.ok) {
-                     console.error(`Failed to fetch MP3 ${asset.mediaPath}: ${response.statusText}`);
-                     window.updateConsoleLog(`[ERROR] Failed to fetch MP3: ${filename}`);
-                     return null; // Return null for failed fetches
-                 }
-                 fileBlobToZip = await response.blob();
-                 window.updateConsoleLog(`Fetched MP3: ${filename} (Folder: ${folder})`);
+                window.updateConsoleLog(`Including ORIGINAL image asset (cached): ${filename} (Folder: ${folder})`);
             }
             else {
                 // This case should be rare for images if loadAllAssetsIntoMemory is called, but fallback
+                // For MP3s, this will be the primary fetch if not already loaded into originalAudioBlob
                 console.warn(`No blob found for ${filename}, attempting to re-fetch as fallback.`);
                 const response = await fetch(asset.mediaPath);
                 if (!response.ok) {
@@ -744,7 +802,11 @@ async function initiateZipDownload(exportType) {
                     return null; // Return null for failed fetches
                 }
                 fileBlobToZip = await response.blob();
-                if (type !== 'mp3') asset.originalImageBlob = fileBlobToZip; // Cache it now if it's an image
+                if (type === 'mp3') { // Cache it now if it's an audio
+                    asset.originalAudioBlob = fileBlobToZip;
+                } else { // Cache it now if it's an image
+                    asset.originalImageBlob = fileBlobToZip;
+                }
                 window.updateConsoleLog(`Fetched & Including ORIGINAL asset (fallback): ${filename} (Folder: ${folder})`);
             }
 
