@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>JSON Test</title>
+</head>
+<body>
+    <pre id="jsonContent"></pre>
+    <script>
+        fetch('mp3_files_structure.json')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                document.getElementById('jsonContent').textContent = JSON.stringify(data, null, 2);
+                console.log('JSON loaded successfully!');
+            })
+            .catch(error => {
+                console.error('Fetch error:', error);
+                document.getElementById('jsonContent').textContent = 'Error loading JSON: ' + error.message;
+            });
+    </script>
+</body>
+</html>
