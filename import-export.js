@@ -1,3 +1,14 @@
+/*
+ * Copyright (c) 2025 Charm?
+ *
+ * Licensed under the MIT License. See LICENSE file in the project root for full license information.
+ *
+ * SPDX-License-Identifier: MIT
+ *
+ * This file contains helper functions for the website frontend.
+ */
+
+
 // import-export.js
 
 // Get references to the new buttons and file input

@@ -1,3 +1,14 @@
+/*
+ * Copyright (c) 2025 Charm?
+ *
+ * Licensed under the MIT License. See LICENSE file in the project root for full license information.
+ *
+ * SPDX-License-Identifier: MIT
+ *
+ * This file contains helper functions for the website frontend.
+ */
+
+
 // image-converter.js
 // This file provides a utility function for converting image Blobs between different formats
 // using the browser's native canvas API.
