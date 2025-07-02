@@ -50,6 +50,11 @@ function createAndAppendCard(asset) {
     // Store a reference to the card DOM element on the asset object
     asset.cardElement = card;
 
+    // Initialize isExcluded property for new assets
+    if (typeof asset.isExcluded === 'undefined') {
+        asset.isExcluded = false;
+    }
+
 
     if (type.toLowerCase() === 'mp3') {
         card.className += ' mp3'; // Add mp3 class for specific styling
@@ -84,10 +89,6 @@ function createAndAppendCard(asset) {
                  folderNumberButton.textContent = `Folder: ${folder}`;
              }, 2000);
         };
-
-// ... (inside asset-list-page.js, after the createAndAppendCard function definition) ...
-
-window.createAndAppendCard = createAndAppendCard; // NEW: Expose globally
 
         // Create a wrapper for the action buttons to manage their layout
         const mp3ButtonsWrapper = document.createElement('div');
@@ -129,11 +130,29 @@ window.createAndAppendCard = createAndAppendCard; // NEW: Expose globally
         card.appendChild(mp3ButtonsWrapper);
 
     } else { // Logic for PNG/JPG cards
-        // Add the selection checkbox for image cards
+        // Add the selection checkbox for image cards (for bulk operations)
         const selectCheckbox = document.createElement('div');
         selectCheckbox.className = 'select-checkbox';
         selectCheckbox.innerHTML = '<i class="fas fa-check"></i>'; // Font Awesome checkmark
         card.appendChild(selectCheckbox);
+
+        // Add an exclusion button to the card for excluding from export
+        const excludeButton = document.createElement('button');
+        excludeButton.className = 'exclude-button card-button'; // Reusing card-button style
+        excludeButton.innerHTML = '<i class="fas fa-ban"></i> Exclude'; // Ban icon
+        excludeButton.title = 'Toggle exclusion from export';
+        excludeButton.onclick = (event) => {
+            event.stopPropagation(); // Prevent card multi-selection when clicking this button
+            window.toggleExcludeFromExport(asset);
+        };
+        // Add it to the card's action buttons, maybe create a new container if needed
+        // For simplicity, let's add it near the top of the card or with other actions
+        // Let's create a small wrapper for it to position it easily
+        const exclusionControl = document.createElement('div');
+        exclusionControl.className = 'exclusion-control';
+        exclusionControl.appendChild(excludeButton);
+        card.appendChild(exclusionControl); // Append it early in the card structure
+
 
         // Add click listener to the card for multi-selection
         card.addEventListener('click', () => {
@@ -205,12 +224,16 @@ window.createAndAppendCard = createAndAppendCard; // NEW: Expose globally
             event.stopPropagation(); // Prevent card selection when clicking edit button
             // Call the modal function from asset-editor-modal.js
             // Pass the entire asset object reference and the card element for in-memory modification and visual update
-            // Only open if multi-select mode is NOT active
+            // Only open if multi-select mode is NOT active AND if not excluded
             if (typeof window.isMultiSelectModeActive === 'function' && !window.isMultiSelectModeActive()) {
-                if (typeof window.openAssetEditorModal === 'function') {
-                    window.openAssetEditorModal(asset, card);
+                if (!asset.isExcluded) { // Prevent editing excluded assets directly
+                    if (typeof window.openAssetEditorModal === 'function') {
+                        window.openAssetEditorModal(asset, card);
+                    } else {
+                        console.error('openAssetEditorModal function not found. Is asset-editor-modal.js loaded correctly?');
+                    }
                 } else {
-                    console.error('openAssetEditorModal function not found. Is asset-editor-modal.js loaded correctly?');
+                    window.updateConsoleLog('Cannot edit an asset marked for exclusion. Deselect from exclusion first.');
                 }
             } else {
                 console.log('Cannot open single editor in multi-select mode.');
@@ -271,6 +294,18 @@ window.createAndAppendCard = createAndAppendCard; // NEW: Expose globally
 window.updateCardVisualState = (asset) => {
     const cardElement = asset.cardElement;
     if (cardElement) {
+        // Handle 'is-excluded' class first
+        if (asset.isExcluded) {
+            cardElement.classList.add('is-excluded');
+            // When excluded, deselect if it was selected for bulk ops
+            if (typeof window.deselectAsset === 'function') {
+                window.deselectAsset(asset, cardElement);
+            }
+        } else {
+            cardElement.classList.remove('is-excluded');
+        }
+
+        // Handle 'edited-card' class (modified/new)
         if (asset.isModified || asset.isNew) {
             cardElement.classList.add('edited-card');
             // If the card has a media image, update its src to reflect the new/modified blob
@@ -311,6 +346,26 @@ window.updateCardVisualState = (asset) => {
             }
         }
     }
+};
+
+// Expose createAndAppendCard globally
+window.createAndAppendCard = createAndAppendCard; 
+
+/**
+ * Toggles the 'isExcluded' status of an asset and updates its visual state.
+ * This function is exposed globally for use by card interaction.
+ * @param {Object} asset The asset object to toggle exclusion for.
+ */
+window.toggleExcludeFromExport = (asset) => {
+    // Only allow exclusion for non-MP3 assets as MP3s are not part of the texture swap logic
+    if (asset.type.toLowerCase() === 'mp3') {
+        window.updateConsoleLog('MP3 assets cannot be excluded from export in this manner.');
+        return;
+    }
+
+    asset.isExcluded = !asset.isExcluded; // Toggle the boolean
+    window.updateCardVisualState(asset); // Update the card's appearance
+    window.updateConsoleLog(`Asset '${asset.filename}' marked for ${asset.isExcluded ? 'exclusion' : 'inclusion'} from export.`);
 };
 
 
@@ -422,7 +477,8 @@ async function initializeGallery() {
                             modifiedImageBlob: null,
                             newImageBlob: null,
                             isModified: false,
-                            isNew: false
+                            isNew: false,
+                            isExcluded: false // Initialize the new property
                         });
                     }
                 }
@@ -457,7 +513,8 @@ async function initializeGallery() {
                             modifiedImageBlob: null,
                             newImageBlob: null,
                             isModified: false,
-                            isNew: false
+                            isNew: false,
+                            isExcluded: false // Initialize the new property
                         });
                     }
                 }
@@ -492,7 +549,8 @@ async function initializeGallery() {
                             modifiedImageBlob: null,
                             newImageBlob: null,
                             isModified: false,
-                            isNew: false
+                            isNew: false,
+                            isExcluded: false // Initialize the new property (even though MP3s won't be excluded from texture export)
                         });
                     }
                 }
@@ -540,7 +598,8 @@ async function loadAllAssetsIntoMemory() {
     }
 
     window.showLoadingOverlay('Loading Textures into Memory...');
-    const imageAssets = allAssets.filter(asset => asset.type === 'png' || asset.type === 'jpg');
+    // Filter for image assets that are NOT excluded
+    const imageAssets = allAssets.filter(asset => (asset.type === 'png' || asset.type === 'jpg') && !asset.isExcluded);
     let processedCount = 0;
     const totalImageFiles = imageAssets.length;
 
@@ -663,6 +722,7 @@ async function initiateZipDownload(exportType) {
     hideExportOptionsPopup(); // Hide the options popup immediately
 
     // Step 1: Ensure all image assets are loaded into memory first
+    // Only load non-excluded assets into memory
     if (!assetsLoadedIntoMemory) {
         window.updateConsoleLog('Assets not yet loaded into memory. Starting texture pre-loading...');
         await loadAllAssetsIntoMemory(); // Wait for textures to load
@@ -711,15 +771,17 @@ async function initiateZipDownload(exportType) {
         }
     }
 
-
     const downloadAllZipButton = document.getElementById('download-all-zip-button');
     downloadAllZipButton.textContent = 'Preparing ZIP...';
     downloadAllZipButton.disabled = true;
 
-    let filesProcessed = 0;
-    const totalFiles = allAssets.length; // Now includes all assets, image and mp3
+    // Filter allAssets to include only those not marked for exclusion
+    const assetsToZip = allAssets.filter(asset => !asset.isExcluded);
 
-    const zipPromises = allAssets.map(async (asset) => {
+    let filesProcessed = 0;
+    const totalFiles = assetsToZip.length; // Now the total only includes assets that will be zipped
+
+    const zipPromises = assetsToZip.map(async (asset) => {
         const { folder, filename, type, originalImageBlob, modifiedImageBlob, newImageBlob, isModified, isNew } = asset;
         let fileBlobToZip = null;
         let fileNameToZip = filename; // Default to original filename

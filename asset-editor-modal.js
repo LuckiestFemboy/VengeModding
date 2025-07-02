@@ -9,7 +9,6 @@
  */
 
 
-
 // asset-editor-modal.js
 // This file handles all the interactive logic for the Asset Editor Modal.
 
@@ -30,11 +29,14 @@ let newTextureHeightInput;
 let newTextureColorInput;
 let saveModifiedTextureButton;
 let saveNewTextureButton;
+let textureEditorImageInput; // New: for uploading an image to modify
+let textureEditorImagePreview; // New: for previewing uploaded image
 
 // Global variable to hold the reference to the asset being currently edited
 // This will be an object from the `allAssets` array in asset-list-page.js
 let currentEditedAsset = null;
 let currentImage = new Image(); // Image object to draw on canvas
+
 
 document.addEventListener('DOMContentLoaded', () => {
     // Get all necessary DOM elements for the modal
@@ -48,309 +50,291 @@ document.addEventListener('DOMContentLoaded', () => {
     saturationSlider = document.getElementById('saturation-slider');
     saturationValueDisplay = document.getElementById('saturation-value');
     textureEditorCanvas = document.getElementById('texture-editor-canvas');
-    textureEditorCtx = textureEditorCanvas ? textureEditorCanvas.getContext('2d') : null;
+    textureEditorCtx = textureEditorCanvas.getContext('2d');
     newTextureWidthInput = document.getElementById('new-texture-width');
     newTextureHeightInput = document.getElementById('new-texture-height');
     newTextureColorInput = document.getElementById('new-texture-color');
     saveModifiedTextureButton = document.getElementById('save-modified-texture');
     saveNewTextureButton = document.getElementById('save-new-texture');
+    textureEditorImageInput = document.getElementById('texture-editor-image-input');
+    textureEditorImagePreview = document.getElementById('texture-editor-image-preview');
 
-    // Add Event Listeners
+
+    // Event Listeners
     if (closeEditorModalButton) {
         closeEditorModalButton.addEventListener('click', closeAssetEditorModal);
     }
-
-    if (tabModify) {
-        tabModify.addEventListener('click', () => switchTab('modify'));
-    }
-    if (tabCreate) {
-        tabCreate.addEventListener('click', () => switchTab('create'));
-    }
-
-    if (saturationSlider) {
-        saturationSlider.addEventListener('input', applySaturation);
+    // Close modal if clicked outside content
+    if (assetEditorModal) {
+        assetEditorModal.addEventListener('click', (event) => {
+            if (event.target === assetEditorModal) {
+                closeAssetEditorModal();
+            }
+        });
     }
 
-    if (saveModifiedTextureButton) {
+    if (tabModify && tabCreate && contentModify && contentCreate) {
+        tabModify.addEventListener('click', () => showTab('modify'));
+        tabCreate.addEventListener('click', () => showTab('create'));
+    }
+
+    if (saturationSlider && saturationValueDisplay && saveModifiedTextureButton) {
+        saturationSlider.addEventListener('input', (event) => {
+            saturationValueDisplay.textContent = event.target.value;
+            applyFilter(); // Apply filter live
+        });
         saveModifiedTextureButton.addEventListener('click', saveModifiedTexture);
     }
 
     if (saveNewTextureButton) {
-        saveNewTextureButton.addEventListener('click', saveNewTexture);
+        saveNewTextureButton.addEventListener('click', createNewTexture);
     }
 
-    // Initialize canvas to be responsive and clear
-    if (textureEditorCanvas) {
-        // Set a default size for the canvas initially, it will be adjusted when an image loads
-        textureEditorCanvas.width = 512;
-        textureEditorCanvas.height = 512;
-        textureEditorCtx.clearRect(0, 0, textureEditorCanvas.width, textureEditorCanvas.height);
+    if (textureEditorImageInput) {
+        textureEditorImageInput.addEventListener('change', handleImageUploadForModification);
     }
+
+    // Set initial active tab
+    showTab('modify');
 });
 
+
+// --- Modal Visibility and State Management ---
+
 /**
- * Opens the asset editor modal and populates it with asset data.
- * This function is called from asset-list-page.js when an 'Edit Asset' button is clicked.
- * @param {Object} asset The asset object from the allAssets array.
+ * Opens the asset editor modal and sets up the asset for editing.
+ * @param {Object} asset The asset object to be edited.
+ * @param {HTMLElement} cardElement The DOM element of the card associated with the asset.
  */
-window.openAssetEditorModal = async (asset) => {
-    // New defensive check: Do not open if multi-select mode is active
-    if (typeof window.isMultiSelectModeActive === 'function' && window.isMultiSelectModeActive()) {
-        console.log('Single asset editor cannot be opened while multi-select mode is active.');
+window.openAssetEditorModal = async (asset, cardElement) => {
+    if (!asset || !assetEditorModal) {
+        console.error('Asset or modal element not found.');
         return;
     }
 
-    if (!assetEditorModal || !modalAssetName || !textureEditorCanvas || !textureEditorCtx) {
-        console.error('Modal elements not fully loaded.');
-        return;
+    // If an asset is opened for editing, it means the user intends to use it,
+    // so it should not be excluded from export.
+    if (asset.isExcluded) {
+        asset.isExcluded = false; // Unmark as excluded
+        if (typeof window.updateCardVisualState === 'function') {
+            window.updateCardVisualState(asset); // Update card to remove 'is-excluded' style
+        }
+        window.updateConsoleLog(`Asset '${asset.filename}' deselected from exclusion due to editing.`);
     }
 
-    currentEditedAsset = asset;
-    modalAssetName.textContent = asset.filename;
+    currentEditedAsset = asset; // Store reference to the asset
+    assetEditorModal.classList.add('active'); // Show the modal
+    modalAssetName.textContent = `${asset.filename} (Folder: ${asset.folder})`;
 
-    // Reset canvas and inputs
-    textureEditorCtx.clearRect(0, 0, textureEditorCanvas.width, textureEditorCanvas.height);
+    // Reset and prepare for modification tab
+    showTab('modify');
     saturationSlider.value = 100;
-    saturationValueDisplay.textContent = '100%';
-    newTextureWidthInput.value = 512;
-    newTextureHeightInput.value = 512;
-    newTextureColorInput.value = '#6c5ce7'; // Default color
+    saturationValueDisplay.textContent = 100;
 
-    // Determine which tab to show and what content to load
-    if (asset.type.toLowerCase() === 'png' || asset.type.toLowerCase() === 'jpg') {
-        // If it's an image, show modify tab by default
-        switchTab('modify');
-        tabModify.style.display = 'inline-block'; // Ensure modify tab is visible
-        tabCreate.style.display = 'inline-block'; // Ensure create tab is visible for all
-        await loadImageForEditing(asset); // Load image onto canvas
+    // Reset the texture upload input and preview
+    textureEditorImageInput.value = ''; // Clear selected file
+    textureEditorImagePreview.src = '';
+    textureEditorImagePreview.style.display = 'none'; // Hide preview
+
+    // Load the image onto the canvas for modification
+    // Prioritize modifiedImageBlob, then newImageBlob, then originalImageBlob, then mediaPath
+    const sourceBlobOrPath = asset.modifiedImageBlob || asset.newImageBlob || asset.originalImageBlob || asset.mediaPath;
+
+    if (sourceBlobOrPath instanceof Blob) {
+        currentImage.src = URL.createObjectURL(sourceBlobOrPath);
+    } else if (typeof sourceBlobOrPath === 'string') {
+        currentImage.src = sourceBlobOrPath;
     } else {
-        // If it's an MP3 or other non-image, default to create tab
-        switchTab('create');
-        tabModify.style.display = 'none'; // Hide modify tab for non-image assets
-        tabCreate.style.display = 'inline-block'; // Ensure create tab is visible
+        console.error('No valid image source found for currentEditedAsset.');
+        textureEditorCtx.clearRect(0, 0, textureEditorCanvas.width, textureEditorCanvas.height); // Clear canvas
+        return;
     }
 
-    // Show the modal
-    assetEditorModal.classList.add('active');
+    window.showLoadingOverlay('Loading Image for Editor...');
+    currentImage.onload = () => {
+        URL.revokeObjectURL(currentImage.src); // Clean up blob URL if created
+
+        // Set canvas dimensions to image dimensions
+        textureEditorCanvas.width = currentImage.naturalWidth;
+        textureEditorCanvas.height = currentImage.naturalHeight;
+
+        // Draw image initially without filters
+        textureEditorCtx.filter = 'none';
+        textureEditorCtx.drawImage(currentImage, 0, 0);
+
+        window.hideLoadingOverlayWithDelay(500, 'Editor Ready!');
+        window.updateConsoleLog(`Loaded ${asset.filename} into editor.`);
+    };
+    currentImage.onerror = (e) => {
+        console.error('Error loading image into editor canvas:', e);
+        window.updateConsoleLog(`[ERROR] Failed to load ${asset.filename} into editor.`);
+        window.hideLoadingOverlayWithDelay(1000, 'Error Loading Image!');
+        // Clear canvas and reset
+        textureEditorCtx.clearRect(0, 0, textureEditorCanvas.width, textureEditorCanvas.height);
+        URL.revokeObjectURL(currentImage.src); // Clean up
+    };
 };
 
-/**
- * Closes the asset editor modal.
- */
 function closeAssetEditorModal() {
     if (assetEditorModal) {
         assetEditorModal.classList.remove('active');
+        currentEditedAsset = null; // Clear the reference
+        textureEditorCtx.clearRect(0, 0, textureEditorCanvas.width, textureEditorCanvas.height); // Clear canvas
+        currentImage.src = ''; // Clear image source
+        // No need to revoke URL here, as it's done in image.onload
+        window.updateConsoleLog('Editor closed.');
     }
-    currentEditedAsset = null; // Clear the reference
 }
 
-/**
- * Switches between the 'modify' and 'create' tabs in the modal.
- * @param {string} tabName 'modify' or 'create'.
- */
-function switchTab(tabName) {
-    // Remove 'active' class from all tab buttons and content
+function showTab(tabName) {
+    // Deactivate all tabs and content
     tabModify.classList.remove('active');
     tabCreate.classList.remove('active');
-    contentModify.style.display = 'none';
-    contentCreate.style.display = 'none';
+    contentModify.classList.remove('active');
+    contentCreate.classList.remove('active');
 
-    // Add 'active' class to the selected tab button and display its content
+    // Activate the selected tab and content
     if (tabName === 'modify') {
         tabModify.classList.add('active');
-        contentModify.style.display = 'block';
-        // Reload the image when switching back to modify tab
-        if (currentEditedAsset && (currentEditedAsset.type.toLowerCase() === 'png' || currentEditedAsset.type.toLowerCase() === 'jpg')) {
-            loadImageForEditing(currentEditedAsset);
+        contentModify.classList.add('active');
+        // If switching to modify tab, ensure original image is drawn
+        if (currentEditedAsset && currentImage.src) {
+            // Redraw the original or current modified image to reset filters before applying new ones
+            textureEditorCtx.filter = 'none';
+            textureEditorCtx.drawImage(currentImage, 0, 0, textureEditorCanvas.width, textureEditorCanvas.height);
+            applyFilter(); // Apply current saturation
         }
     } else if (tabName === 'create') {
         tabCreate.classList.add('active');
-        contentCreate.style.display = 'block';
+        contentCreate.classList.add('active');
+        // Clear canvas when switching to create tab
+        textureEditorCtx.clearRect(0, 0, textureEditorCanvas.width, textureEditorCanvas.height);
     }
 }
 
-/**
- * Loads an image onto the canvas for editing.
- * Prioritizes modifiedImageBlob, then originalImageBlob, then fetches if needed.
- * @param {Object} asset The asset object.
- */
-async function loadImageForEditing(asset) {
-    if (!textureEditorCtx) return;
 
-    let imageBlob = null;
+// --- Image Modification Functions ---
 
-    // Prioritize previously modified image blob, then original
-    if (asset.isModified && asset.modifiedImageBlob) {
-        imageBlob = asset.modifiedImageBlob;
-    } else if (asset.originalImageBlob) {
-        imageBlob = asset.originalImageBlob;
+function applyFilter() {
+    if (!currentEditedAsset || !currentImage.src) {
+        return;
+    }
+    const saturation = saturationSlider.value;
+
+    // Clear canvas
+    textureEditorCtx.clearRect(0, 0, textureEditorCanvas.width, textureEditorCanvas.height);
+
+    // Apply filter and redraw image
+    textureEditorCtx.filter = `saturate(${saturation}%)`;
+    textureEditorCtx.drawImage(currentImage, 0, 0, textureEditorCanvas.width, textureEditorCanvas.height);
+}
+
+async function saveModifiedTexture() {
+    if (!currentEditedAsset) {
+        window.updateConsoleLog('[ERROR] No asset selected for modification.');
+        return;
     }
 
-    // If we don't have a blob, fetch the original image
-    if (!imageBlob) {
-        try {
-            const response = await fetch(asset.mediaPath);
-            if (!response.ok) throw new Error(`Failed to fetch image: ${response.statusText}`);
-            imageBlob = await response.blob();
-            // Store the original blob for future use if not already stored
-            if (!asset.originalImageBlob) {
-                asset.originalImageBlob = imageBlob;
+    // Determine the MIME type for saving (PNG for transparency, JPEG for others)
+    const targetMimeType = currentEditedAsset.type === 'png' ? 'image/png' : 'image/jpeg';
+
+    window.showLoadingOverlay('Saving Modified Texture...');
+
+    // Use image-converter.js's convertImageBlob to handle the canvas output conversion
+    // The canvas itself holds the modified image. We need to get a blob from it.
+    try {
+        const modifiedBlob = await new Promise(resolve => {
+            textureEditorCanvas.toBlob(resolve, targetMimeType);
+        });
+
+        if (modifiedBlob) {
+            currentEditedAsset.modifiedImageBlob = modifiedBlob;
+            currentEditedAsset.isModified = true;
+            currentEditedAsset.isNew = false; // It's a modification of an existing asset
+
+            // Update the card's visual state to show it's modified
+            if (typeof window.updateCardVisualState === 'function') {
+                window.updateCardVisualState(currentEditedAsset);
+            } else {
+                console.error('updateCardVisualState function not found in global scope.');
             }
-        } catch (error) {
-            console.error('Error fetching original image for editor:', error);
-            // Fallback: draw a placeholder on canvas
-            drawPlaceholderOnCanvas(asset.filename);
+
+            window.updateConsoleLog(`Changes saved for: ${currentEditedAsset.filename}`);
+            window.hideLoadingOverlayWithDelay(1000, 'Texture Saved!');
+            closeAssetEditorModal();
+        } else {
+            throw new Error('Failed to create blob from canvas.');
+        }
+    } catch (error) {
+        console.error('Error saving modified texture:', error);
+        window.updateConsoleLog(`[ERROR] Failed to save texture: ${error.message}`);
+        window.hideLoadingOverlayWithDelay(3000, 'Save Failed!');
+    }
+}
+
+async function handleImageUploadForModification(event) {
+    const file = event.target.files[0];
+    if (file && currentEditedAsset) {
+        if (!file.type.startsWith('image/')) {
+            window.updateConsoleLog('[WARN] Please upload an image file.');
+            textureEditorImageInput.value = '';
             return;
         }
-    }
 
-    // Load the blob onto the canvas
-    const url = URL.createObjectURL(imageBlob);
-    currentImage.onload = () => {
-        // Adjust canvas size to fit image, while maintaining aspect ratio and max width/height
-        const maxWidth = 700; // Max width for canvas in modal
-        const maxHeight = 400; // Max height for canvas in modal
+        window.showLoadingOverlay('Processing Uploaded Image...');
 
-        let newWidth = currentImage.width;
-        let newHeight = currentImage.height;
-
-        if (newWidth > maxWidth) {
-            newHeight = (newHeight / newWidth) * maxWidth;
-            newWidth = maxWidth;
+        try {
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                currentImage.src = e.target.result; // Set the uploaded image as the new currentImage
+                currentImage.onload = () => {
+                    // Update canvas size to match the uploaded image
+                    textureEditorCanvas.width = currentImage.naturalWidth;
+                    textureEditorCanvas.height = currentImage.naturalHeight;
+                    applyFilter(); // Draw the new image with current filter
+                    window.updateConsoleLog('Uploaded image loaded into editor.');
+                    window.hideLoadingOverlayWithDelay(500, 'Image Loaded!');
+                    textureEditorImagePreview.src = e.target.result;
+                    textureEditorImagePreview.style.display = 'block';
+                };
+                currentImage.onerror = (imgErr) => {
+                    console.error('Error loading uploaded image to currentImage:', imgErr);
+                    window.updateConsoleLog('[ERROR] Failed to load uploaded image.');
+                    window.hideLoadingOverlayWithDelay(1000, 'Upload Failed!');
+                };
+            };
+            reader.readAsDataURL(file);
+        } catch (error) {
+            console.error('Error handling image upload:', error);
+            window.updateConsoleLog(`[ERROR] Image upload failed: ${error.message}`);
+            window.hideLoadingOverlayWithDelay(3000, 'Upload Failed!');
         }
-
-        if (newHeight > maxHeight) {
-            newWidth = (newWidth / newHeight) * maxHeight;
-            newHeight = maxHeight;
-        }
-
-        textureEditorCanvas.width = newWidth;
-        textureEditorCanvas.height = newHeight;
-
-        // Clear and draw image with current saturation
-        textureEditorCtx.clearRect(0, 0, textureEditorCanvas.width, textureEditorCanvas.height);
-        textureEditorCtx.drawImage(currentImage, 0, 0, textureEditorCanvas.width, textureEditorCanvas.height);
-        applySaturation(); // Apply initial saturation (usually 100%)
-        URL.revokeObjectURL(url); // Clean up the object URL
-    };
-    currentImage.onerror = (e) => {
-        console.error('Error loading image into editor:', e);
-        drawPlaceholderOnCanvas(asset.filename);
-        URL.revokeObjectURL(url);
-    };
-    currentImage.src = url;
-}
-
-/**
- * Draws a placeholder on the canvas if an image fails to load.
- * @param {string} filename The filename to display.
- */
-function drawPlaceholderOnCanvas(filename) {
-    if (!textureEditorCtx) return;
-    textureEditorCanvas.width = 300; // Default size for placeholder
-    textureEditorCanvas.height = 200;
-    textureEditorCtx.clearRect(0, 0, textureEditorCanvas.width, textureEditorCanvas.height);
-    textureEditorCtx.fillStyle = '#333';
-    textureEditorCtx.fillRect(0, 0, textureEditorCanvas.width, textureEditorCanvas.height);
-    textureEditorCtx.fillStyle = '#fff';
-    textureEditorCtx.font = '16px Arial';
-    textureEditorCtx.textAlign = 'center';
-    textureEditorCtx.fillText('Image Load Error', textureEditorCanvas.width / 2, textureEditorCanvas.height / 2 - 10);
-    textureEditorCtx.font = '12px Arial';
-    textureEditorCtx.fillText(filename, textureEditorCanvas.width / 2, textureEditorCanvas.height / 2 + 15);
-}
-
-/**
- * Applies the saturation filter to the canvas and updates the display.
- */
-function applySaturation() {
-    if (!textureEditorCanvas || !saturationSlider || !saturationValueDisplay) return;
-
-    const saturation = saturationSlider.value;
-    saturationValueDisplay.textContent = `${saturation}%`;
-    textureEditorCanvas.style.filter = `saturate(${saturation}%)`;
-}
-
-/**
- * Saves the modified texture from the canvas back to the currentEditedAsset in memory.
- */
-async function saveModifiedTexture() {
-    if (!currentEditedAsset || !textureEditorCanvas) return;
-
-    // Remove the CSS filter before saving the image data
-    textureEditorCanvas.style.filter = 'none';
-
-    // Create a new canvas to draw the image without the filter
-    const tempCanvas = document.createElement('canvas');
-    const tempCtx = tempCanvas.getContext('2d');
-    tempCanvas.width = textureEditorCanvas.width;
-    tempCanvas.height = textureEditorCanvas.height;
-    
-    // Draw the current image (without filter) onto the temporary canvas
-    tempCtx.drawImage(currentImage, 0, 0, tempCanvas.width, tempCanvas.height);
-
-    // Apply the saturation filter directly to the pixel data on the temporary canvas
-    const imageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
-    const pixels = imageData.data;
-    const saturationFactor = saturationSlider.value / 100;
-
-    // Simple saturation adjustment (average method)
-    for (let i = 0; i < pixels.length; i += 4) {
-        const r = pixels[i];
-        const g = pixels[i + 1];
-        const b = pixels[i + 2];
-
-        // Calculate luminance (per ITU-R BT.709)
-        const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-
-        pixels[i] = luminance + (r - luminance) * saturationFactor;
-        pixels[i + 1] = luminance + (g - luminance) * saturationFactor;
-        pixels[i + 2] = luminance + (b - luminance) * saturationFactor;
-
-        // Clamp values to 0-255
-        pixels[i] = Math.min(255, Math.max(0, pixels[i]));
-        pixels[i + 1] = Math.min(255, Math.max(0, pixels[i + 1]));
-        pixels[i + 2] = Math.min(255, Math.max(0, pixels[i + 2]));
-    }
-    tempCtx.putImageData(imageData, 0, 0);
-
-    // Convert the temporary canvas to a Blob
-    try {
-        const blob = await new Promise(resolve => tempCanvas.toBlob(resolve, 'image/png'));
-        currentEditedAsset.modifiedImageBlob = blob;
-        currentEditedAsset.isModified = true;
-        currentEditedAsset.isNew = false; // Ensure it's not marked as a new creation
-
-        console.log(`Modified texture saved in memory for: ${currentEditedAsset.filename}`);
-        // IMPORTANT: Update the visual state of the card
-        if (typeof window.updateCardVisualState === 'function') {
-            window.updateCardVisualState(currentEditedAsset);
-        } else {
-            console.error('updateCardVisualState function not found in global scope.');
-        }
-        closeAssetEditorModal();
-    } catch (error) {
-        console.error('Error saving modified texture to blob:', error);
-        // Re-apply the CSS filter for visual consistency if saving fails
-        textureEditorCanvas.style.filter = `saturate(${saturationSlider.value}%)`;
+    } else {
+        textureEditorImagePreview.src = '';
+        textureEditorImagePreview.style.display = 'none';
+        window.updateConsoleLog('No file selected for upload.');
     }
 }
 
-/**
- * Saves a newly created texture from user inputs back to the currentEditedAsset in memory.
- */
-async function saveNewTexture() {
-    if (!currentEditedAsset || !newTextureWidthInput || !newTextureHeightInput || !newTextureColorInput) return;
+
+// --- New Texture Creation Functions ---
+
+async function createNewTexture() {
+    if (!currentEditedAsset) {
+        window.updateConsoleLog('[ERROR] No target asset selected for new texture creation.');
+        return;
+    }
 
     const width = parseInt(newTextureWidthInput.value);
     const height = parseInt(newTextureHeightInput.value);
     const color = newTextureColorInput.value;
 
     if (isNaN(width) || isNaN(height) || width <= 0 || height <= 0) {
-        console.error('Invalid width or height for new texture.');
-        // Consider adding a visible message to the user here instead of just console.error
+        window.updateConsoleLog('[WARN] Invalid width or height for new texture.');
         return;
     }
+
+    window.showLoadingOverlay('Generating New Texture...');
 
     // Create a temporary canvas to draw the new texture
     const tempCanvas = document.createElement('canvas');
@@ -362,23 +346,28 @@ async function saveNewTexture() {
     tempCtx.fillRect(0, 0, width, height);
 
     try {
-        const blob = await new Promise(resolve => tempCanvas.toBlob(resolve, 'image/png'));
+        const blob = await new Promise(resolve => tempCanvas.toBlob(resolve, 'image/png')); // Always create PNG for new textures
+        if (!blob) throw new Error('Failed to create new texture blob from canvas.');
+
         currentEditedAsset.newImageBlob = blob;
         currentEditedAsset.isNew = true;
         currentEditedAsset.isModified = false; // Ensure it's not marked as a modification
 
-        console.log(`New texture created and saved in memory for: ${currentEditedAsset.filename}`);
+        window.updateConsoleLog(`New texture created and saved in memory for: ${currentEditedAsset.filename}`);
         // IMPORTANT: Update the visual state of the card
         if (typeof window.updateCardVisualState === 'function') {
             window.updateCardVisualState(currentEditedAsset);
         } else {
             console.error('updateCardVisualState function not found in global scope.');
         }
+        window.hideLoadingOverlayWithDelay(1000, 'New Texture Created!');
         closeAssetEditorModal();
     } catch (error) {
         console.error('Error creating new texture blob:', error);
+        window.updateConsoleLog(`[ERROR] Failed to create new texture: ${error.message}`);
+        window.hideLoadingOverlayWithDelay(3000, 'Creation Failed!');
     }
 }
 
 // Global scope functions (will be called from asset-list-page.js)
-// window.openAssetEditorModal is already defined above
+window.openAssetEditorModal = window.openAssetEditorModal;

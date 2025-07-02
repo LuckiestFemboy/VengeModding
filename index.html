@@ -1,14 +1,3 @@
-<!--
-  Copyright (c) 2025 Charm?
-
-  Licensed under the MIT License. See LICENSE file in the project root for full license information.
-  SPDX-License-Identifier: MIT
-
-  Use of this code requires attribution to the original author.
-
-  This file is the homepage of the site.
--->
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -19,7 +8,8 @@
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-G4VR1D3B6M"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}\r\n  gtag('js', new Date());
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
 
   gtag('config', 'G-G4VR1D3B6M');
 </script>
@@ -29,129 +19,138 @@
     <link rel="stylesheet" href="asset-editor-modal.css">
     <link rel="stylesheet" href="bulk-operations-modal.css">
     <link rel="stylesheet" href="export-options-popup.css">
-</head>
+    <link rel="stylesheet" href="style.css"> </head>
 <body>
-    <header>
-        <h1>Modding Repository</h1>
-        <div class="search-container">
-            <input type="text" id="texture-search" placeholder="Search textures..." class="search-input">
-            <button id="search-button" class="search-button">Search</button>
-            <button id="clear-search-button" class="search-button clear-button">Clear Search</button>
-            <button id="download-all-zip-button" class="search-button">Download All as ZIP</button>
-            <button id="toggle-multi-select-button" class="search-button">Select Assets</button>
-            <input type="file" id="import-file-input" accept=".json" style="display: none;">
-            <button id="import-changes-button" class="search-button">Import Changes</button>
-            <button id="export-changes-button" class="search-button">Export Changes</button>
-        </div>
-        <div class="multi-select-actions">
-            <span id="selected-assets-count" class="selected-count">0 Assets Selected</span>
-            <button id="open-bulk-edit-button" class="search-button bulk-action-trigger" disabled>Edit Selected Assets</button>
-        </div>
-    </header>
-
-    <main class="container" style="visibility: visible; opacity: 1;">
-        <div id="texture-grid" style="visibility: visible; opacity: 1;">
-            </div>
-    </main>
-
     <div id="loading-overlay" class="loading-overlay">
-        <div class="loading-window">
-            <h2>Processing...</h2>
-            <div class="progress-bar-container">
-                <div id="progress-bar" class="progress-bar"></div>
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <h2 id="loading-message-display">Loading...</h2>
+            <div class="progress-container">
+                <div class="progress-bar" id="progress-bar"></div>
+                <span class="progress-text" id="progress-percentage">0%</span>
             </div>
-            <div class="progress-text" id="progress-percentage">0%</div>
             <div class="console-output">
-                <h3>Details:</h3>
+                <h3>Console Log:</h3>
                 <pre id="console-log"></pre>
             </div>
         </div>
     </div>
 
-    <div id="asset-editor-modal" class="asset-editor-modal-overlay">
-        <div class="asset-editor-modal-content">
+    <header>
+        <h1>Venge.io Texture Swapper</h1>
+        <p>Your one-stop tool for custom Venge.io textures.</p>
+        <div class="search-container">
+            <input type="text" id="texture-search" class="search-input" placeholder="Search textures, folders...">
+            <button id="search-button" class="action-button">Search</button>
+            <button id="clear-search-button" class="action-button">Clear</button>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="gallery-controls">
+            <button id="toggle-multi-select-button" class="action-button">Multi-Select</button>
+            <div id="multi-select-actions" class="multi-select-actions">
+                <span class="selected-count-display">Selected: <span id="selected-assets-count">0</span></span>
+                <button id="open-bulk-edit-button" class="action-button" disabled>Bulk Edit Selected</button>
+            </div>
+            <div class="import-export-buttons">
+                <input type="file" id="import-file-input" accept=".json" style="display: none;">
+                <button id="import-changes-button" class="action-button">Import Changes</button>
+                <button id="export-changes-button" class="action-button">Export Changes</button>
+            </div>
+            <button id="download-all-zip-button" class="action-button">Download All as ZIP</button>
+        </div>
+
+        <section id="texture-grid" class="texture-grid"></section>
+    </main>
+
+    <div id="asset-editor-modal" class="modal">
+        <div class="modal-content">
             <span class="close-button" id="close-editor-modal">&times;</span>
-            <h2 id="modal-asset-name"></h2>
+            <h2 id="modal-asset-name">Edit Asset</h2>
 
             <div class="modal-tabs">
-                <button class="tab-button active" id="tab-modify">Modify Existing Texture</button>
-                <button class="tab-button" id="tab-create">Create New Texture</button>
+                <button id="tab-modify" class="tab-button active">Modify Current Texture</button>
+                <button id="tab-create" class="tab-button">Create New Texture</button>
             </div>
 
-            <div class="tab-content" id="content-modify">
-                <h3>Adjust Saturation</h3>
-                <div class="saturation-control">
-                    <label for="saturation-slider">Saturation:</label>
+            <div id="content-modify" class="tab-content active">
+                <h3>Texture Modification</h3>
+                <div class="editor-section">
+                    <label for="texture-editor-image-input">Upload New Texture (replaces current):</label>
+                    <input type="file" id="texture-editor-image-input" accept="image/png, image/jpeg, image/gif, image/webp">
+                    <img id="texture-editor-image-preview" src="#" alt="Uploaded Texture Preview" style="display: none;">
+                </div>
+
+                <div class="editor-section">
+                    <label for="saturation-slider">Saturation: <span id="saturation-value">100</span>%</label>
                     <input type="range" id="saturation-slider" min="0" max="200" value="100">
-                    <span id="saturation-value">100%</span>
                 </div>
-                <div class="canvas-preview-container">
-                    <canvas id="texture-editor-canvas"></canvas>
-                </div>
-                <button id="save-modified-texture" class="modal-action-button">Save Modified Texture</button>
+
+                <canvas id="texture-editor-canvas"></canvas>
+                <button id="save-modified-texture" class="action-button">Save Changes to Asset</button>
             </div>
 
-            <div class="tab-content" id="content-create" style="display:none;">
-                <h3>Create New Texture</h3>
-                <div class="create-texture-inputs">
+            <div id="content-create" class="tab-content">
+                <h3>Create New Texture (Replaces current asset's texture)</h3>
+                <div class="new-texture-controls">
                     <div class="input-group">
                         <label for="new-texture-width">Width:</label>
-                        <input type="number" id="new-texture-width" value="512" min="1" max="4096">
+                        <input type="number" id="new-texture-width" value="512" min="1">
                     </div>
                     <div class="input-group">
                         <label for="new-texture-height">Height:</label>
-                        <input type="number" id="new-texture-height" value="512" min="1" max="4096">
+                        <input type="number" id="new-texture-height" value="512" min="1">
                     </div>
                     <div class="input-group">
-                        <label for="new-texture-color">Background Color:</label>
-                        <input type="color" id="new-texture-color" value="#6c5ce7">
+                        <label for="new-texture-color">Color:</label>
+                        <input type="color" id="new-texture-color" value="#ffffff">
                     </div>
                 </div>
-                <button id="save-new-texture" class="modal-action-button">Save New Texture</button>
+                <button id="save-new-texture" class="action-button">Generate & Apply New Texture</button>
             </div>
         </div>
     </div>
 
-    <div id="bulk-operations-modal" class="bulk-operations-modal-overlay">
-        <div class="bulk-operations-modal-content">
-            <span class="close-bulk-modal-button" id="close-bulk-modal">&times;</span>
-            <h2>Bulk Texture Operations</h2>
+    <div id="bulk-operations-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="close-bulk-modal">&times;</span>
+            <h2>Bulk Operations for Selected Assets</h2>
 
-            <div class="bulk-saturation-control">
-                <h3>Apply Saturation to Selected</h3>
-                <div class="input-group">
-                    <label for="bulk-saturation-slider">Saturation:</label>
-                    <input type="range" id="bulk-saturation-slider" min="0" max="200" value="100">
-                    <span id="bulk-saturation-value">100%</span>
-                </div>
+            <div class="bulk-section">
+                <h3>Bulk Saturation Adjustment</h3>
+                <label for="bulk-saturation-slider">Saturation: <span id="bulk-saturation-value">100</span>%</label>
+                <input type="range" id="bulk-saturation-slider" min="0" max="200" value="100">
                 <button id="apply-bulk-saturation" class="bulk-action-button">Apply Saturation</button>
             </div>
 
-            <div class="bulk-create-texture-inputs">
-                <h3>Create New Identical Textures for Selected</h3>
-                <div class="input-group">
-                    <label for="bulk-new-texture-width">Width:</label>
-                    <input type="number" id="bulk-new-texture-width" value="512" min="1" max="4096">
+            <div class="bulk-section">
+                <h3>Bulk New Texture Creation</h3>
+                <div class="new-texture-controls">
+                    <div class="input-group">
+                        <label for="bulk-new-texture-width">Width:</label>
+                        <input type="number" id="bulk-new-texture-width" value="512" min="1">
+                    </div>
+                    <div class="input-group">
+                        <label for="bulk-new-texture-height">Height:</label>
+                        <input type="number" id="bulk-new-texture-height" value="512" min="1">
+                    </div>
+                    <div class="input-group">
+                        <label for="bulk-new-texture-color">Color:</label>
+                        <input type="color" id="bulk-new-texture-color" value="#ffffff">
+                    </div>
                 </div>
-                <div class="input-group">
-                    <label for="bulk-new-texture-height">Height:</label>
-                    <input type="number" id="bulk-new-texture-height" value="512" min="1" max="4096">
-                </div>
-                <div class="input-group">
-                    <label for="bulk-new-texture-color">Background Color:</label>
-                    <input type="color" id="bulk-new-texture-color" value="#6c5ce7">
-                </div>
-                <button id="save-bulk-new-texture" class="bulk-action-button">Create New Textures</button>
+                <button id="save-bulk-new-texture" class="bulk-action-button">Generate & Apply New Texture to All Selected</button>
             </div>
 
-            <div class="bulk-upload-texture-inputs">
-                <h3>Upload New Texture for Selected</h3>
-                <div class="input-group">
-                    <label for="bulk-upload-image-input">Choose Image File:</label>
-                    <input type="file" id="bulk-upload-image-input" accept="image/png, image/jpeg">
-                </div>
-                <div class="image-preview-container">
-                    <img id="bulk-upload-image-preview" src="" alt="Uploaded Image Preview" style="display: none;">
+            <div class="bulk-section">
+                <h3>Bulk Texture Upload (Applies one image to all selected)</h3>
+                <label for="bulk-upload-image-input" class="file-upload-label">
+                    Choose Image File
+                    <input type="file" id="bulk-upload-image-input" accept="image/png, image/jpeg, image/gif, image/webp" style="display: none;">
+                </label>
+                <div class="bulk-upload-preview-container">
+                    <img id="bulk-upload-image-preview" src="#" alt="Image Preview" style="display: none;">
                     <p id="bulk-upload-preview-placeholder" style="text-align: center; color: rgba(255,255,255,0.6);">No image selected</p>
                 </div>
                 <button id="apply-bulk-upload-texture" class="bulk-action-button" disabled>Apply Uploaded Texture</button>
@@ -173,11 +172,12 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
-    <script src="asset-list-page.js"></script>
+
+    <script src="image-converter.js"></script> <script src="asset-list-page.js"></script>
     <script src="asset-editor-modal.js"></script>
-    <script src="export-options-popup.js"></script>
     <script src="bulk-operations.js"></script>
-    <script src="image-converter.js"></script>
     <script src="import-export.js"></script>
+    <script src="export-options-popup.js"></script>
+
 </body>
 </html>

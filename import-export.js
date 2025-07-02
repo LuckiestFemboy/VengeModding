@@ -42,202 +42,173 @@ async function handleImportFile(event) {
     }
 
     window.showLoadingOverlay('Importing Changes...');
-    window.updateConsoleLog('Reading import file...');
 
     try {
         const reader = new FileReader();
         reader.onload = async (e) => {
             try {
                 const importedData = JSON.parse(e.target.result);
-                window.updateConsoleLog('File parsed. Processing assets...');
 
-                await processImportedAssets(importedData);
+                // Assuming allAssets is available globally from asset-list-page.js
+                if (!window.allAssets) {
+                    throw new Error('window.allAssets is not defined. Asset list not loaded.');
+                }
 
-                window.hideLoadingOverlayWithDelay(2000, 'Import Complete!');
+                let processedCount = 0;
+                const totalChanges = Object.keys(importedData.modifications).length + Object.keys(importedData.newAssets).length;
+                window.updateConsoleLog(`Processing ${totalChanges} changes...`);
+
+                // Process modified assets
+                for (const mediaPath in importedData.modifications) {
+                    const modifiedAssetData = importedData.modifications[mediaPath];
+                    const targetAsset = window.allAssets.find(asset => asset.mediaPath === mediaPath);
+
+                    if (targetAsset) {
+                        if (modifiedAssetData.dataURL) {
+                            targetAsset.modifiedImageBlob = await dataURLtoBlob(modifiedAssetData.dataURL);
+                            targetAsset.isModified = true;
+                            // Update filename if it was changed
+                            if (modifiedAssetData.filename && targetAsset.filename !== modifiedAssetData.filename) {
+                                targetAsset.filename = modifiedAssetData.filename;
+                                // Update the displayed filename on the card
+                                const filenameElement = targetAsset.cardElement.querySelector('.texture-filename');
+                                if (filenameElement) {
+                                    filenameElement.textContent = targetAsset.filename;
+                                }
+                            }
+                        } else {
+                            console.warn(`No dataURL found for modified asset: ${mediaPath}`);
+                        }
+                    } else {
+                        window.updateConsoleLog(`[WARN] Original asset not found for modified entry: ${mediaPath}`);
+                    }
+                    processedCount++;
+                    window.updateLoadingProgress(processedCount, totalChanges, `Applied: ${targetAsset ? targetAsset.filename : mediaPath}`);
+                }
+
+                // Process new assets
+                for (const newAssetKey in importedData.newAssets) {
+                    const newAssetData = importedData.newAssets[newAssetKey];
+                    // Check if an asset with this mediaPath already exists to prevent duplicates on re-import
+                    let existingAsset = window.allAssets.find(asset => asset.mediaPath === newAssetData.mediaPath);
+
+                    if (!existingAsset) {
+                        const newAssetBlob = await dataURLtoBlob(newAssetData.dataURL);
+                        const newAsset = {
+                            folder: newAssetData.folder,
+                            filename: newAssetData.filename,
+                            type: newAssetData.type,
+                            mediaPath: newAssetData.mediaPath, // Use the new mediaPath to identify it
+                            originalImageBlob: null,
+                            modifiedImageBlob: null, // New assets are not 'modified' originals
+                            newImageBlob: newAssetBlob, // Store the blob for the new asset
+                            isModified: false,
+                            isNew: true,
+                            isExcluded: false // New assets start as not excluded
+                        };
+                        window.allAssets.push(newAsset);
+                        window.createAndAppendCard(newAsset); // Add to the DOM
+                        window.updateConsoleLog(`Added new asset: ${newAsset.filename}`);
+                    } else {
+                        // If it exists, update its newImageBlob and mark as new (useful for re-importing the same file)
+                        existingAsset.newImageBlob = await dataURLtoBlob(newAssetData.dataURL);
+                        existingAsset.isNew = true;
+                        existingAsset.isModified = false;
+                        window.updateConsoleLog(`Updated existing new asset: ${existingAsset.filename}`);
+                    }
+                    processedCount++;
+                    window.updateLoadingProgress(processedCount, totalChanges, `Added: ${newAssetData.filename}`);
+                }
+
+                // After processing all, update card visuals
+                window.allAssets.forEach(asset => {
+                    if (asset.cardElement) {
+                        window.updateCardVisualState(asset);
+                    }
+                });
+
+
+                window.updateConsoleLog('\nImport complete. Refreshing gallery display...');
+                window.hideLoadingOverlayWithDelay(2000, 'Import Successful!');
+
             } catch (parseError) {
-                console.error('Error parsing JSON:', parseError);
-                window.updateConsoleLog(`[ERROR] Failed to parse JSON: ${parseError.message}`);
-                window.hideLoadingOverlayWithDelay(3000, 'Import Failed (Invalid JSON)!');
+                console.error('Error parsing or processing imported JSON:', parseError);
+                window.updateConsoleLog(`[ERROR] Failed to import changes: ${parseError.message}`);
+                window.hideLoadingOverlayWithDelay(3000, 'Import Failed!');
             }
         };
         reader.readAsText(file);
     } catch (error) {
-        console.error('Error handling import file:', error);
+        console.error('Error reading import file:', error);
         window.updateConsoleLog(`[ERROR] Error reading file: ${error.message}`);
         window.hideLoadingOverlayWithDelay(3000, 'Import Failed!');
     } finally {
-        // Clear the input so selecting the same file again triggers change event
-        event.target.value = '';
+        event.target.value = ''; // Clear the file input
     }
 }
 
 /**
- * Generates a simple unique ID.
- * @returns {string} A unique ID string.
- */
-function generateUniqueId() {
-    return 'id_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-}
-
-/**
- * Processes the imported asset data, updating the global allAssets array.
- * This now handles both legacy (imageData directly in asset) and new (uniqueImages map) formats.
- * It also intelligently updates existing cards or creates new ones.
- * @param {Object} importedData The imported data object, which may contain 'assets' and 'uniqueImages'.
- */
-async function processImportedAssets(importedData) {
-    if (!importedData || !Array.isArray(importedData.assets)) {
-        window.updateConsoleLog('[ERROR] Imported data is not in the expected format. Expected an object with an "assets" array.');
-        return;
-    }
-
-    const assetsToImport = importedData.assets;
-    const uniqueImages = importedData.uniqueImages || {}; // Map of imageId to Base64 data
-
-    // Pre-resolve unique images to Blobs for faster lookup
-    const resolvedUniqueImageBlobs = {};
-    for (const imageId in uniqueImages) {
-        if (uniqueImages.hasOwnProperty(imageId)) {
-            window.updateConsoleLog(`Resolving unique image: ${imageId}`);
-            resolvedUniqueImageBlobs[imageId] = await dataURLtoBlob(uniqueImages[imageId]);
-        }
-    }
-
-    let processedCount = 0;
-    const totalAssetsToProcess = assetsToImport.length;
-
-    for (const importedAsset of assetsToImport) {
-        processedCount++;
-        window.updateLoadingProgress(processedCount, totalAssetsToProcess, `Processing: ${importedAsset.filename}`);
-
-        // Find existing asset by folder, filename, and type
-        const existingAsset = window.allAssets.find(
-            a => a.folder === importedAsset.folder && a.filename === importedAsset.filename && a.type === importedAsset.type
-        );
-
-        let blobToApply = null;
-
-        // Determine the source of the image blob: uniqueImages map or direct imageData
-        if (importedAsset.imageId && resolvedUniqueImageBlobs[importedAsset.imageId]) {
-            blobToApply = resolvedUniqueImageBlobs[importedAsset.imageId];
-        } else if (importedAsset.imageData) { // Fallback for legacy format or direct embeds
-            blobToApply = await dataURLtoBlob(importedAsset.imageData);
-        }
-
-        if (existingAsset) {
-            // Update existing asset
-            window.updateConsoleLog(`Updating existing asset: ${importedAsset.filename}`);
-            if (blobToApply) {
-                // Revoke old blob URL to prevent memory leaks if it exists
-                if (existingAsset.newImageBlob && existingAsset.newImageBlob.size > 0 && existingAsset.mediaPath && existingAsset.mediaPath.startsWith('blob:')) {
-                    URL.revokeObjectURL(existingAsset.mediaPath);
-                }
-                existingAsset.newImageBlob = blobToApply;
-                existingAsset.mediaPath = URL.createObjectURL(blobToApply);
-                existingAsset.isModified = true; // Mark as modified on import
-                existingAsset.isNew = false; // It's an existing asset, not new
-            } else {
-                // If no blob to apply, revert to original state if it was modified
-                if (existingAsset.isModified || existingAsset.isNew) {
-                    // Revoke current blob URL if it exists
-                    if (existingAsset.mediaPath && existingAsset.mediaPath.startsWith('blob:')) {
-                        URL.revokeObjectURL(existingAsset.mediaPath);
-                    }
-                    existingAsset.newImageBlob = null;
-                    existingAsset.isModified = false;
-                    existingAsset.isNew = false;
-                    // Revert mediaPath to its original, non-blob path
-                    // This might require storing the original mediaPath if it was changed
-                    // For now, assume updateCardVisualState handles reverting to original source if no newImageBlob
-                }
-            }
-            window.updateCardVisualState(existingAsset); // Update the visual state of the existing card
-            window.updateConsoleLog(`Updated: ${importedAsset.filename}`);
-        } else {
-            // Create a new asset if it doesn't exist
-            window.updateConsoleLog(`Creating new asset: ${importedAsset.filename}`);
-            const newAsset = {
-                id: importedAsset.id || generateUniqueId(), // Use existing ID or generate new
-                folder: importedAsset.folder,
-                filename: importedAsset.filename,
-                type: importedAsset.type,
-                mediaPath: `./mod-assets/${importedAsset.type}/${importedAsset.filename}`, // Default path, will be updated by blob if present
-                originalImageBlob: null,
-                newImageBlob: null,
-                isModified: false,
-                isNew: true, // This asset is new to the current collection
-                isSelected: false
-            };
-
-            if (blobToApply) {
-                newAsset.newImageBlob = blobToApply;
-                newAsset.mediaPath = URL.createObjectURL(blobToApply); // Use blob URL for display
-                newAsset.isNew = true; // Still marked as new, as it's from import
-            }
-
-            window.allAssets.push(newAsset);
-            window.createAndAppendCard(newAsset); // Add new card to DOM
-            window.updateConsoleLog(`Added new asset: ${importedAsset.filename}`);
-        }
-    }
-}
-
-
-/**
- * Exports modified and new assets as a JSON file, de-duplicating image data.
+ * Exports modified and new assets to a JSON file.
+ * This function now filters out assets marked as `isExcluded`.
  */
 async function exportChanges() {
     window.showLoadingOverlay('Exporting Changes...');
-    window.updateConsoleLog('Gathering modified assets...');
+    const exportData = {
+        modifications: {},
+        newAssets: {},
+        // No need to export an 'excluded' list for now, as exclusion is for local filtering
+        // If we wanted to re-import exclusion states, we would add:
+        // excludedAssets: []
+    };
 
-    const changesToExport = [];
-    const uniqueImages = {}; // Stores unique Base64 image data, keyed by a generated ID
-    const imageBlobToIdMap = new Map(); // Maps Blob objects (or their Base64 hash) to unique IDs
+    let processedCount = 0;
+    // Filter out excluded assets before processing for export
+    const assetsToExport = window.allAssets.filter(asset => !asset.isExcluded);
+    const totalAssetsToExport = assetsToExport.filter(asset => asset.isModified || asset.isNew).length;
 
-    let imageIdCounter = 0;
 
-    for (const asset of window.allAssets) {
-        if (asset.isModified || asset.isNew) {
-            let imageId = null;
-            if (asset.newImageBlob) {
-                // Get Base64 data for the blob
-                const base64Data = await blobToBase64(asset.newImageBlob);
-
-                // Check if this image data already exists
-                // Using a simple Base64 string as the key for de-duplication.
-                // For very large numbers of distinct images, a SHA-256 hash might be better,
-                // but Base64 string comparison is sufficient and simpler for most cases.
-                if (imageBlobToIdMap.has(base64Data)) {
-                    imageId = imageBlobToIdMap.get(base64Data);
-                } else {
-                    // This is a new unique image, assign it a new ID
-                    imageId = `img_${imageIdCounter++}`;
-                    uniqueImages[imageId] = base64Data;
-                    imageBlobToIdMap.set(base64Data, imageId);
-                }
-            }
-
-            changesToExport.push({
-                id: asset.id || generateUniqueId(), // Ensure asset has an ID
-                folder: asset.folder,
-                filename: asset.filename,
-                type: asset.type,
-                mediaPath: asset.mediaPath, // Original mediaPath
-                isModified: asset.isModified,
-                isNew: asset.isNew,
-                imageId: imageId // Reference to the unique image data
-                // imageData is no longer directly stored here to avoid duplication
-            });
-            window.updateConsoleLog(`Added ${asset.filename} to export list.`);
-        }
+    if (totalAssetsToExport === 0) {
+        window.updateConsoleLog('No modified or new assets to export (or all are excluded).');
+        window.hideLoadingOverlayWithDelay(2000, 'Nothing to Export!');
+        return;
     }
 
-    const exportData = {
-        timestamp: new Date().toISOString(),
-        description: "Venge Texture Swapper Export Data (Modified Assets)",
-        uniqueImages: uniqueImages, // Contains de-duplicated Base64 image data
-        assets: changesToExport // Contains asset metadata with references to uniqueImages
-    };
+    window.updateConsoleLog(`Preparing ${totalAssetsToExport} assets for export...`);
+
+    for (const asset of assetsToExport) {
+        if (asset.isModified && asset.modifiedImageBlob) {
+            window.updateConsoleLog(`Processing modified: ${asset.filename}`);
+            try {
+                const dataURL = await blobToBase64(asset.modifiedImageBlob);
+                exportData.modifications[asset.mediaPath] = {
+                    dataURL: dataURL,
+                    filename: asset.filename, // Store filename to allow changes on import
+                    type: asset.type
+                };
+            } catch (error) {
+                console.error(`Error converting modified asset ${asset.filename} to Base64:`, error);
+                window.updateConsoleLog(`[ERROR] Failed to encode modified: ${asset.filename}`);
+            }
+        } else if (asset.isNew && asset.newImageBlob) {
+            window.updateConsoleLog(`Processing new: ${asset.filename}`);
+            // For new assets, we might need a unique identifier or just use their mediaPath in a separate object
+            try {
+                const dataURL = await blobToBase64(asset.newImageBlob);
+                exportData.newAssets[asset.mediaPath] = { // Use mediaPath as key for new assets too
+                    dataURL: dataURL,
+                    folder: asset.folder,
+                    filename: asset.filename,
+                    type: asset.type,
+                    mediaPath: asset.mediaPath // Store mediaPath for re-creation
+                };
+            } catch (error) {
+                console.error(`Error converting new asset ${asset.filename} to Base64:`, error);
+                window.updateConsoleLog(`[ERROR] Failed to encode new: ${asset.filename}`);
+            }
+        }
+        processedCount++;
+        window.updateLoadingProgress(processedCount, totalAssetsToExport, `Processed: ${asset.filename}`);
+    }
 
     const jsonString = JSON.stringify(exportData, null, 2); // Pretty print JSON
     const blob = new Blob([jsonString], { type: 'application/json' });
@@ -282,3 +253,9 @@ function dataURLtoBlob(dataURL) {
         resolve(new Blob([uInt8Array], { type: contentType }));
     });
 }
+
+// Expose these functions globally if needed by other scripts (e.g., direct calls from console or other modules)
+window.handleImportFile = handleImportFile;
+window.exportChanges = exportChanges;
+window.blobToBase64 = blobToBase64;
+window.dataURLtoBlob = dataURLtoBlob;
