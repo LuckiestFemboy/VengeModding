@@ -1,93 +1,50 @@
-/* Reset and base styles */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
+/*
+ * Copyright (c) 2025 Charm?
+ *
+ * Licensed under the MIT License. See LICENSE file in the project root for full license information.
+ *
+ * SPDX-License-Identifier: MIT
+ *
+ * This file contains styles specific to the asset listing page,
+ * including the asset grid, cards, and multi-select features.
+ */
 
-body {
-    font-family: 'Inter', sans-serif;
-    background: #1a1a1a;
-    color: #ffffff;
-    line-height: 1.6;
-}
-
-/* Header styles */
-header {
-    background: rgba(255, 255, 255, 0.05);
-    padding: 2rem;
-    text-align: center;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-header h1 {
-    font-size: 2.4rem;
-    margin-bottom: 0.5rem;
-    color: #ffffff;
-    text-shadow: 0 0 15px rgba(108, 92, 231, 0.2);
-}
-
-/* Search bar styles */
-.search-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 1rem;
-    margin-top: 1rem;
-    padding: 0 1rem;
-}
-
-.search-input {
-    width: 100%;
-    max-width: 400px;
-    padding: 0.8rem 1rem;
-    border: 2px solid rgba(255, 255, 255, 0.1);
-    background: #2a2a2a;
-    color: #ffffff;
-    border-radius: 8px;
-    font-size: 1rem;
-    transition: all 0.3s ease;
-}
-
-.search-input:focus {
-    outline: none;
-    border-color: #6c5ce7;
-    box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.5);
-}
-
-.search-button {
-    background: linear-gradient(135deg, #6c5ce7, #fd79a8);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    padding: 0.8rem 1.5rem;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 10px rgba(108, 92, 231, 0.3);
-}
-
-.search-button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(108, 92, 231, 0.5);
-}
-
-.search-button:active {
-    transform: translateY(0);
-    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-}
-
-
-/* Main content area */
-.main-content {
+/* Main content area - ensure this matches the .container in index.html */
+.container {
     padding: 2rem 1rem;
     max-width: 1200px;
     margin: 0 auto;
 }
 
+/* Gallery Controls */
+.gallery-controls {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 2rem;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    align-items: center; /* Vertically align items */
+}
+
+/* Action buttons inherit from common-button */
+.action-button {
+    /* No additional styles needed here, as it uses .common-button */
+}
+
+.import-export-buttons {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap; /* Allow wrapping for smaller screens */
+    justify-content: center;
+}
+
 /* Asset grid styles */
-.asset-grid {
+#texture-grid { /* Changed from .asset-grid to #texture-grid to match HTML */
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
     gap: 1.5rem;
@@ -116,6 +73,12 @@ header h1 {
     border-color: rgba(108, 92, 231, 0.5);
 }
 
+.texture-card.selected {
+    border: 3px solid #6c5ce7; /* Highlight for selected cards */
+    box-shadow: 0 0 20px rgba(108, 92, 231, 0.7);
+    transform: scale(1.02);
+}
+
 .texture-card.is-new {
     border-color: #ffc107; /* Gold for new */
     box-shadow: 0 0 15px rgba(255, 193, 7, 0.5);
@@ -132,7 +95,6 @@ header h1 {
     box-shadow: 0 0 15px rgba(220, 53, 69, 0.7); /* Strong red glow */
     opacity: 0.6; /* Slightly dim them */
 }
-
 
 .texture-card img {
     max-width: 100%;
@@ -178,6 +140,7 @@ header h1 {
     align-items: center;
     justify-content: center;
     gap: 0.3rem;
+    flex-grow: 1; /* Allow buttons to grow */
 }
 
 .card-button:hover {
@@ -195,17 +158,19 @@ header h1 {
 
 /* MP3 Card Specific Styles */
 .texture-card.mp3-card img {
-    content: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI0ZGRkZGRiI+PHBhdGggZD0iTTEyIDMuMDU1QzcuMDMyIDMuMDU1IDMgNy4wODcgMyAxMnMzLjAyNCA4Ljk0NSA3LjAxMiA4Ljk0NWM0Ljk4OCAwIDguOTE2LTMuNjI4IDguOTE2LTguMjMzdi0uMjY3aC0xLjEzNlYxMmMxLjg3NyAwIDMuMzcyLTEuMDM1IDMuMzcyLTMuNjczVjMuMDU1aC0xLjEzNmE3Ljc3MiA3Ljc3MiAwIDAwLTcuNzcyIDB6bTAgMS44MjZjMy40MjkgMCA2LjIxMSA1LjA1NyA2LjIxMSA1LjU1NHYyLjgzMWMwIC40NzgtMy40MjkgMi4yMzQtNi4yMTEgMi4yMzRzLTYuMjExLTEuNzU2LTYuMjExLTIuMjM0VjEwLjQxYzAtLjQ5NyAyLjc4Mi01LjU1NCA2LjIxMS01LjU1NHoiLz48L3N2Zz4='); /* Generic music icon */
+    /* Updated path for the SVG to use the same logic as .mp3-icon background-image */
+    /* This overrides the src for img within an mp3-card to show a default icon */
+    content: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI0ZGRkZGRiI+PHBhdGggZD0iTTEyIDMuMDU1QzcuMDMyIDMuMDU1IDMgNy4wODcgMyAxMnMzLjAyNCA4Ljk0NSA3LjAxMiA4Ljk0NWM0Ljk4OCAwIDguOTE2LTMuNjI4IDguOTE2LTguMjMzdi0uMjY3aC0xLjEzNlYxMmMxLjg3NyAwIDMuMzcyLTEuMDM1IDMuMzcyLTMuNjczVjMuMDU1aC0xLjEzNmE3Ljc3MiA3Ljc3MiAwIDAwLTcuNzcyIDB6bTAgMS44MjZjM.0NDk0NzggMi4yMzQtNi4yMTEgMi4yMzRzLTYuMjExLTEuNzU2LTYuMjExLTIuMjM0VjEwLjQxYzAtLjQ5NyAyLjc4Mi01LjU1NCA2LjIxMS01LjU1NHoiLz48L3N2Zz4='); /* Generic music icon */
     background-color: transparent; /* Ensure background is clear for SVG */
     border: none; /* Remove image border */
 }
 
-/* If you have actual MP3 album art, you can adapt this. */
-/* This is a placeholder for visual identification. */
+/* This is a placeholder for visual identification if no specific album art is available. */
 .texture-card.mp3-card .mp3-icon {
     font-size: 3rem;
     color: #fd79a8;
     margin-bottom: 0.8rem;
+    /* This style is now redundant if img content is set above, but kept for legacy/fallback */
 }
 
 .texture-card.mp3-card h3 {
@@ -241,7 +206,7 @@ header h1 {
     display: flex; /* Show when active */
 }
 
-.multi-select-actions p {
+.multi-select-actions .selected-count-display { /* Specific class for the span */
     font-size: 1.1rem;
     color: #ffffff;
     display: flex;
@@ -249,130 +214,20 @@ header h1 {
     gap: 0.5rem;
 }
 
-.multi-select-button {
-    background: linear-gradient(135deg, #6c5ce7, #fd79a8);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    padding: 0.8rem 1.5rem;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 10px rgba(108, 92, 231, 0.3);
+/* Exclude Button Specific Style */
+.exclude-button {
+    background: #dc3545; /* Red background for "exclude" */
 }
 
-.multi-select-button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(108, 92, 231, 0.5);
+.exclude-button:hover {
+    background: #c82333; /* Darker red on hover */
 }
 
-.multi-select-button:active {
-    transform: translateY(0);
-    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+/* Include Button Specific Style (when an asset is excluded) */
+.include-button {
+    background: #28a745; /* Green background for "include" */
 }
 
-/* Loading Overlay */
-.loading-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.9); /* Darker, more opaque */
-    display: flex;
-    flex-direction: column; /* Arrange content vertically */
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-    backdrop-filter: blur(10px); /* Stronger blur */
-    -webkit-backdrop-filter: blur(10px);
-    visibility: hidden;
-    opacity: 0;
-    transition: visibility 0.4s ease, opacity 0.4s ease;
-    text-align: center;
-    padding: 20px;
-}
-
-.loading-overlay.active {
-    visibility: visible;
-    opacity: 1;
-}
-
-.loading-overlay h2 {
-    font-size: 1.8rem;
-    color: #ffffff;
-    margin-bottom: 1.5rem;
-    text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
-}
-
-.progress-container {
-    width: 80%;
-    max-width: 400px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 8px;
-    height: 15px;
-    overflow: hidden;
-    margin-bottom: 1rem;
-}
-
-.progress-bar {
-    height: 100%;
-    width: 0%;
-    background: linear-gradient(90deg, #6c5ce7, #fd79a8); /* Gradient for the bar */
-    border-radius: 5px;
-    transition: width 0.1s ease-out; /* Smooth progress update */
-}
-
-.progress-text {
-    font-size: 1.1rem;
-    font-weight: 600;
-    margin-top: 0.5rem;
-    color: #ffffff;
-}
-
-.console-output {
-    background: rgba(0, 0, 0, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 8px;
-    padding: 1rem;
-    margin-top: 1rem;
-    text-align: left;
-}
-
-.console-output h3 {
-    font-size: 1rem;
-    color: rgba(255, 255, 255, 0.7);
-    margin-bottom: 0.5rem;
-}
-
-#console-log {
-    background: #1a1a1a;
-    color: #0f0; /* Green text for console feel */
-    font-family: 'Consolas', 'Monaco', monospace;
-    font-size: 0.9rem;
-    height: 150px; /* Fixed height for the console */
-    overflow-y: auto; /* Enable scrolling */
-    border: 1px solid #333;
-    padding: 0.5rem;
-    border-radius: 5px;
-    white-space: pre-wrap; /* Preserve whitespace and wrap text */
-}
-
-/* Scrollbar styles for console log */
-#console-log::-webkit-scrollbar {
-    width: 8px;
-}
-
-#console-log::-webkit-scrollbar-track {
-    background: #2a2a2a;
-    border-radius: 10px;
-}
-
-#console-log::-webkit-scrollbar-thumb {
-    background: #6c5ce7;
-    border-radius: 10px;
-}
-
-#console-log::-webkit-scrollbar-thumb:hover {
-    background: #fd79a8;
+.include-button:hover {
+    background: #218838; /* Darker green on hover */
 }

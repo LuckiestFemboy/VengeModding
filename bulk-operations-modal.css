@@ -71,29 +71,11 @@
     box-shadow: 0 0 8px rgba(253, 121, 168, 0.7);
 }
 
-/* Bulk Action Buttons (reusing styles from action-button or defining similar) */
+/* Bulk Action Buttons now inherit from .common-button */
 .bulk-action-button {
-    background: linear-gradient(135deg, #6c5ce7, #fd79a8);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    padding: 0.8rem 1.5rem;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 10px rgba(108, 92, 231, 0.3);
+    /* Inherit base styles from .common-button */
     margin-top: 1rem;
     width: 100%; /* Full width for bulk action buttons */
-}
-
-.bulk-action-button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(108, 92, 231, 0.5);
-}
-
-.bulk-action-button:active {
-    transform: translateY(0);
-    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
 }
 
 .bulk-action-button:disabled {

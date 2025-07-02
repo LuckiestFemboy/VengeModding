@@ -174,29 +174,10 @@
     display: block; /* Center the canvas */
 }
 
-/* Save Button */
+/* Save Buttons now inherit from .common-button */
 #save-modified-texture, #save-new-texture {
-    /* Reusing action-button styles, if available globally or defined in a base style */
-    background: linear-gradient(135deg, #6c5ce7, #fd79a8);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    padding: 0.8rem 1.5rem;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 10px rgba(108, 92, 231, 0.3);
+    /* Inherit base styles from .common-button */
     margin-top: 1rem;
-}
-
-#save-modified-texture:hover, #save-new-texture:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(108, 92, 231, 0.5);
-}
-
-#save-modified-texture:active, #save-new-texture:active {
-    transform: translateY(0);
-    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
 }
 
 /* New Texture Creation Controls */
