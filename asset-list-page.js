@@ -47,6 +47,16 @@ function createAndAppendCard(asset) {
     card.style.visibility = 'visible';
     card.style.opacity = '1';
 
+    // Initialize excluded state if not set
+    if (asset.excluded === undefined) {
+        asset.excluded = false;
+    }
+    
+    // Update card class based on excluded state
+    if (asset.excluded) {
+        card.classList.add('excluded');
+    }
+
     // Store a reference to the card DOM element on the asset object
     asset.cardElement = card;
 
@@ -91,7 +101,7 @@ window.createAndAppendCard = createAndAppendCard; // NEW: Expose globally
 
         // Create a wrapper for the action buttons to manage their layout
         const mp3ButtonsWrapper = document.createElement('div');
-        mp3ButtonsWrapper.className = 'mp3-buttons-wrapper'; // New class for this wrapper
+        mp3ButtonsWrapper.className = 'mp3-buttons-wrapper card-actions'; // Added card-actions class for consistent styling
 
         const copyFolderButton = document.createElement('button');
         copyFolderButton.className = 'copy-folder-button';
@@ -136,10 +146,17 @@ window.createAndAppendCard = createAndAppendCard; // NEW: Expose globally
         card.appendChild(selectCheckbox);
 
         // Add click listener to the card for multi-selection
-        card.addEventListener('click', () => {
-            // Check if multi-select mode is active (function from bulk-operations.js)
+        card.addEventListener('click', (e) => {
+            // Check if the click was on the image (mediaElement or its container)
+            const isImageClick = e.target === mediaElement || e.target === mediaContainer;
+            
+            // If in multi-select mode, handle selection
             if (typeof window.isMultiSelectModeActive === 'function' && window.isMultiSelectModeActive()) {
                 window.toggleAssetSelection(asset, card); // Function from bulk-operations.js
+            } 
+            // If not in multi-select mode and the click was on the image, show fullscreen
+            else if (isImageClick) {
+                showFullscreenImage(asset);
             }
         });
 
@@ -196,16 +213,19 @@ window.createAndAppendCard = createAndAppendCard; // NEW: Expose globally
         // Create buttons container for non-MP3s
         const actionButtonsContainer = document.createElement('div');
         actionButtonsContainer.className = 'buttons-container';
-
-        // New "Edit Asset" button
+        
+        // Create card actions container
+        const cardActions = document.createElement('div');
+        cardActions.className = 'card-actions';
+                // Exclude functionality has been moved to bulk operations
+        
+        // Add Edit Asset button
         const editAssetButton = document.createElement('button');
         editAssetButton.className = 'edit-asset-button';
         editAssetButton.textContent = 'Edit Asset';
         editAssetButton.onclick = (event) => {
-            event.stopPropagation(); // Prevent card selection when clicking edit button
-            // Call the modal function from asset-editor-modal.js
-            // Pass the entire asset object reference and the card element for in-memory modification and visual update
-            // Only open if multi-select mode is NOT active
+            event.stopPropagation();
+            
             if (typeof window.isMultiSelectModeActive === 'function' && !window.isMultiSelectModeActive()) {
                 if (typeof window.openAssetEditorModal === 'function') {
                     window.openAssetEditorModal(asset, card);
@@ -249,6 +269,7 @@ window.createAndAppendCard = createAndAppendCard; // NEW: Expose globally
         };
         actionButtonsContainer.appendChild(downloadButton);
 
+        actionButtonsContainer.appendChild(cardActions);
         infoContainer.appendChild(actionButtonsContainer);
         card.appendChild(infoContainer); // Append infoContainer for non-MP3s
     }
@@ -820,9 +841,119 @@ async function initiateZipDownload(exportType) {
     }
 }
 
+// Function to show image in fullscreen
+function showFullscreenImage(asset) {
+    if (window.isMultiSelectModeActive && window.isMultiSelectModeActive()) {
+        return; // Don't show fullscreen in selection mode
+    }
+    
+    const fullscreenViewer = document.getElementById('fullscreen-viewer');
+    const fullscreenImage = document.getElementById('fullscreen-image');
+    const filenameElement = document.getElementById('fullscreen-filename');
+    const resolutionElement = document.getElementById('fullscreen-resolution');
+    
+    // Set the image source and info
+    fullscreenImage.src = asset.mediaPath;
+    filenameElement.textContent = asset.filename;
+    
+    // Get image dimensions when loaded
+    const img = new Image();
+    img.onload = function() {
+        resolutionElement.textContent = `${this.width} × ${this.height}px`;
+    };
+    img.src = asset.mediaPath;
+    
+    // Show the viewer
+    fullscreenViewer.classList.add('active');
+    document.body.style.overflow = 'hidden'; // Prevent scrolling
+}
+
+// Close fullscreen viewer
+function closeFullscreenViewer() {
+    const fullscreenViewer = document.getElementById('fullscreen-viewer');
+    fullscreenViewer.classList.remove('active');
+    document.body.style.overflow = ''; // Re-enable scrolling
+}
+
+// Add event listeners for fullscreen viewer
+document.addEventListener('DOMContentLoaded', () => {
+    // Close when clicking the close button
+    const closeButton = document.querySelector('.close-fullscreen');
+    if (closeButton) {
+        closeButton.addEventListener('click', closeFullscreenViewer);
+    }
+    
+    // Close when clicking outside the image
+    const fullscreenViewer = document.getElementById('fullscreen-viewer');
+    if (fullscreenViewer) {
+        fullscreenViewer.addEventListener('click', (e) => {
+            if (e.target === fullscreenViewer) {
+                closeFullscreenViewer();
+            }
+        });
+    }
+    
+    // Close with Escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && fullscreenViewer.classList.contains('active')) {
+            closeFullscreenViewer();
+        }
+    });
+});
+
+// Function to select all visible cards
+function selectAllVisibleCards() {
+    if (!window.isMultiSelectModeActive || !window.isMultiSelectModeActive()) {
+        console.log('Multi-select mode is not active');
+        return 0;
+    }
+
+    const visibleCards = document.querySelectorAll('.texture-card:not([style*="display: none"])');
+    let selectedCount = 0;
+    
+    visibleCards.forEach(card => {
+        // Skip already selected cards
+        if (card.classList.contains('selected')) {
+            return;
+        }
+        
+        // Find the asset that corresponds to this card element
+        const asset = window.allAssets.find(a => a.cardElement === card);
+        if (asset) {
+            // Simulate a click on the card to select it
+            card.click();
+            selectedCount++;
+        }
+    });
+    
+    console.log(`Selected ${selectedCount} visible cards`);
+    return selectedCount;
+}
+
+// Make the function available globally
+window.selectAllVisibleCards = selectAllVisibleCards;
 
 document.addEventListener('DOMContentLoaded', () => {
     initializeGallery(); // Initialize the gallery and populate allAssets array metadata only
+
+    // Add event listener for the search input
+    const searchInput = document.getElementById('search-input');
+    const clearSearchButton = document.getElementById('clear-search');
+    const selectAllButton = document.getElementById('select-all-button');
+    
+    // Add click handler for select all button
+    if (selectAllButton) {
+        selectAllButton.addEventListener('click', () => {
+            // First ensure we're in multi-select mode
+            if (window.toggleMultiSelectMode && !window.isMultiSelectModeActive()) {
+                window.toggleMultiSelectMode();
+            }
+            
+            // Then select all visible cards
+            const selectedCount = selectAllVisibleCards();
+            console.log(`Selected ${selectedCount} visible cards`);
+        });
+    }
 
     const downloadAllZipButton = document.getElementById('download-all-zip-button');
 

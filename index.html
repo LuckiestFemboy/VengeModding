@@ -45,6 +45,9 @@
         </div>
         <div class="multi-select-actions">
             <span id="selected-assets-count" class="selected-count">0 Assets Selected</span>
+            <button id="select-all-button" class="header-button" title="Select All Visible" style="display: none;">
+            <i class="fas fa-check-double"></i> Select All
+        </button>
             <button id="open-bulk-edit-button" class="search-button bulk-action-trigger" disabled>Edit Selected Assets</button>
         </div>
     </header>
@@ -144,6 +147,23 @@
                 <button id="save-bulk-new-texture" class="bulk-action-button">Create New Textures</button>
             </div>
 
+            <div class="bulk-resize-inputs">
+                <h3>Resize Selected Textures</h3>
+                <div class="input-group">
+                    <label for="resize-width">Width (pixels):</label>
+                    <input type="number" id="resize-width" min="1" max="4096" placeholder="Original width">
+                </div>
+                <div class="input-group">
+                    <label for="resize-height">Height (pixels):</label>
+                    <input type="number" id="resize-height" min="1" max="4096" placeholder="Original height">
+                </div>
+                <div class="input-group checkbox-group">
+                    <input type="checkbox" id="maintain-aspect-ratio" checked>
+                    <label for="maintain-aspect-ratio">Maintain aspect ratio</label>
+                </div>
+                <button id="apply-bulk-resize" class="bulk-action-button">Resize Textures</button>
+            </div>
+
             <div class="bulk-upload-texture-inputs">
                 <h3>Upload New Texture for Selected</h3>
                 <div class="input-group">
@@ -155,6 +175,12 @@
                     <p id="bulk-upload-preview-placeholder" style="text-align: center; color: rgba(255,255,255,0.6);">No image selected</p>
                 </div>
                 <button id="apply-bulk-upload-texture" class="bulk-action-button" disabled>Apply Uploaded Texture</button>
+            </div>
+
+            <div class="bulk-exclude-section">
+                <h3>Exclude from Export</h3>
+                <p>Exclude the currently selected assets from being exported.</p>
+                <button id="toggle-exclude-selected" class="bulk-action-button exclude-button">Exclude Selected from Export</button>
             </div>
         </div>
     </div>
@@ -177,6 +203,16 @@
     <script src="asset-editor-modal.js"></script>
     <script src="export-options-popup.js"></script>
     <script src="bulk-operations.js"></script>
+    <!-- Fullscreen Image Viewer -->
+    <div id="fullscreen-viewer" class="fullscreen-viewer">
+        <span class="close-fullscreen">&times;</span>
+        <img id="fullscreen-image" src="" alt="Fullscreen view">
+        <div class="image-info">
+            <span id="fullscreen-filename"></span>
+            <span id="fullscreen-resolution"></span>
+        </div>
+    </div>
+
     <script src="image-converter.js"></script>
     <script src="import-export.js"></script>
 </body>

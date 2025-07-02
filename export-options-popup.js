@@ -68,20 +68,32 @@ async function handleExport(exportType) {
     }
 
     const zip = new JSZip();
-    const totalAssets = window.allAssets ? window.allAssets.length : 0;
+    // Filter out excluded assets
+    const assetsToExport = window.allAssets ? window.allAssets.filter(asset => !asset.excluded) : [];
+    const totalAssets = assetsToExport.length;
     let processedCount = 0;
 
-    if (!window.allAssets || window.allAssets.length === 0) {
-        window.updateLoadingProgress(0, 0, 'No assets to export. Finishing...');
-        window.updateConsoleLog('No assets found for export. ZIP will be empty.');
+    if (totalAssets === 0) {
+        const totalCount = window.allAssets ? window.allAssets.length : 0;
+        if (totalCount > 0) {
+            window.updateLoadingProgress(0, 0, 'No assets to export (all excluded). Finishing...');
+            window.updateConsoleLog('All assets are excluded from export. ZIP will be empty.');
+        } else {
+            window.updateLoadingProgress(0, 0, 'No assets to export. Finishing...');
+            window.updateConsoleLog('No assets found for export. ZIP will be empty.');
+        }
         window.hideLoadingOverlayWithDelay(3000, 'Export Complete: No Assets');
         return;
     }
 
+    const excludedCount = window.allAssets ? window.allAssets.length - totalAssets : 0;
     window.updateLoadingProgress(0, totalAssets, `Starting ${exportType} export...`);
     window.updateConsoleLog(`Preparing ZIP for ${exportType} export with ${totalAssets} assets.`);
+    if (excludedCount > 0) {
+        window.updateConsoleLog(`Note: ${excludedCount} asset(s) are excluded from export.`);
+    }
 
-    for (const asset of window.allAssets) {
+    for (const asset of assetsToExport) {
         try {
             let assetBlob = asset.newImageBlob || asset.originalImageBlob; // Use new blob if modified, else original
             let assetFilename = asset.filename;

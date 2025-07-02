@@ -38,6 +38,15 @@ let bulkUploadImagePreview;
 let applyBulkUploadTextureButton;
 let bulkUploadPreviewPlaceholder;
 
+// New: DOM elements for the bulk resize section
+let resizeWidthInput;
+let resizeHeightInput;
+let maintainAspectCheckbox;
+let applyBulkResizeButton;
+
+// New: DOM element for exclude button
+let toggleExcludeButton;
+
 let uploadedImageBlob = null; // Stores the actual uploaded image blob for bulk application
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -46,11 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
     multiSelectActionsContainer = document.getElementById('multi-select-actions');
     selectedAssetsCountDisplay = document.getElementById('selected-assets-count');
     openBulkEditButton = document.getElementById('open-bulk-edit-button'); // NEW: Get reference to the single button
-
-    // Add robust error logging for DOM element retrieval
-    if (!toggleMultiSelectButton) console.error('ERROR: toggle-multi-select-button not found!');
-    if (!multiSelectActionsContainer) console.error('ERROR: multi-select-actions container not found!');
-    if (!selectedAssetsCountDisplay) console.error('ERROR: selected-assets-count display not found!');
+    
     if (!openBulkEditButton) console.error('ERROR: open-bulk-edit-button not found!');
 
 
@@ -81,6 +86,9 @@ document.addEventListener('DOMContentLoaded', () => {
     bulkUploadImagePreview = document.getElementById('bulk-upload-image-preview');
     applyBulkUploadTextureButton = document.getElementById('apply-bulk-upload-texture');
     bulkUploadPreviewPlaceholder = document.getElementById('bulk-upload-preview-placeholder');
+    
+    // Get reference to the exclude button
+    toggleExcludeButton = document.getElementById('toggle-exclude-selected');
 
     if (!bulkUploadImageInput) console.error('ERROR: bulk-upload-image-input not found!');
     if (!bulkUploadImagePreview) console.error('ERROR: bulk-upload-image-preview not found!');
@@ -122,21 +130,44 @@ document.addEventListener('DOMContentLoaded', () => {
     if (applyBulkUploadTextureButton) {
         applyBulkUploadTextureButton.addEventListener('click', applyBulkUploadedTexture);
     }
+    
+    // Add event listener for the exclude button
+    if (toggleExcludeButton) {
+        toggleExcludeButton.addEventListener('click', toggleExcludeSelected);
+    }
 
 
     // Export functions to global scope so asset-list-page.js can access them
     window.toggleAssetSelection = toggleAssetSelection;
     window.isMultiSelectModeActive = () => isMultiSelectMode;
     window.updateBulkActionButtonsState = updateBulkActionButtonsState;
+    window.toggleMultiSelectMode = toggleMultiSelectMode;
 });
 
 /**
- * Toggles multi-selection mode on and off.
+ * Toggles multi-select mode on and off.
  */
 function toggleMultiSelectMode() {
     isMultiSelectMode = !isMultiSelectMode;
     document.body.classList.toggle('multi-select-active', isMultiSelectMode);
-    console.log(`toggleMultiSelectMode: isMultiSelectMode is now ${isMultiSelectMode}`);
+    
+    // Show/hide the multi-select UI
+    const multiSelectUI = document.querySelector('.multi-select-actions');
+    const selectAllButton = document.getElementById('select-all-button');
+    
+    if (multiSelectUI) {
+        multiSelectUI.style.display = isMultiSelectMode ? 'flex' : 'none';
+    }
+    
+    // Show/hide the select all button
+    if (selectAllButton) {
+        selectAllButton.style.display = isMultiSelectMode ? 'inline-flex' : 'none';
+    }
+    
+    // Clear selection when exiting multi-select mode
+    if (!isMultiSelectMode) {
+        clearSelectedAssets();
+    }
 
     if (isMultiSelectMode) {
         toggleMultiSelectButton.textContent = 'Exit Selection';
@@ -614,4 +645,185 @@ async function applyBulkUploadedTexture() {
     bulkUploadPreviewPlaceholder.style.display = 'block';
     uploadedImageBlob = null;
     applyBulkUploadTextureButton.disabled = true;
+}
+
+/**
+ * Toggles the excluded state of all currently selected assets
+ */
+function toggleExcludeSelected() {
+    if (selectedAssets.size === 0) {
+        alert('No assets selected to exclude.');
+        return;
+    }
+
+    // Determine if we're excluding or including (if any selected asset is not excluded, we'll exclude all)
+    const anyIncluded = Array.from(selectedAssets).some(asset => !asset.excluded);
+    const newExcludedState = anyIncluded;
+
+    // Update all selected assets
+    selectedAssets.forEach(asset => {
+        asset.excluded = newExcludedState;
+        
+        // Update the card's visual state
+        if (asset.cardElement) {
+            if (newExcludedState) {
+                asset.cardElement.classList.add('excluded');
+            } else {
+                asset.cardElement.classList.remove('excluded');
+            }
+        }
+    });
+
+    // Update the button text based on the action
+    const action = newExcludedState ? 'Excluded' : 'Included';
+    const count = selectedAssets.size;
+    
+    // Show a temporary message
+    const originalText = toggleExcludeButton.textContent;
+    toggleExcludeButton.textContent = `${action} ${count} asset${count > 1 ? 's' : ''}`;
+    
+    // Log the action
+    console.log(`${action} ${count} asset${count > 1 ? 's' : ''} from export`);
+    window.updateConsoleLog(`${action} ${count} asset${count > 1 ? 's' : ''} from export`);
+    
+    // Reset the button text after a delay
+    setTimeout(() => {
+        toggleExcludeButton.textContent = originalText;
+    }, 2000);
+    
+    // Close the modal after a short delay
+    setTimeout(() => {
+        closeBulkOperationsModal();
+    }, 1500);
+}
+
+/**
+ * Applies resizing to all selected image assets.
+ */
+async function applyBulkResize() {
+    const resizeWidthInput = document.getElementById('resize-width');
+    const resizeHeightInput = document.getElementById('resize-height');
+    
+    // Validate inputs
+    if (!resizeWidthInput || !resizeHeightInput) {
+        console.error('Resize inputs not found');
+        return;
+    }
+    
+    const newWidth = parseInt(resizeWidthInput.value || resizeWidthInput.placeholder);
+    const newHeight = parseInt(resizeHeightInput.value || resizeHeightInput.placeholder);
+    
+    if (isNaN(newWidth) || isNaN(newHeight) || newWidth <= 0 || newHeight <= 0) {
+        alert('Please enter valid width and height values (greater than 0)');
+        return;
+    }
+    
+    if (selectedAssets.size === 0) {
+        alert('No assets selected for resizing');
+        return;
+    }
+    
+    // Show loading overlay
+    window.showLoadingOverlay(`Resizing ${selectedAssets.size} assets to ${newWidth}x${newHeight}...`);
+    console.log(`Starting bulk resize operation on ${selectedAssets.size} assets to ${newWidth}x${newHeight}`);
+    
+    try {
+        let successCount = 0;
+        const totalAssets = selectedAssets.size;
+        
+        // Process each selected asset
+        for (const asset of selectedAssets) {
+            try {
+                // Skip non-image assets
+                if (asset.type && asset.type.toLowerCase() === 'mp3') {
+                    console.log(`Skipping non-image asset: ${asset.filename}`);
+                    continue;
+                }
+                
+                // Update progress
+                const progress = (successCount / totalAssets) * 100;
+                window.updateLoadingProgress(successCount, totalAssets, `Resizing ${asset.filename}...`);
+                
+                // Create a canvas to perform the resize
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                // Set canvas dimensions to new size
+                canvas.width = newWidth;
+                canvas.height = newHeight;
+                
+                // Draw the image to the canvas with the new dimensions
+                const img = new Image();
+                
+                // Create a promise to handle the image loading
+                await new Promise((resolve, reject) => {
+                    img.onload = async () => {
+                        try {
+                            // Draw the image with the new dimensions
+                            ctx.drawImage(img, 0, 0, newWidth, newHeight);
+                            
+                            // Convert the canvas back to a blob
+                            canvas.toBlob((blob) => {
+                                if (!blob) {
+                                    reject(new Error('Failed to create blob from canvas'));
+                                    return;
+                                }
+                                
+                                // Update the asset's blob and dimensions
+                                asset.blob = blob;
+                                asset.width = newWidth;
+                                asset.height = newHeight;
+                                
+                                // Update the asset's preview
+                                if (asset.previewUrl) {
+                                    URL.revokeObjectURL(asset.previewUrl);
+                                }
+                                asset.previewUrl = URL.createObjectURL(blob);
+                                
+                                // Update the card's thumbnail
+                                if (window.updateAssetCardThumbnail) {
+                                    window.updateAssetCardThumbnail(asset);
+                                }
+                                
+                                successCount++;
+                                resolve();
+                            }, 'image/png');
+                        } catch (error) {
+                            reject(error);
+                        }
+                    };
+                    
+                    img.onerror = () => {
+                        reject(new Error('Failed to load image for resizing'));
+                    };
+                    
+                    // Set the image source to the asset's blob URL
+                    img.src = asset.previewUrl || URL.createObjectURL(asset.blob);
+                });
+                
+                console.log(`Successfully resized ${asset.filename} to ${newWidth}x${newHeight}`);
+                
+            } catch (error) {
+                console.error(`Error resizing ${asset.filename}:`, error);
+                window.updateConsoleLog(`[ERROR] Failed to resize ${asset.filename}: ${error.message}`);
+            }
+        }
+        
+        // Show completion message
+        const message = `Successfully resized ${successCount} of ${totalAssets} assets to ${newWidth}x${newHeight}`;
+        console.log(message);
+        window.updateConsoleLog(`\n${message}`);
+        
+        // Close the modal and reset the UI
+        closeBulkOperationsModal();
+        window.hideLoadingOverlayWithDelay(3000, 'Resize Complete!');
+        
+        // Exit multi-select mode after operation
+        toggleMultiSelectMode();
+        
+    } catch (error) {
+        console.error('Error during bulk resize operation:', error);
+        window.updateConsoleLog(`[FATAL ERROR] Bulk resize operation failed: ${error.message}`);
+        window.hideLoadingOverlayWithDelay(3000, 'Resize Failed!');
+    }
 }

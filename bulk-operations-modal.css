@@ -81,7 +81,9 @@
 /* Saturation Control Group */
 .bulk-saturation-control,
 .bulk-create-texture-inputs,
-.bulk-upload-texture-inputs { /* Added for new section */
+.bulk-upload-texture-inputs,
+.bulk-resize-inputs,
+.bulk-exclude-section {
     background: rgba(255, 255, 255, 0.05); /* Lighter background for sections */
     border-radius: 10px;
     padding: 1.5rem;
@@ -93,15 +95,55 @@
 
 .bulk-saturation-control .input-group,
 .bulk-create-texture-inputs .input-group,
-.bulk-upload-texture-inputs .input-group { /* Added for new section */
+.bulk-upload-texture-inputs .input-group,
+.bulk-resize-inputs .input-group {
     display: flex;
     flex-direction: column;
     gap: 0.6rem;
 }
 
+/* Exclude section specific styles */
+.bulk-exclude-section {
+    border-left: 4px solid #e74c3c;
+}
+
+.bulk-exclude-section h3 {
+    color: #ff6b6b;
+}
+
+.bulk-exclude-section p {
+    color: #bbb;
+    font-size: 14px;
+    margin-top: 5px;
+    margin-bottom: 15px;
+}
+
+/* Checkbox group specific styles */
+.checkbox-group {
+    flex-direction: row !important;
+    align-items: center;
+    gap: 0.8rem !important;
+    margin-top: -0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.checkbox-group input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    margin: 0;
+}
+
+.checkbox-group label {
+    margin: 0;
+    font-size: 0.95rem;
+    color: rgba(255, 255, 255, 0.8);
+}
+
 .bulk-saturation-control label,
 .bulk-create-texture-inputs label,
-.bulk-upload-texture-inputs label { /* Added for new section */
+.bulk-upload-texture-inputs label,
+.bulk-resize-inputs label,
+.bulk-exclude-section label {
     font-size: 1.1rem;
     font-weight: 500;
     color: rgba(255, 255, 255, 0.9);
