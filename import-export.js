@@ -136,6 +136,12 @@ async function processImportedAssets(importedData) {
                 existingAsset.mediaPath = URL.createObjectURL(blobToApply);
                 existingAsset.isModified = true; // Mark as modified on import
                 existingAsset.isNew = false; // It's an existing asset, not new
+                // Update excluded status if it exists in the imported data
+                if (importedAsset.hasOwnProperty('excluded')) {
+                    existingAsset.excluded = importedAsset.excluded;
+                } else {
+                    existingAsset.excluded = false; // Default to false if not specified
+                }
             } else {
                 // If no blob to apply, revert to original state if it was modified
                 if (existingAsset.isModified || existingAsset.isNew) {
@@ -166,7 +172,8 @@ async function processImportedAssets(importedData) {
                 newImageBlob: null,
                 isModified: false,
                 isNew: true, // This asset is new to the current collection
-                isSelected: false
+                isSelected: false,
+                excluded: importedAsset.excluded || false // Import excluded status, default to false if not specified
             };
 
             if (blobToApply) {
@@ -225,6 +232,7 @@ async function exportChanges() {
                 mediaPath: asset.mediaPath, // Original mediaPath
                 isModified: asset.isModified,
                 isNew: asset.isNew,
+                excluded: asset.excluded || false, // Include excluded status
                 imageId: imageId // Reference to the unique image data
                 // imageData is no longer directly stored here to avoid duplication
             });

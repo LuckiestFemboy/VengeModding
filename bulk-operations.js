@@ -12,9 +12,17 @@
 // bulk-operations.js
 // This file handles multi-selection mode and bulk operations on assets.
 
-// Global state variables
+/**
+ * Tracks whether multi-select mode is currently active.
+ * @type {boolean}
+ */
 let isMultiSelectMode = false;
-const selectedAssets = new Set(); // Stores references to asset objects (from allAssets array)
+
+/**
+ * Set of currently selected asset objects.
+ * @type {Set<Object>}
+ */
+const selectedAssets = new Set();
 
 // DOM Elements
 let toggleMultiSelectButton;
@@ -650,21 +658,41 @@ async function applyBulkUploadedTexture() {
 /**
  * Toggles the excluded state of all currently selected assets
  */
+/**
+ * Toggles the excluded state of all currently selected assets.
+ * Updates both the UI and the underlying asset data.
+ * @returns {void}
+ */
 function toggleExcludeSelected() {
     if (selectedAssets.size === 0) {
-        alert('No assets selected to exclude.');
+        const errorMsg = 'No assets selected to exclude.';
+        console.warn(errorMsg);
+        if (window.updateConsoleLog) {
+            window.updateConsoleLog(`[WARNING] ${errorMsg}`);
+        }
+        alert(errorMsg);
         return;
     }
-
-    // Determine if we're excluding or including (if any selected asset is not excluded, we'll exclude all)
+    
+    // Check if any selected assets are not excluded
     const anyIncluded = Array.from(selectedAssets).some(asset => !asset.excluded);
-    const newExcludedState = anyIncluded;
-
-    // Update all selected assets
+    const newExcludedState = anyIncluded; // Will be true if any are included, false if all are excluded
+    
+    // Update all selected assets in both selectedAssets and the global allAssets
     selectedAssets.forEach(asset => {
+        // Store the previous state for logging
+        const wasExcluded = asset.excluded;
+        
+        // Update the excluded state in the selected asset
         asset.excluded = newExcludedState;
         
-        // Update the card's visual state
+        // Also update the asset in the global allAssets array
+        const globalAssetIndex = window.allAssets.findIndex(a => a.id === asset.id);
+        if (globalAssetIndex !== -1) {
+            window.allAssets[globalAssetIndex].excluded = newExcludedState;
+        }
+        
+        // Update the UI
         if (asset.cardElement) {
             if (newExcludedState) {
                 asset.cardElement.classList.add('excluded');
@@ -672,21 +700,30 @@ function toggleExcludeSelected() {
                 asset.cardElement.classList.remove('excluded');
             }
         }
+        
+        // Debug log for each asset's state change
+        console.log(`Asset ${asset.filename}: excluded changed from ${wasExcluded} to ${newExcludedState}`, asset);
     });
-
-    // Update the button text based on the action
+    
+    // Save the excluded state to sessionStorage
+    if (window.saveExcludedState && typeof window.saveExcludedState === 'function') {
+        window.saveExcludedState();
+    }
+    
+    // Update the UI feedback
     const action = newExcludedState ? 'Excluded' : 'Included';
     const count = selectedAssets.size;
-    
-    // Show a temporary message
     const originalText = toggleExcludeButton.textContent;
+    
+    // Update button text
     toggleExcludeButton.textContent = `${action} ${count} asset${count > 1 ? 's' : ''}`;
     
     // Log the action
-    console.log(`${action} ${count} asset${count > 1 ? 's' : ''} from export`);
-    window.updateConsoleLog(`${action} ${count} asset${count > 1 ? 's' : ''} from export`);
+    const logMessage = `${action} ${count} asset${count > 1 ? 's' : ''} from export`;
+    console.log(logMessage);
+    window.updateConsoleLog(logMessage);
     
-    // Reset the button text after a delay
+    // Reset button text after delay
     setTimeout(() => {
         toggleExcludeButton.textContent = originalText;
     }, 2000);
@@ -695,6 +732,9 @@ function toggleExcludeSelected() {
     setTimeout(() => {
         closeBulkOperationsModal();
     }, 1500);
+    
+    // Debug: Log the current state of allAssets
+    console.log('Current allAssets state after exclusion:', window.allAssets);
 }
 
 /**
