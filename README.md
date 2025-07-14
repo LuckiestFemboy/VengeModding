@@ -8,7 +8,7 @@ This is a fork of Charm's Modding Repository for **Venge**, where I’ve made a 
 - 🧱 Preserved all features from the original repo  
 - 🔄 Regularly synced with updates from Charm’s repository
 
-Nothing too wild — just a more polished version of the original modding tools.
+Nothing insane just a polished version of the original with tweaks and fixes
 
 ## 📁 Original Repository
 
