@@ -12,7 +12,7 @@ Nothing insane just a polished version of the original with tweaks and fixes
 
 ## 🙌 Credits
 
-- Original repo by [Charm](https://github.com/CharmsMods/Modding-Repository-V2-Official-)  
+- Charms Orignal [Repo](https://github.com/CharmsMods/Modding-Repository-V2-Official-)  
 - Modded fork by me
 
 ---
