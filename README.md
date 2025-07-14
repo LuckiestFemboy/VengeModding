@@ -1,6 +1,6 @@
 # Venge Modding Repository (Charm Fork)
 
-All credit goes to **[Charm](https://github.com/CharmRepositoryLinkHere)**.  
+All credit goes to **[Charm](https://github.com/charmsmods)**.  
 This is a fork of Charm's Modding Repository for **Venge**, where I’ve made a few changes:
 
 - ⚡ Enhanced performance  
@@ -10,13 +10,9 @@ This is a fork of Charm's Modding Repository for **Venge**, where I’ve made a 
 
 Nothing insane just a polished version of the original with tweaks and fixes
 
-## 📁 Original Repository
-
-Check out the original here: [Charm’s Modding Repository](https://github.com/CharmRepositoryLinkHere)
-
 ## 🙌 Credits
 
-- Original repo by [Charm](https://github.com/CharmRepositoryLinkHere)  
+- Original repo by [Charm](https://github.com/CharmsMods/Modding-Repository-V2-Official-)  
 - Modded fork by me
 
 ---
