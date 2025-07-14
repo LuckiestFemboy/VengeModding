@@ -8,9 +8,6 @@ body {
     padding: 0;
     overflow-x: hidden;
     background-color: #1c1f26;
-}
-
-* {
     font-family: "cub", sans-serif;
 }
 
@@ -29,6 +26,7 @@ header {
     flex-direction: column;
     justify-content: flex-start;
     align-items: center;
+    gap: 15px;
 }
 
 .content {
@@ -47,76 +45,69 @@ header {
     max-width: 100%;
 }
 
-
 .texture-card {
     background: rgba(255, 255, 255, 0.05);
-    border-radius: 16px;
     cursor: pointer;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     width: 100%;
     max-width: 380px;
-    height: 420px; /* Fixed height for consistent card size for non-MP3s */
+    height: 420px;
     display: flex;
     flex-direction: column;
     position: relative;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
     padding: 0;
     margin: 0 auto;
     border: 1px solid rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(10px);
-    overflow: hidden; /* Keep hidden for non-MP3s */
+    overflow: hidden;
 }
 
 .texture-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
     border-color: rgba(108, 92, 231, 0.3);
 }
 
-/* Style for edited cards */
 .texture-card.edited-card {
-    background: #ffffff; /* Full white background */
-    border: 2px solid #6c5ce7; /* Highlight border */
-    box-shadow: 0 4px 20px rgba(108, 92, 231, 0.4); /* Stronger shadow */
-    color: #1a1a1a; /* Dark text for legibility on white background */
+    background: #ffffff;
+    border: 2px solid #6c5ce7;
+    box-shadow: 0 4px 20px rgba(108, 92, 231, 0.4);
+    color: #1a1a1a;
 }
 
 .texture-card.edited-card .texture-filename,
 .texture-card.edited-card .texture-name,
 .texture-card.edited-card .mp3-filename-display,
 .texture-card.edited-card .folder-number-button {
-    color: #1a1a1a; /* Ensure text is dark on white background */
+    color: #1a1a1a;
 }
 
-/* MP3-specific card styling (consolidated layout) */
 .texture-card.mp3 {
-    height: auto; /* Let content dictate height */
-    min-height: 220px; /* Minimum height for consolidated MP3 card */
-    max-height: none; /* Allow it to expand vertically */
+    height: auto;
+    min-height: 220px;
+    max-height: none;
     display: flex;
-    flex-direction: column; /* Stack contents vertically */
-    align-items: center; /* Center items horizontally within the card */
-    justify-content: space-between; /* Push elements to top/bottom, space in between */
-    padding: 1rem; /* Overall internal padding for the card */
-    background: rgba(108, 92, 231, 0.15); /* A slightly stronger purple tint for the whole card */
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    background: rgba(108, 92, 231, 0.15);
     border: 1px solid rgba(108, 92, 231, 0.25);
-    overflow: hidden; /* Re-enable overflow hidden for the main card */
+    overflow: hidden;
+    gap: 1.25rem;
 }
 
-/* MP3 specific edited card style */
 .texture-card.mp3.edited-card {
-    background: #e6e6ff; /* A lighter purplish tint for MP3 edited cards */
-    border: 2px solid #fd79a8; /* Highlight border */
-    box-shadow: 0 4px 20px rgba(253, 121, 168, 0.4);
-    color: #1a1a1a; /* Dark text */
+    background: #e6e6ff;
+    border: 2px solid #3498db;
+    box-shadow: 0 4px 20px rgba(52, 152, 219, 0.4);
+    color: #1a1a1a;
 }
 
-
-/* Media container (for PNG/JPG cards) */
 .media-container {
     width: 100%;
     height: 250px;
-    border-radius: 16px 16px 0 0;
     overflow: hidden;
     background: rgba(255, 255, 255, 0.03);
     position: relative;
@@ -134,78 +125,42 @@ header {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform 0.3s ease;
 }
 
-.media-image:hover {
-    transform: scale(1.03);
-}
-
-/* Play icon (now direct child of .texture-card.mp3) */
 .media-icon {
-    font-size: 3rem; /* Make it a bit bigger as it's more central */
+    font-size: 2.5rem;
     color: #6c5ce7;
     cursor: pointer;
     transition: all 0.2s ease;
-    margin-bottom: 0.75rem; /* Space below icon */
-    flex-shrink: 0; /* Don't shrink icon */
+    flex-shrink: 0;
+    margin-bottom: 0;
 }
 
 .media-icon:hover {
     transform: scale(1.1);
-    color: #fd79a8;
+    color: #3498db;
 }
 
-/* Style for the MP3 filename displayed prominently on the card */
 .mp3-filename-display {
-    font-size: 1.1rem; /* Larger font */
-    color: #ffffff; /* White color for good contrast */
-    font-weight: 600; /* Bolder font */
+    font-size: 1.1rem;
+    color: #ffffff;
+    font-weight: 600;
     text-align: center;
-    word-break: break-word; /* Allow long words to break */
-    white-space: normal; /* Ensure text wraps */
-    padding: 0 0.5rem; /* Horizontal padding */
-    flex-grow: 1; /* Allow it to take up available vertical space */
-    display: flex; /* Use flex to center text vertically if it's short */
+    word-break: break-word;
+    padding: 0 0.5rem;
+    flex-grow: 1;
+    display: flex;
     align-items: center;
     justify-content: center;
-    line-height: 1.4; /* Better line spacing for readability */
-    max-height: 5.6em; /* Max 4 lines (1.4em * 4 lines) before truncation */
+    line-height: 1.4;
+    max-height: 5.6em;
     overflow: hidden;
     text-overflow: ellipsis;
     -webkit-line-clamp: 4;
     -webkit-box-orient: vertical;
-    margin-bottom: 0.5rem; /* Space below filename */
+    margin-bottom: 0;
 }
 
-/* Folder Number Button (now direct child of .texture-card.mp3) */
-.folder-number-button {
-    background: rgba(253, 121, 168, 0.2);
-    border: 1px solid rgba(253, 121, 168, 0.4);
-    color: #ffffff;
-    padding: 0.5rem 0.8rem; /* More padding */
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 0.9rem; /* Slightly larger */
-    font-weight: 500;
-    text-align: center;
-    transition: all 0.2s ease;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 80%; /* Don't let it stretch full width */
-    width: auto; /* Shrink to content if max-width permits */
-    margin-bottom: 1rem; /* Space before the buttons wrapper */
-    flex-shrink: 0; /* Don't shrink button */
-}
-
-.folder-number-button:hover {
-    background: rgba(253, 121, 168, 0.3);
-    border-color: rgba(253, 121, 168, 0.6);
-    transform: translateY(-1px);
-}
-
-/* Info section (for PNG/JPG cards) */
 .texture-info {
     display: flex;
     flex-direction: column;
@@ -213,14 +168,12 @@ header {
     padding: 0.75rem;
     width: 100%;
     background: transparent;
-    border-radius: 0 0 16px 16px;
     position: relative;
     flex: 1;
     justify-content: space-between;
-    overflow: hidden; /* Keep hidden for text info section */
+    overflow: hidden;
 }
 
-/* File info section - Left side text content (within texture-info for PNG/JPG) */
 .file-info {
     flex-grow: 1;
     display: flex;
@@ -231,7 +184,6 @@ header {
     padding-bottom: 0.5rem;
 }
 
-/* Styles for texture-filename (only applies to PNG/JPG cards) */
 .texture-filename {
     font-size: 0.9rem;
     color: #ffffff;
@@ -245,7 +197,7 @@ header {
     -webkit-box-orient: vertical;
 }
 
-.texture-name { /* This is for the folder name / Artist - Album (only for PNG/JPG) */
+.texture-name {
     font-size: 0.8rem;
     color: #6c5ce7;
     font-weight: 400;
@@ -258,28 +210,34 @@ header {
     -webkit-box-orient: vertical;
 }
 
-/* Wrapper for MP3 action buttons (now direct child of .texture-card.mp3) */
 .mp3-buttons-wrapper {
     display: flex;
-    flex-direction: column; /* Stack download and copy buttons vertically */
+    flex-direction: column;
     gap: 0.5rem;
-    width: 80%; /* Control button width relative to card */
-    margin-top: auto; /* Push wrapper to the bottom of the card */
-    align-items: center; /* Center buttons within wrapper */
-    flex-shrink: 0; /* Prevent wrapper from shrinking too much */
+    width: 90%;
+    margin-top: 0;
+    align-items: center;
+    flex-shrink: 0;
 }
 
-/* Download and Copy Folder buttons (now inside .mp3-buttons-wrapper) */
+.buttons-container {
+    display: flex;
+    gap: 0.5rem;
+    width: 100%;
+    justify-content: space-around;
+    flex-shrink: 0;
+}
+
 .download-button,
-.copy-folder-button {
-    background: rgba(255, 255, 255, 0.15); /* Consistent with new card background */
+.copy-folder-button,
+.buttons-container .copy-button {
+    background: rgba(255, 255, 255, 0.15);
     border: 1px solid rgba(255, 255, 255, 0.25);
     color: #ffffff;
-    padding: 0.6rem 1rem; /* Slightly more padding */
-    border-radius: 6px;
+    padding: 0.6rem 1rem;
     cursor: pointer;
-    font-size: 0.85rem; /* Slightly larger font */
-    width: 100%; /* Make them fill their wrapper */
+    font-size: 0.85rem;
+    width: 100%;
     transition: all 0.2s ease;
     font-weight: 500;
     text-align: center;
@@ -288,56 +246,37 @@ header {
     text-overflow: ellipsis;
 }
 
+.buttons-container .download-button,
+.buttons-container .copy-button {
+    background: rgba(108, 92, 231, 0.2);
+    border: 1px solid rgba(108, 92, 231, 0.4);
+    width: auto;
+    min-width: 70px;
+    padding: 0.5rem 0.6rem;
+    font-size: 0.75rem;
+}
+
 .download-button:hover,
-.copy-folder-button:hover {
+.copy-folder-button:hover,
+.buttons-container .download-button:hover,
+.buttons-container .copy-button:hover {
     background: rgba(255, 255, 255, 0.25);
     border-color: rgba(255, 255, 255, 0.4);
     transform: translateY(-1px);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-/* Adjustments for general buttons-container (for non-MP3 cards) */
-.buttons-container {
-    display: flex;
-    flex-direction: row;
-    gap: 0.5rem;
-    justify-content: flex-end;
-    flex-shrink: 0;
-}
-
-.buttons-container .download-button,
-.buttons-container .copy-button { /* Use .copy-button for non-MP3s */
-    background: rgba(108, 92, 231, 0.2);
-    border: 1px solid rgba(108, 92, 231, 0.4);
-    color: #ffffff;
-    padding: 0.5rem 0.6rem;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 0.75rem;
-    width: auto;
-    min-width: 70px;
-    transition: all 0.2s ease;
-    font-weight: 500;
-    text-align: center;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
 .buttons-container .download-button:hover,
 .buttons-container .copy-button:hover {
     background: rgba(108, 92, 231, 0.3);
     border-color: rgba(108, 92, 231, 0.6);
-    transform: translateY(-1px);
 }
 
-/* New button for editing/creating assets on each card */
 .edit-asset-button {
-    background: linear-gradient(135deg, #fd79a8, #eb3b5a); /* Reddish gradient for edit */
+    background: linear-gradient(135deg, #3498db, #2980b9);
     border: none;
     color: white;
     padding: 0.5rem 0.6rem;
-    border-radius: 6px;
     font-size: 0.75rem;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -355,217 +294,39 @@ header {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-/* Folder Number Button (now direct child of .texture-card.mp3) */
 .folder-number-button {
-    background: rgba(253, 121, 168, 0.2);
-    border: 1px solid rgba(253, 121, 168, 0.4);
+    background: rgba(52, 152, 219, 0.2);
+    border: 1px solid rgba(52, 152, 219, 0.4);
     color: #ffffff;
-    padding: 0.5rem 0.8rem; /* More padding */
-    border-radius: 6px;
+    padding: 0.5rem 0.8rem;
     cursor: pointer;
-    font-size: 0.9rem; /* Slightly larger */
-    font-weight: 500;
-    text-align: center;
-    transition: all 0.2s ease;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 80%; /* Don't let it stretch full width */
-    width: auto; /* Shrink to content if max-width permits */
-    margin-bottom: 1rem; /* Space before the buttons wrapper */
-    flex-shrink: 0; /* Don't shrink button */
-}
-
-.folder-number-button:hover {
-    background: rgba(253, 121, 168, 0.3);
-    border-color: rgba(253, 121, 168, 0.6);
-    transform: translateY(-1px);
-}
-
-/* Info section (for PNG/JPG cards) */
-.texture-info {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    padding: 0.75rem;
-    width: 100%;
-    background: transparent;
-    border-radius: 0 0 16px 16px;
-    position: relative;
-    flex: 1;
-    justify-content: space-between;
-    overflow: hidden; /* Keep hidden for text info section */
-}
-
-/* File info section - Left side text content (within texture-info for PNG/JPG) */
-.file-info {
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 0.3rem;
-    justify-content: flex-start;
-    min-width: 0;
-    padding-bottom: 0.5rem;
-}
-
-/* Styles for texture-filename (only applies to PNG/JPG cards) */
-.texture-filename {
     font-size: 0.9rem;
-    color: #ffffff;
-    font-weight: 500;
-    word-break: break-word;
-    line-height: 1.3;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-}
-
-.texture-name { /* This is for the folder name / Artist - Album (only for PNG/JPG) */
-    font-size: 0.8rem;
-    color: #6c5ce7;
-    font-weight: 400;
-    word-break: break-word;
-    line-height: 1.2;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-}
-
-/* Wrapper for MP3 action buttons (now direct child of .texture-card.mp3) */
-.mp3-buttons-wrapper {
-    display: flex;
-    flex-direction: column; /* Stack download and copy buttons vertically */
-    gap: 0.5rem;
-    width: 80%; /* Control button width relative to card */
-    margin-top: auto; /* Push wrapper to the bottom of the card */
-    align-items: center; /* Center buttons within wrapper */
-    flex-shrink: 0; /* Prevent wrapper from shrinking too much */
-}
-
-/* Download and Copy Folder buttons (now inside .mp3-buttons-wrapper) */
-.download-button,
-.copy-folder-button {
-    background: rgba(255, 255, 255, 0.15); /* Consistent with new card background */
-    border: 1px solid rgba(255, 255, 255, 0.25);
-    color: #ffffff;
-    padding: 0.6rem 1rem; /* Slightly more padding */
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 0.85rem; /* Slightly larger font */
-    width: 100%; /* Make them fill their wrapper */
-    transition: all 0.2s ease;
     font-weight: 500;
     text-align: center;
+    transition: all 0.2s ease;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-}
-
-.download-button:hover,
-.copy-folder-button:hover {
-    background: rgba(255, 255, 255, 0.25);
-    border-color: rgba(255, 255, 255, 0.4);
-    transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-/* Adjustments for general buttons-container (for non-MP3 cards) */
-.buttons-container {
-    display: flex;
-    flex-direction: row;
-    gap: 0.5rem;
-    justify-content: flex-end;
+    max-width: 80%;
+    width: auto;
+    margin-bottom: 0;
     flex-shrink: 0;
 }
 
-.buttons-container .download-button,
-.buttons-container .copy-button { /* Use .copy-button for non-MP3s */
-    background: rgba(108, 92, 231, 0.2);
-    border: 1px solid rgba(108, 92, 231, 0.4);
-    color: #ffffff;
-    padding: 0.5rem 0.6rem;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 0.75rem;
-    width: auto;
-    min-width: 70px;
-    transition: all 0.2s ease;
-    font-weight: 500;
-    text-align: center;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.buttons-container .download-button:hover,
-.buttons-container .copy-button:hover {
-    background: rgba(108, 92, 231, 0.3);
-    border-color: rgba(108, 92, 231, 0.6);
+.folder-number-button:hover {
+    background: rgba(52, 152, 219, 0.3);
+    border-color: rgba(52, 152, 219, 0.6);
     transform: translateY(-1px);
 }
 
-/* New button for editing/creating assets on each card */
-.edit-asset-button {
-    background: linear-gradient(135deg, #fd79a8, #eb3b5a); /* Reddish gradient for edit */
-    border: none;
-    color: white;
-    padding: 0.5rem 0.6rem;
-    border-radius: 6px;
-    font-size: 0.75rem;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    width: auto;
-    min-width: 70px;
-    font-weight: 500;
-    text-align: center;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.edit-asset-button:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-/* New: Styles for multi-select mode */
-body.multi-select-active .texture-card:not(.mp3) {
-    cursor: pointer; /* Change cursor for clickable cards */
-    border: 1px solid rgba(255, 255, 255, 0.1); /* Reset border */
-}
-
-body.multi-select-active .texture-card:not(.mp3):hover {
-    transform: translateY(-2px); /* Less aggressive hover in select mode */
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-    border-color: #6c5ce7; /* Highlight hover */
-}
-
-body.multi-select-active .texture-card:not(.mp3) .buttons-container {
-    opacity: 0.3; /* Dim edit/copy/download buttons in multi-select mode */
-    pointer-events: none; /* Disable clicks on these buttons */
-}
-
-body.multi-select-active .texture-card:not(.mp3) .edit-asset-button,
-body.multi-select-active .texture-card:not(.mp3) .copy-button,
-body.multi-select-active .texture-card:not(.mp3) .download-button {
-    cursor: not-allowed;
-}
-
-
-/* New: Style for selected cards in multi-select mode */
 .texture-card.selected-for-bulk {
-    background: rgba(108, 92, 231, 0.3); /* Purple background */
-    border: 3px solid #fd79a8; /* Pink border */
-    box-shadow: 0 0 25px rgba(253, 121, 168, 0.5), inset 0 0 15px rgba(253, 121, 168, 0.3); /* Inner and outer glow */
-    transform: scale(1.02); /* Slightly larger when selected */
-    z-index: 10; /* Bring selected card to front */
+    background: rgba(108, 92, 231, 0.3);
+    border: 3px solid #3498db;
+    box-shadow: 0 0 25px rgba(52, 152, 219, 0.5), inset 0 0 15px rgba(52, 152, 219, 0.3);
+    transform: scale(1.02);
+    z-index: 10;
 }
 
-/* New: Checkbox visual for selectable cards */
 .texture-card .select-checkbox {
     position: absolute;
     top: 10px;
@@ -574,26 +335,75 @@ body.multi-select-active .texture-card:not(.mp3) .download-button {
     height: 24px;
     background-color: rgba(255, 255, 255, 0.8);
     border: 2px solid #6c5ce7;
-    border-radius: 6px;
     cursor: pointer;
     display: flex;
     justify-content: center;
     align-items: center;
     font-size: 1.2rem;
-    color: transparent; /* Initially transparent checkmark */
+    color: transparent;
     transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
-    z-index: 20; /* Ensure checkbox is on top */
-    opacity: 0; /* Hidden by default, shown in multi-select mode */
-    pointer-events: none; /* Disable clicks outside multi-select mode */
-}
-
-body.multi-select-active .texture-card:not(.mp3) .select-checkbox {
-    opacity: 1; /* Show checkbox in multi-select mode for image cards */
-    pointer-events: auto; /* Enable clicks */
+    z-index: 20;
+    opacity: 0;
+    pointer-events: none;
 }
 
 .texture-card.selected-for-bulk .select-checkbox {
-    background-color: #6c5ce7; /* Checked state background */
-    border-color: #fd79a8;
-    color: white; /* Show checkmark */
+    background-color: #6c5ce7;
+    border-color: #3498db;
+    color: white;
+}
+
+.header-search {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background-color: rgba(255, 255, 255, 0.05);
+    color: #fff;
+    font-size: 1rem;
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+
+.header-search::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.header-button,
+.edit-selected-button {
+    width: 100%;
+    padding: 12px 10px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s ease;
+    border-radius: 5px;
+}
+
+.header-button:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.3);
+    transform: translateY(-1px);
+}
+
+.edit-selected-button {
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    border: none;
+    font-weight: 600;
+}
+
+.edit-selected-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.assets-count {
+    width: 100%;
+    padding: 10px 0;
+    text-align: center;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.85rem;
 }
