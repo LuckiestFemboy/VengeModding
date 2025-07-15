@@ -7,7 +7,7 @@ body {
     margin: 0;
     padding: 0;
     overflow-x: hidden;
-    background-color: #1c1f26;
+    background-color: #1c1f26; /* Dark background, similar to Discord */
     font-family: "cub", sans-serif;
 }
 
@@ -17,7 +17,7 @@ header {
     left: 0;
     width: 200px;
     height: 100vh;
-    background-color: #16181d;
+    background-color: #16181d; /* Darker header, Discord-like */
     color: #fff;
     padding: 20px;
     border-right: 3px solid rgba(255, 255, 255, 0.1);
@@ -27,6 +27,87 @@ header {
     justify-content: flex-start;
     align-items: center;
     gap: 15px;
+}
+
+header h1 {
+    font-size: 1.8rem;
+    color: #7289DA; /* Discord blurple for title */
+    margin-bottom: 15px;
+    text-shadow: 0 0 8px rgba(114, 137, 218, 0.3); /* Blurple glow */
+}
+
+header input {
+    /* Basic Input Styles (Inherited from .header-search) */
+    width: 100%;
+    padding: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background-color: rgba(255, 255, 255, 0.05);
+    color: #fff;
+    font-size: 1rem;
+    border-radius: 5px;
+    box-sizing: border-box;
+    outline: none;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+header input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+header input:focus {
+    border-color: #7289DA; /* Highlight border with Discord blurple on focus */
+    box-shadow: 0 0 0 3px rgba(114, 137, 218, 0.3); /* Soft blurple glow effect on focus */
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* For number inputs, remove default spin buttons for a cleaner look */
+header input[type="number"]::-webkit-outer-spin-button,
+header input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+header input[type="number"] {
+    -moz-appearance: textfield; /* Firefox */
+}
+
+header button {
+    /* Basic Button Styles */
+    width: 100%;
+    padding: 12px 10px;
+    border: none; /* Discord buttons typically have no visible border */
+    border-radius: 8px; /* Keeping existing border-radius as it fits Discord style */
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    margin-bottom: 10px;
+    margin-top: 10px;
+    
+    /* Discord-like Background & Color */
+    background-color: #7289DA; /* A classic Discord light purple/blue */
+    color: white;
+    
+    /* Subtle Shadows & Transitions */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3); /* Softer, less glowing shadow */
+    transition: all 0.2s ease; /* Faster, snappier transitions */
+    
+    /* No text shadow for a cleaner Discord look */
+    text-shadow: none; 
+}
+
+header button:hover {
+    transform: translateY(-2px); /* Slightly less lift on hover */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5); /* Slightly more pronounced shadow on hover */
+    background-color: #677BC4; /* A darker shade of Discord blue/purple on hover */
+    border-color: transparent; /* Ensure no border appears on hover */
+}
+
+header button:active {
+    transform: translateY(0); /* Pushes the button down on click */
+    box-shadow: 0 1px 3px rgba(0,0,0,0.4); /* Smaller, more immediate shadow on active */
+    background-color: #5B6FAE; /* Even darker for the active state */
 }
 
 .content {
@@ -46,9 +127,9 @@ header {
 }
 
 .texture-card {
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(47, 49, 54, 0.8); /* Darker card background, similar to Discord channels */
     cursor: pointer;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3); /* Slightly stronger shadow for depth */
     width: 100%;
     max-width: 380px;
     height: 420px;
@@ -58,29 +139,29 @@ header {
     transition: all 0.2s ease;
     padding: 0;
     margin: 0 auto;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(60, 62, 68, 0.8); /* Subtle border for definition */
     backdrop-filter: blur(10px);
     overflow: hidden;
 }
 
 .texture-card:hover {
     transform: translateY(-3px);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
-    border-color: rgba(108, 92, 231, 0.3);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4); /* More pronounced shadow on hover */
+    border-color: #7289DA; /* Discord blurple border on hover */
 }
 
 .texture-card.edited-card {
-    background: #ffffff;
-    border: 2px solid #6c5ce7;
-    box-shadow: 0 4px 20px rgba(108, 92, 231, 0.4);
-    color: #1a1a1a;
+    background: #40444B; /* Lighter gray for edited card background */
+    border: 2px solid #7289DA; /* Discord blurple border for edited cards */
+    box-shadow: 0 4px 20px rgba(114, 137, 218, 0.4); /* Blurple glow for edited cards */
+    color: #ffffff; /* White text for contrast on darker background */
 }
 
 .texture-card.edited-card .texture-filename,
 .texture-card.edited-card .texture-name,
 .texture-card.edited-card .mp3-filename-display,
 .texture-card.edited-card .folder-number-button {
-    color: #1a1a1a;
+    color: #ffffff; /* Ensure text is white on edited cards */
 }
 
 .texture-card.mp3 {
@@ -92,24 +173,24 @@ header {
     align-items: center;
     justify-content: center;
     padding: 1rem;
-    background: rgba(108, 92, 231, 0.15);
-    border: 1px solid rgba(108, 92, 231, 0.25);
+    background: rgba(114, 137, 218, 0.15); /* Light blurple background for MP3 cards */
+    border: 1px solid rgba(114, 137, 218, 0.25); /* Blurple border for MP3 cards */
     overflow: hidden;
     gap: 1.25rem;
 }
 
 .texture-card.mp3.edited-card {
-    background: #e6e6ff;
-    border: 2px solid #3498db;
-    box-shadow: 0 4px 20px rgba(52, 152, 219, 0.4);
-    color: #1a1a1a;
+    background: #5B6FAE; /* Darker blurple for edited MP3 cards */
+    border: 2px solid #7289DA; /* Stronger blurple border for edited MP3 cards */
+    box-shadow: 0 4px 20px rgba(114, 137, 218, 0.4); /* Blurple glow */
+    color: #ffffff;
 }
 
 .media-container {
     width: 100%;
     height: 250px;
     overflow: hidden;
-    background: rgba(255, 255, 255, 0.03);
+    background: rgba(32, 34, 37, 0.8); /* Darker background for media container */
     position: relative;
     padding: 0;
     flex-shrink: 0;
@@ -129,7 +210,7 @@ header {
 
 .media-icon {
     font-size: 2.5rem;
-    color: #6c5ce7;
+    color: #7289DA; /* Discord blurple for media icons */
     cursor: pointer;
     transition: all 0.2s ease;
     flex-shrink: 0;
@@ -138,7 +219,7 @@ header {
 
 .media-icon:hover {
     transform: scale(1.1);
-    color: #3498db;
+    color: #677BC4; /* Darker blurple on hover */
 }
 
 .mp3-filename-display {
@@ -199,7 +280,7 @@ header {
 
 .texture-name {
     font-size: 0.8rem;
-    color: #6c5ce7;
+    color: #99AAB5; /* Discord light gray/blue for secondary text */
     font-weight: 400;
     word-break: break-word;
     line-height: 1.2;
@@ -231,8 +312,8 @@ header {
 .download-button,
 .copy-folder-button,
 .buttons-container .copy-button {
-    background: rgba(255, 255, 255, 0.15);
-    border: 1px solid rgba(255, 255, 255, 0.25);
+    background: rgba(153, 170, 181, 0.15); /* Light gray/blue subtle background */
+    border: 1px solid rgba(153, 170, 181, 0.25); /* Light gray/blue subtle border */
     color: #ffffff;
     padding: 0.6rem 1rem;
     cursor: pointer;
@@ -248,8 +329,8 @@ header {
 
 .buttons-container .download-button,
 .buttons-container .copy-button {
-    background: rgba(108, 92, 231, 0.2);
-    border: 1px solid rgba(108, 92, 231, 0.4);
+    background: rgba(114, 137, 218, 0.2); /* Light blurple background for inner buttons */
+    border: 1px solid rgba(114, 137, 218, 0.4); /* Blurple border for inner buttons */
     width: auto;
     min-width: 70px;
     padding: 0.5rem 0.6rem;
@@ -260,20 +341,20 @@ header {
 .copy-folder-button:hover,
 .buttons-container .download-button:hover,
 .buttons-container .copy-button:hover {
-    background: rgba(255, 255, 255, 0.25);
-    border-color: rgba(255, 255, 255, 0.4);
+    background: rgba(153, 170, 181, 0.25); /* Lighter gray/blue on hover */
+    border-color: rgba(153, 170, 181, 0.4); /* Lighter gray/blue border on hover */
     transform: translateY(-1px);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .buttons-container .download-button:hover,
 .buttons-container .copy-button:hover {
-    background: rgba(108, 92, 231, 0.3);
-    border-color: rgba(108, 92, 231, 0.6);
+    background: rgba(114, 137, 218, 0.3); /* Darker blurple on hover */
+    border-color: rgba(114, 137, 218, 0.6); /* Stronger blurple border on hover */
 }
 
 .edit-asset-button {
-    background: linear-gradient(135deg, #3498db, #2980b9);
+    background: linear-gradient(135deg, #7289DA, #677BC4); /* Discord blurple gradient */
     border: none;
     color: white;
     padding: 0.5rem 0.6rem;
@@ -291,12 +372,12 @@ header {
 
 .edit-asset-button:hover {
     transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .folder-number-button {
-    background: rgba(52, 152, 219, 0.2);
-    border: 1px solid rgba(52, 152, 219, 0.4);
+    background: rgba(114, 137, 218, 0.2); /* Light blurple background */
+    border: 1px solid rgba(114, 137, 218, 0.4); /* Blurple border */
     color: #ffffff;
     padding: 0.5rem 0.8rem;
     cursor: pointer;
@@ -314,15 +395,15 @@ header {
 }
 
 .folder-number-button:hover {
-    background: rgba(52, 152, 219, 0.3);
-    border-color: rgba(52, 152, 219, 0.6);
+    background: rgba(114, 137, 218, 0.3); /* Darker blurple on hover */
+    border-color: rgba(114, 137, 218, 0.6); /* Stronger blurple border on hover */
     transform: translateY(-1px);
 }
 
 .texture-card.selected-for-bulk {
-    background: rgba(108, 92, 231, 0.3);
-    border: 3px solid #3498db;
-    box-shadow: 0 0 25px rgba(52, 152, 219, 0.5), inset 0 0 15px rgba(52, 152, 219, 0.3);
+    background: rgba(114, 137, 218, 0.3); /* Blurple background for selected cards */
+    border: 3px solid #7289DA; /* Strong blurple border for selected cards */
+    box-shadow: 0 0 25px rgba(114, 137, 218, 0.5), inset 0 0 15px rgba(114, 137, 218, 0.3);
     transform: scale(1.02);
     z-index: 10;
 }
@@ -334,7 +415,7 @@ header {
     width: 24px;
     height: 24px;
     background-color: rgba(255, 255, 255, 0.8);
-    border: 2px solid #6c5ce7;
+    border: 2px solid #7289DA; /* Discord blurple border */
     cursor: pointer;
     display: flex;
     justify-content: center;
@@ -348,8 +429,8 @@ header {
 }
 
 .texture-card.selected-for-bulk .select-checkbox {
-    background-color: #6c5ce7;
-    border-color: #3498db;
+    background-color: #7289DA; /* Discord blurple background when selected */
+    border-color: #677BC4; /* Darker blurple border when selected */
     color: white;
 }
 
@@ -390,7 +471,7 @@ header {
 }
 
 .edit-selected-button {
-    background: linear-gradient(135deg, #3498db, #2980b9);
+    background: linear-gradient(135deg, #7289DA, #677BC4); /* Discord blurple gradient */
     border: none;
     font-weight: 600;
 }
